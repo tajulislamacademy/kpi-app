@@ -150,7 +150,7 @@ const initEntries=[
 export default function App() {
   const [lang,setLang]=useState("bn");
   const t=T[lang];
-  const [currentUser,setCurrentUser]=useState(null);
+  const [currentUser,setCurrentUser]=useLocalStorage("kpi_currentUser",null);
   const [activeTab,setActiveTab]=useState("dashboard");
   const [teachers,setTeachers]=useLocalStorage("kpi_teachers",initTeachers);
   const [students,setStudents]=useLocalStorage("kpi_students",initStudents);
