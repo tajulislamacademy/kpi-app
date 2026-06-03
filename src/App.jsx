@@ -1,5 +1,11 @@
 import { useState } from "react";
 
+function useLocalStorage(key,init){
+  const [val,setVal]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
+  const set=v=>{setVal(prev=>{const next=typeof v==="function"?v(prev):v;try{localStorage.setItem(key,JSON.stringify(next));}catch{}return next;});};
+  return[val,set];
+}
+
 const T = {
   bn: {
     appTitle:"শিক্ষার্থী KPI সিস্টেম", dashboard:"ড্যাশবোর্ড", teachers:"শিক্ষক",
@@ -146,13 +152,13 @@ export default function App() {
   const t=T[lang];
   const [currentUser,setCurrentUser]=useState(null);
   const [activeTab,setActiveTab]=useState("dashboard");
-  const [teachers,setTeachers]=useState(initTeachers);
-  const [students,setStudents]=useState(initStudents);
-  const [parents,setParents]=useState(initParents);
-  const [questions,setQuestions]=useState(initQuestions);
-  const [entries,setEntries]=useState(initEntries);
-  const [admins,setAdmins]=useState([{id:0,systemId:"ADM-20260001",name:"অ্যাডমিন",nameEn:"Admin",password:"admin",isRoot:true}]);
-  const [termConfig,setTermConfig]=useState({term1:[0,1,2],term2:[3,4,5],term3:[6,7,8],term4:[9,10,11]});
+  const [teachers,setTeachers]=useLocalStorage("kpi_teachers",initTeachers);
+  const [students,setStudents]=useLocalStorage("kpi_students",initStudents);
+  const [parents,setParents]=useLocalStorage("kpi_parents",initParents);
+  const [questions,setQuestions]=useLocalStorage("kpi_questions",initQuestions);
+  const [entries,setEntries]=useLocalStorage("kpi_entries",initEntries);
+  const [admins,setAdmins]=useLocalStorage("kpi_admins",[{id:0,systemId:"ADM-20260001",name:"অ্যাডমিন",nameEn:"Admin",password:"admin",isRoot:true}]);
+  const [termConfig,setTermConfig]=useLocalStorage("kpi_termConfig",{term1:[0,1,2],term2:[3,4,5],term3:[6,7,8],term4:[9,10,11]});
   const [notif,setNotif]=useState("");
   const showNotif=(msg)=>{setNotif(msg);setTimeout(()=>setNotif(""),3500);};
   const curYear=new Date().getFullYear();
