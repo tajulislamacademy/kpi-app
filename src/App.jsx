@@ -49,7 +49,7 @@ const T = {
     wrongPassword:"বর্তমান পাসওয়ার্ড ভুল",
     myRank:"আমার র‍্যাংক", myMonthly:"মাসিক পয়েন্ট", myYearly:"বার্ষিক পয়েন্ট",
     progressChart:"অগ্রগতি চার্ট",
-    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",
+    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",
   },
   en: {
     appTitle:"Student KPI System", dashboard:"Dashboard", teachers:"Teachers",
@@ -93,7 +93,7 @@ const T = {
     wrongPassword:"Current password is incorrect",
     myRank:"My Rank", myMonthly:"Monthly Points", myYearly:"Yearly Points",
     progressChart:"Progress Chart",
-    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",
+    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",
   }
 };
 
@@ -367,6 +367,11 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
   const [form,setForm]=useState({studentId:"",name:"",nameEn:"",relation:"father",password:"1234"});
   const [adminForm,setAdminForm]=useState({name:"",nameEn:"",password:"1234"});
   const [formErr,setFormErr]=useState("");
+  const [editParent,setEditParent]=useState(null);
+  const [parentForm,setParentForm]=useState({name:"",nameEn:"",password:"",relation:"father",status:"approved"});
+  const [confirmParentDel,setConfirmParentDel]=useState(null);
+  const openEditParent=p=>{setEditParent(p);setParentForm({name:p.name,nameEn:p.nameEn||"",password:p.password,relation:p.relation,status:p.status});};
+  const handleSaveParent=()=>{setParents(ps=>ps.map(x=>x.id===editParent.id?{...x,...parentForm}:x));setEditParent(null);showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");};
   const handleAddParent=()=>{
     setFormErr("");
     const st=students.find(s=>s.systemId===form.studentId);
@@ -412,6 +417,8 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
   const uBtn=(isOn)=>({padding:"5px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600,border:"1px solid",background:isOn?"#fee2e2":"#dcfce7",color:isOn?"#991b1b":"#15803d",borderColor:isOn?"#fca5a5":"#86efac"});
   const uRow={display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid #f8fafc"};
   return(<div style={S.page}>
+    {editParent&&(<div style={S.modalBg}><div style={S.modalBox}><h3 style={S.ct}>{lang==="bn"?"অভিভাবক সম্পাদনা":"Edit Parent"}</h3><div style={S.grid2}><div style={S.fg}><label style={S.lbl}>{t.parentName} (বাংলা)</label><input style={S.inp} value={parentForm.name} onChange={e=>setParentForm({...parentForm,name:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.parentName} (English)</label><input style={S.inp} value={parentForm.nameEn} onChange={e=>setParentForm({...parentForm,nameEn:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={parentForm.password} onChange={e=>setParentForm({...parentForm,password:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.relation}</label><select style={S.inp} value={parentForm.relation} onChange={e=>setParentForm({...parentForm,relation:e.target.value})}><option value="father">{t.father}</option><option value="mother">{t.mother}</option><option value="guardian">{t.guardian}</option></select></div><div style={S.fg}><label style={S.lbl}>{lang==="bn"?"অবস্থা":"Status"}</label><select style={S.inp} value={parentForm.status} onChange={e=>setParentForm({...parentForm,status:e.target.value})}><option value="approved">{t.approved}</option><option value="pending">{t.pending}</option><option value="rejected">{t.rejected}</option></select></div></div><div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSaveParent} style={S.saveBtn}>{t.save}</button><button onClick={()=>setEditParent(null)} style={S.cancelBtn}>{t.cancel}</button></div></div></div>)}
+    {confirmParentDel&&<ConfirmDialog lang={lang} name={confirmParentDel.name} onConfirm={()=>{setParents(ps=>ps.filter(x=>x.id!==confirmParentDel.id));setConfirmParentDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmParentDel(null)}/>}
     <div style={S.ph}>
       <div><h2 style={S.pt}>{t.accountManagement}</h2></div>
       {tab==="admin"
@@ -454,8 +461,8 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
     </div>
     {tab!=="admin"&&(<>
       <div style={S.card}>{current.length===0?<div style={S.empty}>{lang==="bn"?"কোনো অ্যাকাউন্ট নেই":"No accounts"}</div>:(
-        <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th>{tab==="pending"&&<th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th>}</tr></thead>
-        <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td>{tab==="pending"&&<td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#dcfce7",color:"#15803d",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></div></td>}</tr>);})}</tbody></table></div>
+        <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
+        <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td><td style={S.td}><div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{tab==="pending"&&<><button onClick={()=>approve(p.id)} style={{padding:"4px 8px",background:"#dcfce7",color:"#15803d",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>✅</button><button onClick={()=>reject(p.id)} style={{padding:"4px 8px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>❌</button></>}<button onClick={()=>openEditParent(p)} style={{padding:"4px 8px",background:"#eef2ff",color:"#6366f1",border:"1px solid #c7d2fe",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>✏️</button><button onClick={()=>setConfirmParentDel({id:p.id,name:p.name})} style={{padding:"4px 8px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>🗑️</button></div></td></tr>);})}</tbody></table></div>
       )}</div>
       <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষক অ্যাকাউন্ট":"Teacher Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?tc.name:tc.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><code>{tc.password}</code></td></tr>))}</tbody></table></div></div>
       <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষার্থী অ্যাকাউন্ট":"Student Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{students.map((s,i)=>(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?s.name:s.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}><code>{s.password}</code></td></tr>))}</tbody></table></div></div>
@@ -508,25 +515,40 @@ function ProfilePage({t,lang,currentUser,onPasswordChange}){
       <button onClick={handle} style={S.saveBtn}>{t.changePassword}</button>
     </div>
   </div></div>);}
-  function TeachersPage({t,lang,teachers,setTeachers,students,showNotif}){
+  function ConfirmDialog({lang,name,onConfirm,onCancel}){
+  return(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:360,textAlign:"center"}}><div style={{fontSize:40,marginBottom:8}}>⚠️</div><h3 style={{...S.ct,marginBottom:8}}>{lang==="bn"?"নিশ্চিত করুন?":"Confirm Delete?"}</h3><p style={{fontSize:14,color:"#64748b",marginBottom:20}}>{lang==="bn"?`"${name}" মুছে ফেলবেন?`:`Delete "${name}"?`}</p><div style={{display:"flex",gap:8,justifyContent:"center"}}><button onClick={onConfirm} style={{padding:"9px 24px",background:"#ef4444",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:700}}>{lang==="bn"?"হ্যাঁ, মুছুন":"Yes, Delete"}</button><button onClick={onCancel} style={S.cancelBtn}>{lang==="bn"?"না":"Cancel"}</button></div></div></div>);}
+function TeachersPage({t,lang,teachers,setTeachers,students,showNotif}){
   const [showForm,setShowForm]=useState(false);
+  const [editId,setEditId]=useState(null);
   const [form,setForm]=useState({name:"",nameEn:"",password:"1234",classTeacher:null,subjectAssignments:[],guideStudents:[]});
   const [newAssign,setNewAssign]=useState({class:"8",section:"A",subject:SUBJECTS[0]});
   const [hasClass,setHasClass]=useState(false);
+  const [confirmDel,setConfirmDel]=useState(null);
+  const blank={name:"",nameEn:"",password:"1234",classTeacher:null,subjectAssignments:[],guideStudents:[]};
   const addAssign=()=>{if(form.subjectAssignments.find(a=>a.class===newAssign.class&&a.section===newAssign.section&&a.subject===newAssign.subject))return;setForm({...form,subjectAssignments:[...form.subjectAssignments,{...newAssign}]});};
   const removeAssign=i=>setForm({...form,subjectAssignments:form.subjectAssignments.filter((_,idx)=>idx!==i)});
   const toggleGuide=sid=>{const gs=form.guideStudents.includes(sid)?form.guideStudents.filter(x=>x!==sid):[...form.guideStudents,sid];setForm({...form,guideStudents:gs});};
+  const openAdd=()=>{setEditId(null);setForm(blank);setHasClass(false);setShowForm(true);};
+  const openEdit=tc=>{setEditId(tc.id);setForm({name:tc.name,nameEn:tc.nameEn||"",password:tc.password,classTeacher:tc.classTeacher||null,subjectAssignments:tc.subjectAssignments||[],guideStudents:tc.guideStudents||[]});setHasClass(!!tc.classTeacher);setShowForm(true);};
   const handleSave=()=>{
     if(!form.name){showNotif(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
-    const yr=new Date().getFullYear(),seq=teachers.length+1;
-    const nt={...form,id:Date.now(),systemId:genId("TCH",yr,seq),classTeacher:hasClass?form.classTeacher:null};
-    setTeachers(x=>[...x,nt]);setShowForm(false);setHasClass(false);
-    setForm({name:"",nameEn:"",password:"1234",classTeacher:null,subjectAssignments:[],guideStudents:[]});
-    showNotif(lang==="bn"?`শিক্ষক যোগ! ID: ${nt.systemId}`:`Teacher added! ID: ${nt.systemId}`);
+    if(editId){
+      setTeachers(x=>x.map(tc=>tc.id===editId?{...tc,...form,classTeacher:hasClass?(form.classTeacher||{class:"8",section:"A"}):null}:tc));
+      showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
+    }else{
+      const yr=new Date().getFullYear(),seq=teachers.length+1;
+      const nt={...form,id:Date.now(),systemId:genId("TCH",yr,seq),classTeacher:hasClass?form.classTeacher:null};
+      setTeachers(x=>[...x,nt]);
+      showNotif(lang==="bn"?`শিক্ষক যোগ! ID: ${nt.systemId}`:`Teacher added! ID: ${nt.systemId}`);
+    }
+    setShowForm(false);setEditId(null);setHasClass(false);setForm(blank);
   };
+  const actBtn=(bg,cl,bc)=>({padding:"4px 10px",background:bg,color:cl,border:`1px solid ${bc}`,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
   return(<div style={S.page}>
-    <div style={S.ph}><div><h2 style={S.pt}>{t.teachers}</h2><p style={S.ps}>{lang==="bn"?`মোট ${teachers.length} জন`:`Total ${teachers.length}`}</p></div><button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {t.addTeacher}</button></div>
+    {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setTeachers(x=>x.filter(tc=>tc.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
+    <div style={S.ph}><div><h2 style={S.pt}>{t.teachers}</h2><p style={S.ps}>{lang==="bn"?`মোট ${teachers.length} জন`:`Total ${teachers.length}`}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addTeacher}</button></div>
     {showForm&&(<div style={S.card}>
+      <h3 style={S.ct}>{editId?(lang==="bn"?"শিক্ষক সম্পাদনা":"Edit Teacher"):(lang==="bn"?"নতুন শিক্ষক":"New Teacher")}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{t.name} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.name} (English)</label><input style={S.inp} value={form.nameEn} onChange={e=>setForm({...form,nameEn:e.target.value})}/></div>
@@ -550,24 +572,38 @@ function ProfilePage({t,lang,currentUser,onPasswordChange}){
         <div style={{fontWeight:700,color:"#1e1b4b",fontSize:14,marginBottom:10}}>{t.guideStudents}</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{students.map(s=>(<label key={s.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:13,cursor:"pointer"}}><input type="checkbox" checked={form.guideStudents.includes(s.id)} onChange={()=>toggleGuide(s.id)}/>{lang==="bn"?s.name:s.nameEn}({t.class}{s.class}{s.section})</label>))}</div>
       </div>
-      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
+      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
-    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.classTeacher}</th><th style={S.th}>{t.subjectAssignments}</th><th style={S.th}>{t.guideStudents}</th></tr></thead>
-    <tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?tc.name:tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher?`${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}`:"—"}</td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(tc.subjectAssignments||[]).map((a,j)=>(<span key={j} style={{...S.assignTag,fontSize:11}}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1]||a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents||[]).length}{lang==="bn"?"জন":"sts"}</td></tr>))}</tbody></table></div>
+    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.classTeacher}</th><th style={S.th}>{t.subjectAssignments}</th><th style={S.th}>{t.guideStudents}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
+    <tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?tc.name:tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher?`${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}`:"—"}</td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(tc.subjectAssignments||[]).map((a,j)=>(<span key={j} style={{...S.assignTag,fontSize:11}}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1]||a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents||[]).length}{lang==="bn"?"জন":"sts"}</td><td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>openEdit(tc)} style={actBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️ {t.edit}</button><button onClick={()=>setConfirmDel({id:tc.id,name:lang==="bn"?tc.name:tc.nameEn})} style={actBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️ {t.deleteAdmin}</button></div></td></tr>))}</tbody></table></div>
   </div>);}
 function StudentsPage({t,lang,students,setStudents,teachers,showNotif}){
   const [showForm,setShowForm]=useState(false);
-  const [form,setForm]=useState({name:"",nameEn:"",class:"8",section:"",roll:"",password:"1234"});
+  const [editId,setEditId]=useState(null);
+  const blank={name:"",nameEn:"",class:"8",section:"",roll:"",password:"1234"};
+  const [form,setForm]=useState(blank);
+  const [confirmDel,setConfirmDel]=useState(null);
+  const openAdd=()=>{setEditId(null);setForm(blank);setShowForm(true);};
+  const openEdit=s=>{setEditId(s.id);setForm({name:s.name,nameEn:s.nameEn||"",class:s.class,section:s.section||"",roll:s.roll||"",password:s.password});setShowForm(true);};
   const handleSave=()=>{
     if(!form.name){showNotif(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
-    const yr=new Date().getFullYear(),seq=students.length+1;
-    const ns={...form,id:Date.now(),systemId:genId("STD",yr,seq),roll:parseInt(form.roll)||0};
-    setStudents(s=>[...s,ns]);setShowForm(false);setForm({name:"",nameEn:"",class:"8",section:"",roll:"",password:"1234"});
-    showNotif(lang==="bn"?`শিক্ষার্থী যোগ! ID: ${ns.systemId}`:`Student added! ID: ${ns.systemId}`);
+    if(editId){
+      setStudents(s=>s.map(x=>x.id===editId?{...x,...form,roll:parseInt(form.roll)||0}:x));
+      showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
+    }else{
+      const yr=new Date().getFullYear(),seq=students.length+1;
+      const ns={...form,id:Date.now(),systemId:genId("STD",yr,seq),roll:parseInt(form.roll)||0};
+      setStudents(s=>[...s,ns]);
+      showNotif(lang==="bn"?`শিক্ষার্থী যোগ! ID: ${ns.systemId}`:`Student added! ID: ${ns.systemId}`);
+    }
+    setShowForm(false);setEditId(null);setForm(blank);
   };
+  const actBtn=(bg,cl,bc)=>({padding:"4px 10px",background:bg,color:cl,border:`1px solid ${bc}`,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
   return(<div style={S.page}>
-    <div style={S.ph}><div><h2 style={S.pt}>{t.students}</h2><p style={S.ps}>{lang==="bn"?`মোট ${students.length} জন`:`Total ${students.length}`}</p></div><button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {t.addStudent}</button></div>
+    {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setStudents(s=>s.filter(x=>x.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
+    <div style={S.ph}><div><h2 style={S.pt}>{t.students}</h2><p style={S.ps}>{lang==="bn"?`মোট ${students.length} জন`:`Total ${students.length}`}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addStudent}</button></div>
     {showForm&&(<div style={S.card}>
+      <h3 style={S.ct}>{editId?(lang==="bn"?"শিক্ষার্থী সম্পাদনা":"Edit Student"):(lang==="bn"?"নতুন শিক্ষার্থী":"New Student")}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{t.name} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.name} (English)</label><input style={S.inp} value={form.nameEn} onChange={e=>setForm({...form,nameEn:e.target.value})}/></div>
@@ -576,10 +612,10 @@ function StudentsPage({t,lang,students,setStudents,teachers,showNotif}){
         <div style={S.fg}><label style={S.lbl}>{t.roll}</label><input style={S.inp} type="number" value={form.roll} onChange={e=>setForm({...form,roll:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></div>
       </div>
-      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
+      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
-    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.section}</th><th style={S.th}>{t.roll}</th><th style={S.th}>{lang==="bn"?"শ্রেণী শিক্ষক":"Class Teacher"}</th></tr></thead>
-    <tbody>{students.map((s,i)=>{const ct=teachers.find(tc=>tc.classTeacher?.class===s.class&&tc.classTeacher?.section===s.section);return(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?s.name:s.nameEn}</strong></td><td style={S.td}>{s.class}</td><td style={S.td}>{s.section||"—"}</td><td style={S.td}>{s.roll}</td><td style={S.td}>{ct?(lang==="bn"?ct.name:ct.nameEn):"—"}</td></tr>);})}</tbody></table></div>
+    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.section}</th><th style={S.th}>{t.roll}</th><th style={S.th}>{lang==="bn"?"শ্রেণী শিক্ষক":"Class Teacher"}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
+    <tbody>{students.map((s,i)=>{const ct=teachers.find(tc=>tc.classTeacher?.class===s.class&&tc.classTeacher?.section===s.section);return(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?s.name:s.nameEn}</strong></td><td style={S.td}>{s.class}</td><td style={S.td}>{s.section||"—"}</td><td style={S.td}>{s.roll}</td><td style={S.td}>{ct?(lang==="bn"?ct.name:ct.nameEn):"—"}</td><td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>openEdit(s)} style={actBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️ {t.edit}</button><button onClick={()=>setConfirmDel({id:s.id,name:lang==="bn"?s.name:s.nameEn})} style={actBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️ {t.deleteAdmin}</button></div></td></tr>);})}</tbody></table></div>
   </div>);}
 function QuestionsPage({t,lang,questions,setQuestions,showNotif}){
   const [showForm,setShowForm]=useState(false);
