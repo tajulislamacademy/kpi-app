@@ -43,6 +43,7 @@ const T = {
     wrongPassword:"বর্তমান পাসওয়ার্ড ভুল",
     myRank:"আমার র‍্যাংক", myMonthly:"মাসিক পয়েন্ট", myYearly:"বার্ষিক পয়েন্ট",
     progressChart:"অগ্রগতি চার্ট",
+    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",
   },
   en: {
     appTitle:"Student KPI System", dashboard:"Dashboard", teachers:"Teachers",
@@ -86,6 +87,7 @@ const T = {
     wrongPassword:"Current password is incorrect",
     myRank:"My Rank", myMonthly:"Monthly Points", myYearly:"Yearly Points",
     progressChart:"Progress Chart",
+    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",
   }
 };
 
@@ -149,6 +151,7 @@ export default function App() {
   const [parents,setParents]=useState(initParents);
   const [questions,setQuestions]=useState(initQuestions);
   const [entries,setEntries]=useState(initEntries);
+  const [admins,setAdmins]=useState([{id:0,systemId:"ADM-20260001",name:"অ্যাডমিন",nameEn:"Admin",password:"admin",isRoot:true}]);
   const [termConfig,setTermConfig]=useState({term1:[0,1,2],term2:[3,4,5],term3:[6,7,8],term4:[9,10,11]});
   const [notif,setNotif]=useState("");
   const showNotif=(msg)=>{setNotif(msg);setTimeout(()=>setNotif(""),3500);};
@@ -163,10 +166,11 @@ export default function App() {
     if(userType==="teacher")setTeachers(t=>t.map(x=>x.id===userId?{...x,password:newPassword}:x));
     if(userType==="student")setStudents(s=>s.map(x=>x.id===userId?{...x,password:newPassword}:x));
     if(userType==="parent")setParents(p=>p.map(x=>x.id===userId?{...x,password:newPassword}:x));
+    if(userType==="admin")setAdmins(a=>a.map(x=>x.id===userId?{...x,password:newPassword}:x));
     setCurrentUser(prev=>({...prev,password:newPassword}));
     showNotif(t.passwordChanged);
   };
-  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
+  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} admins={admins} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
   const isAdmin=currentUser.role==="admin",isTeacher=currentUser.role==="teacher";
   const pendingParents=parents.filter(p=>p.status==="pending");
   const navItems=[
@@ -214,7 +218,7 @@ export default function App() {
         {activeTab==="teachers"&&isAdmin&&<TeachersPage t={t} lang={lang} teachers={teachers} setTeachers={setTeachers} students={students} showNotif={showNotif}/>}
         {activeTab==="students"&&isAdmin&&<StudentsPage t={t} lang={lang} students={students} setStudents={setStudents} teachers={teachers} showNotif={showNotif}/>}
         {activeTab==="questions"&&isAdmin&&<QuestionsPage t={t} lang={lang} questions={questions} setQuestions={setQuestions} showNotif={showNotif}/>}
-        {activeTab==="accounts"&&isAdmin&&<AccountsPage t={t} lang={lang} parents={parents} setParents={setParents} students={students} teachers={teachers} showNotif={showNotif}/>}
+        {activeTab==="accounts"&&isAdmin&&<AccountsPage t={t} lang={lang} parents={parents} setParents={setParents} students={students} setStudents={setStudents} teachers={teachers} setTeachers={setTeachers} admins={admins} setAdmins={setAdmins} showNotif={showNotif}/>}
         {activeTab==="reports"&&<ReportsPage t={t} lang={lang} students={students} entries={entries} termConfig={termConfig} getStudentMonthKPI={getStudentMonthKPI} getStudentTermKPI={getStudentTermKPI} getStudentYearKPI={getStudentYearKPI} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
         {activeTab==="settings"&&isAdmin&&<SettingsPage t={t} lang={lang} termConfig={termConfig} setTermConfig={setTermConfig} showNotif={showNotif}/>}
         {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} onPasswordChange={handlePasswordChange}/>}
@@ -225,21 +229,22 @@ export default function App() {
 function YearSelector({t,lang,selectedYear,setSelectedYear,availableYears}){return(<div style={{display:"flex",alignItems:"center",gap:8,background:"#eef2ff",borderRadius:10,padding:"8px 14px"}}><span style={{fontSize:13,fontWeight:700,color:"#4338ca"}}>📅 {lang==="bn"?"বছর":"Year"}:</span><select style={{border:"none",background:"transparent",fontSize:15,fontWeight:800,color:"#4338ca",outline:"none",cursor:"pointer"}} value={selectedYear} onChange={e=>setSelectedYear(parseInt(e.target.value))}>{availableYears.map(y=><option key={y} value={y}>{y}</option>)}</select></div>);}
 function StatCard({icon,value,label,color}){return(<div style={{...S.statCard,borderTop:`4px solid ${color}`}}><div style={{fontSize:24,marginBottom:8}}>{icon}</div><div style={{fontSize:20,fontWeight:800,color,marginBottom:4}}>{value}</div><div style={{fontSize:12,color:"#64748b"}}>{label}</div></div>);}
 function RankCard({title,list,lang,t}){return(<div style={S.card}><h3 style={S.ct}>{title}</h3>{list.map((s,i)=>(<div key={s.id} style={S.rankRow}><div style={{...S.rankBadge,background:i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#cd7c3f":"#e2e8f0",color:i<3?"#fff":"#64748b"}}>{i+1}</div><div style={{flex:1,fontSize:14,fontWeight:500}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:13,fontWeight:700,color:"#6366f1"}}>{s.kpi}</div></div>))}</div>);}
-function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
+function AuthPage({t,lang,setLang,teachers,students,parents,admins,onLogin}){
   const [form,setForm]=useState({id:"",password:""});
   const [error,setError]=useState("");
   const doLogin=()=>{
     setError("");
-    if(form.id==="admin"&&form.password==="admin"){onLogin({id:0,name:lang==="bn"?"অ্যাডমিন":"Admin",role:"admin"});return;}
+    const adm=admins.find(x=>(x.systemId===form.id||(x.isRoot&&form.id==="admin"))&&x.password===form.password);
+    if(adm){onLogin({...adm,name:lang==="bn"?adm.name:adm.nameEn,role:"admin"});return;}
     const tc=teachers.find(x=>x.systemId===form.id&&x.password===form.password);
-    if(tc){onLogin({...tc,name:lang==="bn"?tc.name:tc.nameEn,role:"teacher"});return;}
+    if(tc){onLogin({...tc,name:lang==="bn"?tc.name:tc.nameEn,role:tc.isAdmin?"admin":"teacher"});return;}
     const st=students.find(x=>x.systemId===form.id&&x.password===form.password);
-    if(st){onLogin({...st,name:lang==="bn"?st.name:st.nameEn,role:"student"});return;}
+    if(st){onLogin({...st,name:lang==="bn"?st.name:st.nameEn,role:st.isAdmin?"admin":"student"});return;}
     const pr=parents.find(x=>x.systemId===form.id&&x.password===form.password);
     if(pr){
       if(pr.status==="pending"){setError(lang==="bn"?"অ্যাডমিনের অনুমোদন বাকি":"Awaiting admin approval");return;}
       if(pr.status==="rejected"){setError(lang==="bn"?"অ্যাকাউন্ট বাতিল":"Account rejected");return;}
-      onLogin({...pr,name:lang==="bn"?pr.name:pr.nameEn,role:"parent"});return;
+      onLogin({...pr,name:lang==="bn"?pr.name:pr.nameEn,role:pr.isAdmin?"admin":"parent"});return;
     }
     setError(lang==="bn"?"ভুল ID বা পাসওয়ার্ড":"Invalid ID or password");
   };
@@ -349,10 +354,12 @@ function ParentDashboard({t,lang,currentUser,students,getStudentMonthKPI,getStud
       {["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#6366f1"}}>{getStudentTermKPI(sid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}
     </div>
   </div>);}
-function AccountsPage({t,lang,parents,setParents,students,teachers,showNotif}){
+function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,setTeachers,admins,setAdmins,showNotif}){
   const [tab,setTab]=useState("pending");
   const [showForm,setShowForm]=useState(false);
+  const [showAdminForm,setShowAdminForm]=useState(false);
   const [form,setForm]=useState({studentId:"",name:"",nameEn:"",relation:"father",password:"1234"});
+  const [adminForm,setAdminForm]=useState({name:"",nameEn:"",password:"1234"});
   const [formErr,setFormErr]=useState("");
   const handleAddParent=()=>{
     setFormErr("");
@@ -368,6 +375,26 @@ function AccountsPage({t,lang,parents,setParents,students,teachers,showNotif}){
     setForm({studentId:"",name:"",nameEn:"",relation:"father",password:"1234"});
     showNotif(lang==="bn"?`অভিভাবক যোগ! ID: ${np.systemId}`:`Parent added! ID: ${np.systemId}`);
   };
+  const handleAddAdmin=()=>{
+    setFormErr("");
+    if(!adminForm.name){setFormErr(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
+    const yr=new Date().getFullYear();
+    const na={id:Date.now(),systemId:genId("ADM",yr,admins.length+1),name:adminForm.name,nameEn:adminForm.nameEn||adminForm.name,password:adminForm.password,isRoot:false};
+    setAdmins(a=>[...a,na]);setShowAdminForm(false);
+    setAdminForm({name:"",nameEn:"",password:"1234"});
+    showNotif(lang==="bn"?`অ্যাডমিন যোগ! ID: ${na.systemId}`:`Admin added! ID: ${na.systemId}`);
+  };
+  const deleteAdmin=id=>{
+    if(admins.find(a=>a.id===id)?.isRoot){showNotif(lang==="bn"?"মূল অ্যাডমিন মুছতে পারবেন না":"Cannot delete root admin");return;}
+    setAdmins(a=>a.filter(x=>x.id!==id));
+    showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");
+  };
+  const toggleUserAdmin=(type,userId)=>{
+    if(type==="teacher")setTeachers(tc=>tc.map(x=>x.id===userId?{...x,isAdmin:!x.isAdmin}:x));
+    else if(type==="student")setStudents(s=>s.map(x=>x.id===userId?{...x,isAdmin:!x.isAdmin}:x));
+    else if(type==="parent")setParents(p=>p.map(x=>x.id===userId?{...x,isAdmin:!x.isAdmin}:x));
+    showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
+  };
   const approve=id=>{setParents(p=>p.map(x=>x.id===id?{...x,status:"approved"}:x));showNotif(lang==="bn"?"অনুমোদন হয়েছে!":"Approved!");};
   const reject=id=>{setParents(p=>p.map(x=>x.id===id?{...x,status:"rejected"}:x));showNotif(lang==="bn"?"বাতিল হয়েছে!":"Rejected!");};
   const pending=parents.filter(p=>p.status==="pending"),approved=parents.filter(p=>p.status==="approved"),rejected=parents.filter(p=>p.status==="rejected");
@@ -375,9 +402,18 @@ function AccountsPage({t,lang,parents,setParents,students,teachers,showNotif}){
   const relLabel=r=>r==="father"?t.father:r==="mother"?t.mother:t.guardian;
   const sColor=s=>s==="approved"?"#dcfce7":s==="rejected"?"#fee2e2":"#fef3c7";
   const sText=s=>s==="approved"?"#15803d":s==="rejected"?"#991b1b":"#92400e";
+  const adminCount=admins.length+teachers.filter(x=>x.isAdmin).length+students.filter(x=>x.isAdmin).length+parents.filter(x=>x.isAdmin).length;
+  const uBtn=(isOn)=>({padding:"5px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600,border:"1px solid",background:isOn?"#fee2e2":"#dcfce7",color:isOn?"#991b1b":"#15803d",borderColor:isOn?"#fca5a5":"#86efac"});
+  const uRow={display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid #f8fafc"};
   return(<div style={S.page}>
-    <div style={S.ph}><div><h2 style={S.pt}>{t.accountManagement}</h2></div><button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {lang==="bn"?"অভিভাবক যোগ":"Add Parent"}</button></div>
-    {showForm&&(<div style={S.card}>
+    <div style={S.ph}>
+      <div><h2 style={S.pt}>{t.accountManagement}</h2></div>
+      {tab==="admin"
+        ?<button onClick={()=>{setShowAdminForm(!showAdminForm);setFormErr("");}} style={S.addBtn}>+ {t.addAdmin}</button>
+        :<button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {lang==="bn"?"অভিভাবক যোগ":"Add Parent"}</button>
+      }
+    </div>
+    {tab!=="admin"&&showForm&&(<div style={S.card}>
       <h3 style={S.ct}>{lang==="bn"?"নতুন অভিভাবক":"New Parent"}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{t.studentId}</label><input style={S.inp} value={form.studentId} onChange={e=>setForm({...form,studentId:e.target.value})} placeholder="STD-20260001"/>
@@ -391,19 +427,55 @@ function AccountsPage({t,lang,parents,setParents,students,teachers,showNotif}){
       {formErr&&<div style={{color:"#ef4444",fontSize:13,marginBottom:8}}>{formErr}</div>}
       <div style={{display:"flex",gap:8}}><button onClick={handleAddParent} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
+    {tab==="admin"&&showAdminForm&&(<div style={S.card}>
+      <h3 style={S.ct}>{lang==="bn"?"নতুন অ্যাডমিন যোগ":"New Admin"}</h3>
+      <div style={S.grid2}>
+        <div style={S.fg}><label style={S.lbl}>{t.name} (বাংলা)</label><input style={S.inp} value={adminForm.name} onChange={e=>setAdminForm({...adminForm,name:e.target.value})}/></div>
+        <div style={S.fg}><label style={S.lbl}>{t.name} (English)</label><input style={S.inp} value={adminForm.nameEn} onChange={e=>setAdminForm({...adminForm,nameEn:e.target.value})}/></div>
+        <div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={adminForm.password} onChange={e=>setAdminForm({...adminForm,password:e.target.value})}/></div>
+      </div>
+      {formErr&&<div style={{color:"#ef4444",fontSize:13,marginBottom:8}}>{formErr}</div>}
+      <div style={{display:"flex",gap:8}}><button onClick={handleAddAdmin} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowAdminForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
+    </div>)}
     <div style={S.grid4}>
       <StatCard icon="⏳" value={pending.length} label={t.pending} color="#f59e0b"/>
       <StatCard icon="✅" value={approved.length} label={t.approved} color="#10b981"/>
       <StatCard icon="❌" value={rejected.length} label={t.rejected} color="#ef4444"/>
-      <StatCard icon="👥" value={parents.length} label={lang==="bn"?"মোট":"Total"} color="#6366f1"/>
+      <StatCard icon="🛡️" value={adminCount} label={lang==="bn"?"মোট অ্যাডমিন":"Total Admins"} color="#6366f1"/>
     </div>
-    <div style={{display:"flex",gap:6,marginBottom:16}}>{[{k:"pending",l:`${t.pending}(${pending.length})`},{k:"approved",l:t.approved},{k:"rejected",l:t.rejected}].map(x=>(<button key={x.k} onClick={()=>setTab(x.k)} style={{...S.reportTab,...(tab===x.k?S.reportTabOn:{})}}>{x.l}</button>))}</div>
-    <div style={S.card}>{current.length===0?<div style={S.empty}>{lang==="bn"?"কোনো অ্যাকাউন্ট নেই":"No accounts"}</div>:(
-      <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th>{tab==="pending"&&<th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th>}</tr></thead>
-      <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td>{tab==="pending"&&<td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#dcfce7",color:"#15803d",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></div></td>}</tr>);})}</tbody></table></div>
-    )}</div>
-    <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষক অ্যাকাউন্ট":"Teacher Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?tc.name:tc.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><code>{tc.password}</code></td></tr>))}</tbody></table></div></div>
-    <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষার্থী অ্যাকাউন্ট":"Student Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{students.map((s,i)=>(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?s.name:s.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}><code>{s.password}</code></td></tr>))}</tbody></table></div></div>
+    <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+      {[{k:"pending",l:`${t.pending}(${pending.length})`},{k:"approved",l:t.approved},{k:"rejected",l:t.rejected},{k:"admin",l:`${lang==="bn"?"অ্যাডমিন":"Admin"}(${adminCount})`}].map(x=>(<button key={x.k} onClick={()=>setTab(x.k)} style={{...S.reportTab,...(tab===x.k?S.reportTabOn:{})}}>{x.l}</button>))}
+    </div>
+    {tab!=="admin"&&(<>
+      <div style={S.card}>{current.length===0?<div style={S.empty}>{lang==="bn"?"কোনো অ্যাকাউন্ট নেই":"No accounts"}</div>:(
+        <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th>{tab==="pending"&&<th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th>}</tr></thead>
+        <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td>{tab==="pending"&&<td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#dcfce7",color:"#15803d",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></div></td>}</tr>);})}</tbody></table></div>
+      )}</div>
+      <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষক অ্যাকাউন্ট":"Teacher Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?tc.name:tc.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><code>{tc.password}</code></td></tr>))}</tbody></table></div></div>
+      <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষার্থী অ্যাকাউন্ট":"Student Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{students.map((s,i)=>(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?s.name:s.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}><code>{s.password}</code></td></tr>))}</tbody></table></div></div>
+    </>)}
+    {tab==="admin"&&(<>
+      <div style={S.card}>
+        <h3 style={S.ct}>{t.adminAccounts}</h3>
+        <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th><th style={S.th}>{lang==="bn"?"ধরন":"Type"}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
+        <tbody>{admins.map((a,i)=>(<tr key={a.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{lang==="bn"?a.name:a.nameEn}</strong></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{a.systemId}</code></td><td style={S.td}><code>{a.password}</code></td><td style={S.td}>{a.isRoot?<span style={{background:"#fef3c7",color:"#92400e",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{t.rootAdmin}</span>:<span style={{background:"#dbeafe",color:"#1d4ed8",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>Custom</span>}</td><td style={S.td}>{!a.isRoot&&<button onClick={()=>deleteAdmin(a.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>🗑️ {t.deleteAdmin}</button>}</td></tr>))}</tbody></table></div>
+      </div>
+      <div style={S.card}>
+        <h3 style={S.ct}>{t.userToAdmin}</h3>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#1e1b4b",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>👨‍🏫 {t.teachers}</div>
+          {teachers.map(tc=>(<div key={tc.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?tc.name:tc.nameEn}{tc.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#fef3c7",color:"#92400e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{tc.systemId}</div></div><button onClick={()=>toggleUserAdmin("teacher",tc.id)} style={uBtn(tc.isAdmin)}>{tc.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
+        </div>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#1e1b4b",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>🎓 {t.students}</div>
+          {students.map(s=>(<div key={s.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?s.name:s.nameEn}{s.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#fef3c7",color:"#92400e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{s.systemId} | {t.class} {s.class}{s.section}</div></div><button onClick={()=>toggleUserAdmin("student",s.id)} style={uBtn(s.isAdmin)}>{s.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
+        </div>
+        <div>
+          <div style={{fontSize:13,fontWeight:700,color:"#1e1b4b",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>👥 {t.parent}</div>
+          {parents.filter(p=>p.status==="approved").map(p=>(<div key={p.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?p.name:p.nameEn}{p.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#fef3c7",color:"#92400e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.systemId}</div></div><button onClick={()=>toggleUserAdmin("parent",p.id)} style={uBtn(p.isAdmin)}>{p.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
+        </div>
+      </div>
+    </>)}
   </div>);}
 function ProfilePage({t,lang,currentUser,onPasswordChange}){
   const [form,setForm]=useState({current:"",newPass:"",confirm:""});
