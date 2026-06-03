@@ -583,14 +583,52 @@ function StudentsPage({t,lang,students,setStudents,teachers,showNotif}){
   </div>);}
 function QuestionsPage({t,lang,questions,setQuestions,showNotif}){
   const [showForm,setShowForm]=useState(false);
-  const [form,setForm]=useState({textBn:"",textEn:"",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]});
+  const [editId,setEditId]=useState(null);
+  const [viewQ,setViewQ]=useState(null);
+  const [confirmDel,setConfirmDel]=useState(null);
+  const blank={textBn:"",textEn:"",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]};
+  const [form,setForm]=useState(blank);
   const toggleM=m=>{const am=form.activeMonths.includes(m)?form.activeMonths.filter(x=>x!==m):[...form.activeMonths,m];setForm({...form,activeMonths:am});};
   const rColor=r=>r==="classTeacher"?"#dbeafe":r==="subjectTeacher"?"#dcfce7":"#fef3c7";
   const rText=r=>r==="classTeacher"?"#1d4ed8":r==="subjectTeacher"?"#15803d":"#92400e";
   const rLabel=r=>r==="classTeacher"?t.classTeacher:r==="subjectTeacher"?t.subjectTeacher:t.guideTeacher;
+  const openAdd=()=>{setEditId(null);setForm(blank);setShowForm(true);};
+  const openEdit=q=>{setEditId(q.id);setForm({textBn:q.textBn,textEn:q.textEn,role:q.role,points:q.points,activeMonths:[...q.activeMonths]});setShowForm(true);};
+  const handleSave=()=>{
+    if(!form.textBn){showNotif(lang==="bn"?"প্রশ্ন লিখুন":"Enter question");return;}
+    if(editId){
+      setQuestions(qs=>qs.map(q=>q.id===editId?{...q,...form,points:parseInt(form.points)||0}:q));
+      showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
+    }else{
+      setQuestions(qs=>[...qs,{...form,id:Date.now(),points:parseInt(form.points)||0}]);
+      showNotif(lang==="bn"?"প্রশ্ন যোগ হয়েছে!":"Question added!");
+    }
+    setShowForm(false);setEditId(null);setForm(blank);
+  };
+  const aBtn=(bg,cl,bc)=>({padding:"4px 8px",background:bg,color:cl,border:`1px solid ${bc}`,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
   return(<div style={S.page}>
-    <div style={S.ph}><div><h2 style={S.pt}>{t.questions}</h2><p style={S.ps}>{lang==="bn"?`মোট ${questions.length}টি`:`Total ${questions.length}`}</p></div><button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {t.addQuestion}</button></div>
+    {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setQuestions(qs=>qs.filter(q=>q.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
+    {viewQ&&(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:520}}>
+      <h3 style={S.ct}>🔍 {lang==="bn"?"প্রশ্ন বিবরণ":"Question Details"}</h3>
+      <div style={{background:"#f8fafc",borderRadius:10,padding:"14px 16px",marginBottom:14}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#1e1b4b",marginBottom:4}}>{viewQ.textBn}</div>
+        <div style={{fontSize:13,color:"#64748b",marginBottom:12,fontStyle:"italic"}}>{viewQ.textEn}</div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <span style={{background:rColor(viewQ.role),color:rText(viewQ.role),padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{rLabel(viewQ.role)}</span>
+          <span style={{background:"#eef2ff",color:"#6366f1",padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{t.pointsPerEntry}: {viewQ.points}</span>
+        </div>
+      </div>
+      <div style={S.fg}><label style={{...S.lbl,marginBottom:8}}>{t.activeMonths}:</label>
+        <div style={{display:"flex",flexWrap:"wrap",gap:4}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"3px 9px",borderRadius:6,fontSize:12,fontWeight:600,background:viewQ.activeMonths.includes(mi)?"#6366f1":"#e2e8f0",color:viewQ.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m]}</span>))}</div>
+      </div>
+      <div style={{display:"flex",gap:8,marginTop:16}}>
+        <button onClick={()=>{setViewQ(null);openEdit(viewQ);}} style={S.saveBtn}>✏️ {t.edit}</button>
+        <button onClick={()=>setViewQ(null)} style={S.cancelBtn}>{t.cancel}</button>
+      </div>
+    </div></div>)}
+    <div style={S.ph}><div><h2 style={S.pt}>{t.questions}</h2><p style={S.ps}>{lang==="bn"?`মোট ${questions.length}টি`:`Total ${questions.length}`}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addQuestion}</button></div>
     {showForm&&(<div style={S.card}>
+      <h3 style={S.ct}>{editId?(lang==="bn"?"প্রশ্ন সম্পাদনা":"Edit Question"):(lang==="bn"?"নতুন প্রশ্ন":"New Question")}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"প্রশ্ন (বাংলা)":"Question (BN)"}</label><input style={S.inp} value={form.textBn} onChange={e=>setForm({...form,textBn:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"প্রশ্ন (ইংরেজি)":"Question (EN)"}</label><input style={S.inp} value={form.textEn} onChange={e=>setForm({...form,textEn:e.target.value})}/></div>
@@ -598,11 +636,11 @@ function QuestionsPage({t,lang,questions,setQuestions,showNotif}){
         <div style={S.fg}><label style={S.lbl}>{t.pointsPerEntry}</label><input style={S.inp} type="number" value={form.points} onChange={e=>setForm({...form,points:e.target.value})}/></div>
       </div>
       <div style={S.fg}><label style={S.lbl}>{t.activeMonths}</label><div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:6}}>{MONTHS.map((m,i)=>(<button key={m} onClick={()=>toggleM(i)} style={{...S.mBtn,...(form.activeMonths.includes(i)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>
-      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{setQuestions(q=>[...q,{...form,id:Date.now(),points:parseInt(form.points)||0}]);setShowForm(false);showNotif(lang==="bn"?"প্রশ্ন যোগ হয়েছে!":"Question added!");}} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
+      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
     {["classTeacher","subjectTeacher","guideTeacher"].map(role=>(<div key={role} style={S.card}><h3 style={S.ct}><span style={{background:rColor(role),color:rText(role),padding:"3px 10px",borderRadius:20,fontSize:13,fontWeight:700}}>{rLabel(role)}</span></h3>
-      <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.activeMonths}</th></tr></thead>
-      <tbody>{questions.filter(q=>q.role===role).map((q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}>{lang==="bn"?q.textBn:q.textEn}</td><td style={S.td}><strong style={{color:"#6366f1"}}>{q.points}</strong></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#6366f1":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td></tr>))}</tbody></table></div>
+      <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.activeMonths}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
+      <tbody>{questions.filter(q=>q.role===role).map((q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}><div style={{maxWidth:200,fontWeight:500,fontSize:13}}>{lang==="bn"?q.textBn:q.textEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{q.points}</strong></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#6366f1":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td><td style={S.td}><div style={{display:"flex",gap:4}}><button onClick={()=>setViewQ(q)} style={aBtn("#f0fdf4","#15803d","#86efac")}>👁️</button><button onClick={()=>openEdit(q)} style={aBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️</button><button onClick={()=>setConfirmDel({id:q.id,name:lang==="bn"?q.textBn:q.textEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️</button></div></td></tr>))}</tbody></table></div>
     </div>))}
   </div>);}
 function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntries,showNotif,isAdmin,teachers}){
