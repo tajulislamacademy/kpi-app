@@ -49,7 +49,7 @@ const T = {
     wrongPassword:"বর্তমান পাসওয়ার্ড ভুল",
     myRank:"আমার র‍্যাংক", myMonthly:"মাসিক পয়েন্ট", myYearly:"বার্ষিক পয়েন্ট",
     progressChart:"অগ্রগতি চার্ট",
-    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",
+    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",teacherKPI:"শিক্ষক KPI",parentKPI:"অভিভাবক KPI",tchrKpiEntry:"শিক্ষক KPI এন্ট্রি",parKpiEntry:"অভিভাবক KPI এন্ট্রি",stdQuestions:"শিক্ষার্থী প্রশ্ন",tchrQuestions:"শিক্ষক প্রশ্ন",parQuestions:"অভিভাবক প্রশ্ন",entryHistory:"এন্ট্রি ইতিহাস",noQForMonth:"এই মাসে কোনো প্রশ্ন নেই",
   },
   en: {
     appTitle:"Student KPI System", dashboard:"Dashboard", teachers:"Teachers",
@@ -93,7 +93,7 @@ const T = {
     wrongPassword:"Current password is incorrect",
     myRank:"My Rank", myMonthly:"Monthly Points", myYearly:"Yearly Points",
     progressChart:"Progress Chart",
-    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",
+    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",teacherKPI:"Teacher KPI",parentKPI:"Parent KPI",tchrKpiEntry:"Teacher KPI Entry",parKpiEntry:"Parent KPI Entry",stdQuestions:"Student Questions",tchrQuestions:"Teacher Questions",parQuestions:"Parent Questions",entryHistory:"Entry History",noQForMonth:"No questions for this month",
   }
 };
 
@@ -147,6 +147,19 @@ const initEntries=[
   {id:10,studentId:2,teacherId:1,date:"2026-02-10",questionId:1,score:8,month:1,year:2026,role:"classTeacher",subject:"",editLog:[]},
   {id:11,studentId:3,teacherId:1,date:"2026-02-10",questionId:1,score:9,month:1,year:2026,role:"classTeacher",subject:"",editLog:[]},
 ];
+const initTeacherQuestions=[
+  {id:1,textBn:"সময়মতো উপস্থিতি ও পাঠদান",textEn:"Punctuality & Teaching",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:2,textBn:"শ্রেণীকক্ষ পরিচালনা",textEn:"Classroom Management",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:3,textBn:"শিক্ষার্থীর উন্নতিতে মনোযোগ",textEn:"Student Progress Focus",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:4,textBn:"পেশাদারিত্ব ও আচরণ",textEn:"Professionalism & Conduct",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:5,textBn:"সহকর্মীদের সাথে সহযোগিতা",textEn:"Colleague Cooperation",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+];
+const initParentQuestions=[
+  {id:1,textBn:"অভিভাবক সভায় উপস্থিতি",textEn:"Parent Meeting Attendance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:2,textBn:"সন্তানের পড়াশোনায় সহযোগিতা",textEn:"Child Study Support",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:3,textBn:"শিক্ষকের সাথে যোগাযোগ",textEn:"Teacher Communication",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:4,textBn:"স্কুলের নিয়ম মেনে চলা",textEn:"School Rule Compliance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+];
 export default function App() {
   const [lang,setLang]=useState("bn");
   const t=T[lang];
@@ -159,6 +172,10 @@ export default function App() {
   const [entries,setEntries]=useLocalStorage("kpi_entries",initEntries);
   const [admins,setAdmins]=useLocalStorage("kpi_admins",[{id:0,systemId:"ADM-20260001",name:"অ্যাডমিন",nameEn:"Admin",password:"admin",isRoot:true}]);
   const [termConfig,setTermConfig]=useLocalStorage("kpi_termConfig",{term1:[0,1,2],term2:[3,4,5],term3:[6,7,8],term4:[9,10,11]});
+  const [teacherQuestions,setTeacherQuestions]=useLocalStorage("kpi_tchrQ",initTeacherQuestions);
+  const [teacherEntries,setTeacherEntries]=useLocalStorage("kpi_tchrE",[]);
+  const [parentQuestions,setParentQuestions]=useLocalStorage("kpi_parQ",initParentQuestions);
+  const [parentEntries,setParentEntries]=useLocalStorage("kpi_parE",[]);
   const [notif,setNotif]=useState("");
   const showNotif=(msg)=>{setNotif(msg);setTimeout(()=>setNotif(""),3500);};
   const curYear=new Date().getFullYear();
@@ -168,6 +185,12 @@ export default function App() {
   const getStudentMonthKPI=(sid,month,year=selectedYear)=>entries.filter(e=>e.studentId===sid&&e.month===month&&(e.year||2026)===year).reduce((s,e)=>s+e.score,0);
   const getStudentTermKPI=(sid,months,year=selectedYear)=>months.reduce((s,m)=>s+getStudentMonthKPI(sid,m,year),0);
   const getStudentYearKPI=(sid,year=selectedYear)=>MONTHS.reduce((s,_,i)=>s+getStudentMonthKPI(sid,i,year),0);
+  const getTchrMonthKPI=(tid,month,year=selectedYear)=>teacherEntries.filter(e=>e.targetId===tid&&e.month===month&&(e.year||curYear)===year).reduce((s,e)=>s+e.score,0);
+  const getTchrTermKPI=(tid,months,year=selectedYear)=>months.reduce((s,m)=>s+getTchrMonthKPI(tid,m,year),0);
+  const getTchrYearKPI=(tid,year=selectedYear)=>MONTHS.reduce((s,_,i)=>s+getTchrMonthKPI(tid,i,year),0);
+  const getParMonthKPI=(pid,month,year=selectedYear)=>parentEntries.filter(e=>e.targetId===pid&&e.month===month&&(e.year||curYear)===year).reduce((s,e)=>s+e.score,0);
+  const getParTermKPI=(pid,months,year=selectedYear)=>months.reduce((s,m)=>s+getParMonthKPI(pid,m,year),0);
+  const getParYearKPI=(pid,year=selectedYear)=>MONTHS.reduce((s,_,i)=>s+getParMonthKPI(pid,i,year),0);
   const handlePasswordChange=(userId,userType,newPassword)=>{
     if(userType==="teacher")setTeachers(t=>t.map(x=>x.id===userId?{...x,password:newPassword}:x));
     if(userType==="student")setStudents(s=>s.map(x=>x.id===userId?{...x,password:newPassword}:x));
@@ -189,7 +212,9 @@ export default function App() {
       {key:"accounts",icon:"👤",label:`${t.accounts}${pendingParents.length>0?` (${pendingParents.length})`:""}`},
     ]:[]),
     {key:"reports",icon:"📊",label:t.reports},
-    ...(isAdmin?[{key:"settings",icon:"⚙️",label:t.settings}]:[]),
+    ...(isAdmin?[{key:"teacherKpi",icon:"📊",label:t.teacherKPI},{key:"parentKpi",icon:"👥",label:t.parentKPI},{key:"settings",icon:"⚙️",label:t.settings}]:[]),
+    ...(isTeacher?[{key:"myTchrKpi",icon:"📈",label:t.myTchrKPI}]:[]),
+    ...(currentUser.role==="parent"?[{key:"myParKpi",icon:"📈",label:t.myKPI}]:[]),
     {key:"profile",icon:"🔑",label:t.myProfile},
   ];
   return (
@@ -223,11 +248,15 @@ export default function App() {
         {activeTab==="pointEntry"&&(isAdmin||isTeacher)&&<PointEntryPage t={t} lang={lang} currentUser={currentUser} students={students} questions={questions} entries={entries} setEntries={setEntries} showNotif={showNotif} isAdmin={isAdmin} teachers={teachers}/>}
         {activeTab==="teachers"&&isAdmin&&<TeachersPage t={t} lang={lang} teachers={teachers} setTeachers={setTeachers} students={students} showNotif={showNotif}/>}
         {activeTab==="students"&&isAdmin&&<StudentsPage t={t} lang={lang} students={students} setStudents={setStudents} teachers={teachers} showNotif={showNotif}/>}
-        {activeTab==="questions"&&isAdmin&&<QuestionsPage t={t} lang={lang} questions={questions} setQuestions={setQuestions} showNotif={showNotif}/>}
+        {activeTab==="questions"&&isAdmin&&<QuestionsPage t={t} lang={lang} questions={questions} setQuestions={setQuestions} teacherQuestions={teacherQuestions} setTeacherQuestions={setTeacherQuestions} parentQuestions={parentQuestions} setParentQuestions={setParentQuestions} showNotif={showNotif}/>}
         {activeTab==="accounts"&&isAdmin&&<AccountsPage t={t} lang={lang} parents={parents} setParents={setParents} students={students} setStudents={setStudents} teachers={teachers} setTeachers={setTeachers} admins={admins} setAdmins={setAdmins} showNotif={showNotif}/>}
         {activeTab==="reports"&&<ReportsPage t={t} lang={lang} students={students} entries={entries} termConfig={termConfig} getStudentMonthKPI={getStudentMonthKPI} getStudentTermKPI={getStudentTermKPI} getStudentYearKPI={getStudentYearKPI} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
         {activeTab==="settings"&&isAdmin&&<SettingsPage t={t} lang={lang} termConfig={termConfig} setTermConfig={setTermConfig} showNotif={showNotif}/>}
         {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} onPasswordChange={handlePasswordChange}/>}
+        {activeTab==="teacherKpi"&&isAdmin&&<TeacherKPIPage t={t} lang={lang} teachers={teachers} teacherQuestions={teacherQuestions} teacherEntries={teacherEntries} setTeacherEntries={setTeacherEntries} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
+        {activeTab==="parentKpi"&&isAdmin&&<ParentKPIPage t={t} lang={lang} parents={parents} parentQuestions={parentQuestions} parentEntries={parentEntries} setParentEntries={setParentEntries} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
+        {activeTab==="myTchrKpi"&&isTeacher&&<MyTeacherKPIPage t={t} lang={lang} currentUser={currentUser} teacherEntries={teacherEntries} getTchrMonthKPI={getTchrMonthKPI} getTchrTermKPI={getTchrTermKPI} getTchrYearKPI={getTchrYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>}
+        {activeTab==="myParKpi"&&currentUser.role==="parent"&&<MyParentKPIPage t={t} lang={lang} currentUser={currentUser} parentEntries={parentEntries} getParMonthKPI={getParMonthKPI} getParTermKPI={getParTermKPI} getParYearKPI={getParYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>}
       </main>
     </div>
   );
@@ -367,11 +396,6 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
   const [form,setForm]=useState({studentId:"",name:"",nameEn:"",relation:"father",password:"1234"});
   const [adminForm,setAdminForm]=useState({name:"",nameEn:"",password:"1234"});
   const [formErr,setFormErr]=useState("");
-  const [editParent,setEditParent]=useState(null);
-  const [parentForm,setParentForm]=useState({name:"",nameEn:"",password:"",relation:"father",status:"approved"});
-  const [confirmParentDel,setConfirmParentDel]=useState(null);
-  const openEditParent=p=>{setEditParent(p);setParentForm({name:p.name,nameEn:p.nameEn||"",password:p.password,relation:p.relation,status:p.status});};
-  const handleSaveParent=()=>{setParents(ps=>ps.map(x=>x.id===editParent.id?{...x,...parentForm}:x));setEditParent(null);showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");};
   const handleAddParent=()=>{
     setFormErr("");
     const st=students.find(s=>s.systemId===form.studentId);
@@ -417,8 +441,6 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
   const uBtn=(isOn)=>({padding:"5px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600,border:"1px solid",background:isOn?"#fee2e2":"#dcfce7",color:isOn?"#991b1b":"#15803d",borderColor:isOn?"#fca5a5":"#86efac"});
   const uRow={display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid #f8fafc"};
   return(<div style={S.page}>
-    {editParent&&(<div style={S.modalBg}><div style={S.modalBox}><h3 style={S.ct}>{lang==="bn"?"অভিভাবক সম্পাদনা":"Edit Parent"}</h3><div style={S.grid2}><div style={S.fg}><label style={S.lbl}>{t.parentName} (বাংলা)</label><input style={S.inp} value={parentForm.name} onChange={e=>setParentForm({...parentForm,name:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.parentName} (English)</label><input style={S.inp} value={parentForm.nameEn} onChange={e=>setParentForm({...parentForm,nameEn:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={parentForm.password} onChange={e=>setParentForm({...parentForm,password:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.relation}</label><select style={S.inp} value={parentForm.relation} onChange={e=>setParentForm({...parentForm,relation:e.target.value})}><option value="father">{t.father}</option><option value="mother">{t.mother}</option><option value="guardian">{t.guardian}</option></select></div><div style={S.fg}><label style={S.lbl}>{lang==="bn"?"অবস্থা":"Status"}</label><select style={S.inp} value={parentForm.status} onChange={e=>setParentForm({...parentForm,status:e.target.value})}><option value="approved">{t.approved}</option><option value="pending">{t.pending}</option><option value="rejected">{t.rejected}</option></select></div></div><div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSaveParent} style={S.saveBtn}>{t.save}</button><button onClick={()=>setEditParent(null)} style={S.cancelBtn}>{t.cancel}</button></div></div></div>)}
-    {confirmParentDel&&<ConfirmDialog lang={lang} name={confirmParentDel.name} onConfirm={()=>{setParents(ps=>ps.filter(x=>x.id!==confirmParentDel.id));setConfirmParentDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmParentDel(null)}/>}
     <div style={S.ph}>
       <div><h2 style={S.pt}>{t.accountManagement}</h2></div>
       {tab==="admin"
@@ -461,8 +483,8 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
     </div>
     {tab!=="admin"&&(<>
       <div style={S.card}>{current.length===0?<div style={S.empty}>{lang==="bn"?"কোনো অ্যাকাউন্ট নেই":"No accounts"}</div>:(
-        <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
-        <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td><td style={S.td}><div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{tab==="pending"&&<><button onClick={()=>approve(p.id)} style={{padding:"4px 8px",background:"#dcfce7",color:"#15803d",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>✅</button><button onClick={()=>reject(p.id)} style={{padding:"4px 8px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>❌</button></>}<button onClick={()=>openEditParent(p)} style={{padding:"4px 8px",background:"#eef2ff",color:"#6366f1",border:"1px solid #c7d2fe",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>✏️</button><button onClick={()=>setConfirmParentDel({id:p.id,name:p.name})} style={{padding:"4px 8px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600}}>🗑️</button></div></td></tr>);})}</tbody></table></div>
+        <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th>{tab==="pending"&&<th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th>}</tr></thead>
+        <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td>{tab==="pending"&&<td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#dcfce7",color:"#15803d",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></div></td>}</tr>);})}</tbody></table></div>
       )}</div>
       <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষক অ্যাকাউন্ট":"Teacher Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?tc.name:tc.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><code>{tc.password}</code></td></tr>))}</tbody></table></div></div>
       <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষার্থী অ্যাকাউন্ট":"Student Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{students.map((s,i)=>(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?s.name:s.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}><code>{s.password}</code></td></tr>))}</tbody></table></div></div>
@@ -515,40 +537,25 @@ function ProfilePage({t,lang,currentUser,onPasswordChange}){
       <button onClick={handle} style={S.saveBtn}>{t.changePassword}</button>
     </div>
   </div></div>);}
-  function ConfirmDialog({lang,name,onConfirm,onCancel}){
-  return(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:360,textAlign:"center"}}><div style={{fontSize:40,marginBottom:8}}>⚠️</div><h3 style={{...S.ct,marginBottom:8}}>{lang==="bn"?"নিশ্চিত করুন?":"Confirm Delete?"}</h3><p style={{fontSize:14,color:"#64748b",marginBottom:20}}>{lang==="bn"?`"${name}" মুছে ফেলবেন?`:`Delete "${name}"?`}</p><div style={{display:"flex",gap:8,justifyContent:"center"}}><button onClick={onConfirm} style={{padding:"9px 24px",background:"#ef4444",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:700}}>{lang==="bn"?"হ্যাঁ, মুছুন":"Yes, Delete"}</button><button onClick={onCancel} style={S.cancelBtn}>{lang==="bn"?"না":"Cancel"}</button></div></div></div>);}
-function TeachersPage({t,lang,teachers,setTeachers,students,showNotif}){
+  function TeachersPage({t,lang,teachers,setTeachers,students,showNotif}){
   const [showForm,setShowForm]=useState(false);
-  const [editId,setEditId]=useState(null);
   const [form,setForm]=useState({name:"",nameEn:"",password:"1234",classTeacher:null,subjectAssignments:[],guideStudents:[]});
   const [newAssign,setNewAssign]=useState({class:"8",section:"A",subject:SUBJECTS[0]});
   const [hasClass,setHasClass]=useState(false);
-  const [confirmDel,setConfirmDel]=useState(null);
-  const blank={name:"",nameEn:"",password:"1234",classTeacher:null,subjectAssignments:[],guideStudents:[]};
   const addAssign=()=>{if(form.subjectAssignments.find(a=>a.class===newAssign.class&&a.section===newAssign.section&&a.subject===newAssign.subject))return;setForm({...form,subjectAssignments:[...form.subjectAssignments,{...newAssign}]});};
   const removeAssign=i=>setForm({...form,subjectAssignments:form.subjectAssignments.filter((_,idx)=>idx!==i)});
   const toggleGuide=sid=>{const gs=form.guideStudents.includes(sid)?form.guideStudents.filter(x=>x!==sid):[...form.guideStudents,sid];setForm({...form,guideStudents:gs});};
-  const openAdd=()=>{setEditId(null);setForm(blank);setHasClass(false);setShowForm(true);};
-  const openEdit=tc=>{setEditId(tc.id);setForm({name:tc.name,nameEn:tc.nameEn||"",password:tc.password,classTeacher:tc.classTeacher||null,subjectAssignments:tc.subjectAssignments||[],guideStudents:tc.guideStudents||[]});setHasClass(!!tc.classTeacher);setShowForm(true);};
   const handleSave=()=>{
     if(!form.name){showNotif(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
-    if(editId){
-      setTeachers(x=>x.map(tc=>tc.id===editId?{...tc,...form,classTeacher:hasClass?(form.classTeacher||{class:"8",section:"A"}):null}:tc));
-      showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
-    }else{
-      const yr=new Date().getFullYear(),seq=teachers.length+1;
-      const nt={...form,id:Date.now(),systemId:genId("TCH",yr,seq),classTeacher:hasClass?form.classTeacher:null};
-      setTeachers(x=>[...x,nt]);
-      showNotif(lang==="bn"?`শিক্ষক যোগ! ID: ${nt.systemId}`:`Teacher added! ID: ${nt.systemId}`);
-    }
-    setShowForm(false);setEditId(null);setHasClass(false);setForm(blank);
+    const yr=new Date().getFullYear(),seq=teachers.length+1;
+    const nt={...form,id:Date.now(),systemId:genId("TCH",yr,seq),classTeacher:hasClass?form.classTeacher:null};
+    setTeachers(x=>[...x,nt]);setShowForm(false);setHasClass(false);
+    setForm({name:"",nameEn:"",password:"1234",classTeacher:null,subjectAssignments:[],guideStudents:[]});
+    showNotif(lang==="bn"?`শিক্ষক যোগ! ID: ${nt.systemId}`:`Teacher added! ID: ${nt.systemId}`);
   };
-  const actBtn=(bg,cl,bc)=>({padding:"4px 10px",background:bg,color:cl,border:`1px solid ${bc}`,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
   return(<div style={S.page}>
-    {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setTeachers(x=>x.filter(tc=>tc.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
-    <div style={S.ph}><div><h2 style={S.pt}>{t.teachers}</h2><p style={S.ps}>{lang==="bn"?`মোট ${teachers.length} জন`:`Total ${teachers.length}`}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addTeacher}</button></div>
+    <div style={S.ph}><div><h2 style={S.pt}>{t.teachers}</h2><p style={S.ps}>{lang==="bn"?`মোট ${teachers.length} জন`:`Total ${teachers.length}`}</p></div><button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {t.addTeacher}</button></div>
     {showForm&&(<div style={S.card}>
-      <h3 style={S.ct}>{editId?(lang==="bn"?"শিক্ষক সম্পাদনা":"Edit Teacher"):(lang==="bn"?"নতুন শিক্ষক":"New Teacher")}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{t.name} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.name} (English)</label><input style={S.inp} value={form.nameEn} onChange={e=>setForm({...form,nameEn:e.target.value})}/></div>
@@ -572,38 +579,24 @@ function TeachersPage({t,lang,teachers,setTeachers,students,showNotif}){
         <div style={{fontWeight:700,color:"#1e1b4b",fontSize:14,marginBottom:10}}>{t.guideStudents}</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{students.map(s=>(<label key={s.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:13,cursor:"pointer"}}><input type="checkbox" checked={form.guideStudents.includes(s.id)} onChange={()=>toggleGuide(s.id)}/>{lang==="bn"?s.name:s.nameEn}({t.class}{s.class}{s.section})</label>))}</div>
       </div>
-      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
+      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
-    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.classTeacher}</th><th style={S.th}>{t.subjectAssignments}</th><th style={S.th}>{t.guideStudents}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
-    <tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?tc.name:tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher?`${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}`:"—"}</td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(tc.subjectAssignments||[]).map((a,j)=>(<span key={j} style={{...S.assignTag,fontSize:11}}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1]||a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents||[]).length}{lang==="bn"?"জন":"sts"}</td><td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>openEdit(tc)} style={actBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️ {t.edit}</button><button onClick={()=>setConfirmDel({id:tc.id,name:lang==="bn"?tc.name:tc.nameEn})} style={actBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️ {t.deleteAdmin}</button></div></td></tr>))}</tbody></table></div>
+    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.classTeacher}</th><th style={S.th}>{t.subjectAssignments}</th><th style={S.th}>{t.guideStudents}</th></tr></thead>
+    <tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?tc.name:tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher?`${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}`:"—"}</td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(tc.subjectAssignments||[]).map((a,j)=>(<span key={j} style={{...S.assignTag,fontSize:11}}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1]||a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents||[]).length}{lang==="bn"?"জন":"sts"}</td></tr>))}</tbody></table></div>
   </div>);}
 function StudentsPage({t,lang,students,setStudents,teachers,showNotif}){
   const [showForm,setShowForm]=useState(false);
-  const [editId,setEditId]=useState(null);
-  const blank={name:"",nameEn:"",class:"8",section:"",roll:"",password:"1234"};
-  const [form,setForm]=useState(blank);
-  const [confirmDel,setConfirmDel]=useState(null);
-  const openAdd=()=>{setEditId(null);setForm(blank);setShowForm(true);};
-  const openEdit=s=>{setEditId(s.id);setForm({name:s.name,nameEn:s.nameEn||"",class:s.class,section:s.section||"",roll:s.roll||"",password:s.password});setShowForm(true);};
+  const [form,setForm]=useState({name:"",nameEn:"",class:"8",section:"",roll:"",password:"1234"});
   const handleSave=()=>{
     if(!form.name){showNotif(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
-    if(editId){
-      setStudents(s=>s.map(x=>x.id===editId?{...x,...form,roll:parseInt(form.roll)||0}:x));
-      showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
-    }else{
-      const yr=new Date().getFullYear(),seq=students.length+1;
-      const ns={...form,id:Date.now(),systemId:genId("STD",yr,seq),roll:parseInt(form.roll)||0};
-      setStudents(s=>[...s,ns]);
-      showNotif(lang==="bn"?`শিক্ষার্থী যোগ! ID: ${ns.systemId}`:`Student added! ID: ${ns.systemId}`);
-    }
-    setShowForm(false);setEditId(null);setForm(blank);
+    const yr=new Date().getFullYear(),seq=students.length+1;
+    const ns={...form,id:Date.now(),systemId:genId("STD",yr,seq),roll:parseInt(form.roll)||0};
+    setStudents(s=>[...s,ns]);setShowForm(false);setForm({name:"",nameEn:"",class:"8",section:"",roll:"",password:"1234"});
+    showNotif(lang==="bn"?`শিক্ষার্থী যোগ! ID: ${ns.systemId}`:`Student added! ID: ${ns.systemId}`);
   };
-  const actBtn=(bg,cl,bc)=>({padding:"4px 10px",background:bg,color:cl,border:`1px solid ${bc}`,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
   return(<div style={S.page}>
-    {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setStudents(s=>s.filter(x=>x.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
-    <div style={S.ph}><div><h2 style={S.pt}>{t.students}</h2><p style={S.ps}>{lang==="bn"?`মোট ${students.length} জন`:`Total ${students.length}`}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addStudent}</button></div>
+    <div style={S.ph}><div><h2 style={S.pt}>{t.students}</h2><p style={S.ps}>{lang==="bn"?`মোট ${students.length} জন`:`Total ${students.length}`}</p></div><button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {t.addStudent}</button></div>
     {showForm&&(<div style={S.card}>
-      <h3 style={S.ct}>{editId?(lang==="bn"?"শিক্ষার্থী সম্পাদনা":"Edit Student"):(lang==="bn"?"নতুন শিক্ষার্থী":"New Student")}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{t.name} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.name} (English)</label><input style={S.inp} value={form.nameEn} onChange={e=>setForm({...form,nameEn:e.target.value})}/></div>
@@ -612,45 +605,48 @@ function StudentsPage({t,lang,students,setStudents,teachers,showNotif}){
         <div style={S.fg}><label style={S.lbl}>{t.roll}</label><input style={S.inp} type="number" value={form.roll} onChange={e=>setForm({...form,roll:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></div>
       </div>
-      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
+      <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
-    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.section}</th><th style={S.th}>{t.roll}</th><th style={S.th}>{lang==="bn"?"শ্রেণী শিক্ষক":"Class Teacher"}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
-    <tbody>{students.map((s,i)=>{const ct=teachers.find(tc=>tc.classTeacher?.class===s.class&&tc.classTeacher?.section===s.section);return(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?s.name:s.nameEn}</strong></td><td style={S.td}>{s.class}</td><td style={S.td}>{s.section||"—"}</td><td style={S.td}>{s.roll}</td><td style={S.td}>{ct?(lang==="bn"?ct.name:ct.nameEn):"—"}</td><td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>openEdit(s)} style={actBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️ {t.edit}</button><button onClick={()=>setConfirmDel({id:s.id,name:lang==="bn"?s.name:s.nameEn})} style={actBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️ {t.deleteAdmin}</button></div></td></tr>);})}</tbody></table></div>
+    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.section}</th><th style={S.th}>{t.roll}</th><th style={S.th}>{lang==="bn"?"শ্রেণী শিক্ষক":"Class Teacher"}</th></tr></thead>
+    <tbody>{students.map((s,i)=>{const ct=teachers.find(tc=>tc.classTeacher?.class===s.class&&tc.classTeacher?.section===s.section);return(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?s.name:s.nameEn}</strong></td><td style={S.td}>{s.class}</td><td style={S.td}>{s.section||"—"}</td><td style={S.td}>{s.roll}</td><td style={S.td}>{ct?(lang==="bn"?ct.name:ct.nameEn):"—"}</td></tr>);})}</tbody></table></div>
   </div>);}
-function QuestionsPage({t,lang,questions,setQuestions,showNotif}){
+function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeacherQuestions,parentQuestions,setParentQuestions,showNotif}){
+  const [qTab,setQTab]=useState("student");
   const [showForm,setShowForm]=useState(false);
   const [editId,setEditId]=useState(null);
   const [viewQ,setViewQ]=useState(null);
   const [confirmDel,setConfirmDel]=useState(null);
-  const blank={textBn:"",textEn:"",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]};
-  const [form,setForm]=useState(blank);
+  const blankS={textBn:"",textEn:"",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]};
+  const blankO={textBn:"",textEn:"",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]};
+  const [form,setForm]=useState(blankS);
   const toggleM=m=>{const am=form.activeMonths.includes(m)?form.activeMonths.filter(x=>x!==m):[...form.activeMonths,m];setForm({...form,activeMonths:am});};
+  const isStd=qTab==="student";
+  const curQs=isStd?questions:qTab==="teacher"?teacherQuestions:parentQuestions;
+  const setCurQs=isStd?setQuestions:qTab==="teacher"?setTeacherQuestions:setParentQuestions;
   const rColor=r=>r==="classTeacher"?"#dbeafe":r==="subjectTeacher"?"#dcfce7":"#fef3c7";
   const rText=r=>r==="classTeacher"?"#1d4ed8":r==="subjectTeacher"?"#15803d":"#92400e";
   const rLabel=r=>r==="classTeacher"?t.classTeacher:r==="subjectTeacher"?t.subjectTeacher:t.guideTeacher;
-  const openAdd=()=>{setEditId(null);setForm(blank);setShowForm(true);};
-  const openEdit=q=>{setEditId(q.id);setForm({textBn:q.textBn,textEn:q.textEn,role:q.role,points:q.points,activeMonths:[...q.activeMonths]});setShowForm(true);};
+  const openAdd=()=>{setEditId(null);setForm(isStd?blankS:blankO);setShowForm(true);};
+  const openEdit=q=>{setEditId(q.id);setForm(isStd?{textBn:q.textBn,textEn:q.textEn,role:q.role,points:q.points,activeMonths:[...q.activeMonths]}:{textBn:q.textBn,textEn:q.textEn,points:q.points,activeMonths:[...q.activeMonths]});setShowForm(true);};
   const handleSave=()=>{
     if(!form.textBn){showNotif(lang==="bn"?"প্রশ্ন লিখুন":"Enter question");return;}
-    if(editId){
-      setQuestions(qs=>qs.map(q=>q.id===editId?{...q,...form,points:parseInt(form.points)||0}:q));
-      showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
-    }else{
-      setQuestions(qs=>[...qs,{...form,id:Date.now(),points:parseInt(form.points)||0}]);
-      showNotif(lang==="bn"?"প্রশ্ন যোগ হয়েছে!":"Question added!");
-    }
-    setShowForm(false);setEditId(null);setForm(blank);
+    const pts=parseInt(form.points)||0;
+    if(editId){setCurQs(qs=>qs.map(q=>q.id===editId?{...q,...form,points:pts}:q));showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");}
+    else{setCurQs(qs=>[...qs,{...form,id:Date.now(),points:pts}]);showNotif(lang==="bn"?"প্রশ্ন যোগ হয়েছে!":"Question added!");}
+    setShowForm(false);setEditId(null);setForm(isStd?blankS:blankO);
   };
-  const aBtn=(bg,cl,bc)=>({padding:"4px 8px",background:bg,color:cl,border:`1px solid ${bc}`,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
+  const aBtn=(bg,cl,bc)=>({padding:"4px 8px",background:bg,color:cl,border:"1px solid "+bc,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
+  const qRow=(q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}><div style={{maxWidth:200,fontWeight:500,fontSize:13}}>{lang==="bn"?q.textBn:q.textEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{q.points}</strong></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#6366f1":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td><td style={S.td}><div style={{display:"flex",gap:4}}><button onClick={()=>setViewQ(q)} style={aBtn("#f0fdf4","#15803d","#86efac")}>👁️</button><button onClick={()=>openEdit(q)} style={aBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️</button><button onClick={()=>setConfirmDel({id:q.id,name:lang==="bn"?q.textBn:q.textEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️</button></div></td></tr>);
+  const qTable=(list)=>(<div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.activeMonths}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead><tbody>{list.map(qRow)}</tbody></table></div>);
   return(<div style={S.page}>
-    {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setQuestions(qs=>qs.filter(q=>q.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
+    {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setCurQs(qs=>qs.filter(q=>q.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
     {viewQ&&(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:520}}>
       <h3 style={S.ct}>🔍 {lang==="bn"?"প্রশ্ন বিবরণ":"Question Details"}</h3>
       <div style={{background:"#f8fafc",borderRadius:10,padding:"14px 16px",marginBottom:14}}>
         <div style={{fontSize:15,fontWeight:700,color:"#1e1b4b",marginBottom:4}}>{viewQ.textBn}</div>
         <div style={{fontSize:13,color:"#64748b",marginBottom:12,fontStyle:"italic"}}>{viewQ.textEn}</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <span style={{background:rColor(viewQ.role),color:rText(viewQ.role),padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{rLabel(viewQ.role)}</span>
+          {isStd&&<span style={{background:rColor(viewQ.role),color:rText(viewQ.role),padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{rLabel(viewQ.role)}</span>}
           <span style={{background:"#eef2ff",color:"#6366f1",padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{t.pointsPerEntry}: {viewQ.points}</span>
         </div>
       </div>
@@ -662,23 +658,25 @@ function QuestionsPage({t,lang,questions,setQuestions,showNotif}){
         <button onClick={()=>setViewQ(null)} style={S.cancelBtn}>{t.cancel}</button>
       </div>
     </div></div>)}
-    <div style={S.ph}><div><h2 style={S.pt}>{t.questions}</h2><p style={S.ps}>{lang==="bn"?`মোট ${questions.length}টি`:`Total ${questions.length}`}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addQuestion}</button></div>
+    <div style={S.ph}><div><h2 style={S.pt}>{t.questions}</h2><p style={S.ps}>{lang==="bn"?"মোট "+curQs.length+"টি":"Total "+curQs.length}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addQuestion}</button></div>
+    <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+      {[{k:"student",l:t.stdQuestions,n:questions.length},{k:"teacher",l:t.tchrQuestions,n:teacherQuestions.length},{k:"parent",l:t.parQuestions,n:parentQuestions.length}].map(x=>(<button key={x.k} onClick={()=>{setQTab(x.k);setShowForm(false);setEditId(null);}} style={{...S.reportTab,...(qTab===x.k?S.reportTabOn:{})}}>{x.l} ({x.n})</button>))}
+    </div>
     {showForm&&(<div style={S.card}>
       <h3 style={S.ct}>{editId?(lang==="bn"?"প্রশ্ন সম্পাদনা":"Edit Question"):(lang==="bn"?"নতুন প্রশ্ন":"New Question")}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"প্রশ্ন (বাংলা)":"Question (BN)"}</label><input style={S.inp} value={form.textBn} onChange={e=>setForm({...form,textBn:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"প্রশ্ন (ইংরেজি)":"Question (EN)"}</label><input style={S.inp} value={form.textEn} onChange={e=>setForm({...form,textEn:e.target.value})}/></div>
-        <div style={S.fg}><label style={S.lbl}>{t.role}</label><select style={S.inp} value={form.role} onChange={e=>setForm({...form,role:e.target.value})}><option value="classTeacher">{t.classTeacher}</option><option value="subjectTeacher">{t.subjectTeacher}</option><option value="guideTeacher">{t.guideTeacher}</option></select></div>
+        {isStd&&<div style={S.fg}><label style={S.lbl}>{t.role}</label><select style={S.inp} value={form.role} onChange={e=>setForm({...form,role:e.target.value})}><option value="classTeacher">{t.classTeacher}</option><option value="subjectTeacher">{t.subjectTeacher}</option><option value="guideTeacher">{t.guideTeacher}</option></select></div>}
         <div style={S.fg}><label style={S.lbl}>{t.pointsPerEntry}</label><input style={S.inp} type="number" value={form.points} onChange={e=>setForm({...form,points:e.target.value})}/></div>
       </div>
       <div style={S.fg}><label style={S.lbl}>{t.activeMonths}</label><div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:6}}>{MONTHS.map((m,i)=>(<button key={m} onClick={()=>toggleM(i)} style={{...S.mBtn,...(form.activeMonths.includes(i)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>
       <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
-    {["classTeacher","subjectTeacher","guideTeacher"].map(role=>(<div key={role} style={S.card}><h3 style={S.ct}><span style={{background:rColor(role),color:rText(role),padding:"3px 10px",borderRadius:20,fontSize:13,fontWeight:700}}>{rLabel(role)}</span></h3>
-      <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.activeMonths}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
-      <tbody>{questions.filter(q=>q.role===role).map((q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}><div style={{maxWidth:200,fontWeight:500,fontSize:13}}>{lang==="bn"?q.textBn:q.textEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{q.points}</strong></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#6366f1":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td><td style={S.td}><div style={{display:"flex",gap:4}}><button onClick={()=>setViewQ(q)} style={aBtn("#f0fdf4","#15803d","#86efac")}>👁️</button><button onClick={()=>openEdit(q)} style={aBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️</button><button onClick={()=>setConfirmDel({id:q.id,name:lang==="bn"?q.textBn:q.textEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️</button></div></td></tr>))}</tbody></table></div>
-    </div>))}
+    {isStd&&["classTeacher","subjectTeacher","guideTeacher"].map(role=>(<div key={role} style={S.card}><h3 style={S.ct}><span style={{background:rColor(role),color:rText(role),padding:"3px 10px",borderRadius:20,fontSize:13,fontWeight:700}}>{rLabel(role)}</span></h3>{qTable(questions.filter(q=>q.role===role))}</div>))}
+    {!isStd&&<div style={S.card}>{qTable(curQs)}</div>}
   </div>);}
+
 function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntries,showNotif,isAdmin,teachers}){
   const [activeRole,setActiveRole]=useState("classTeacher");
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
@@ -786,6 +784,79 @@ function SettingsPage({t,lang,termConfig,setTermConfig,showNotif}){
     <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"বর্তমান কনফিগারেশন":"Current Configuration"}</h3>
       {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{padding:"8px 0",borderBottom:"1px solid #f1f5f9",fontSize:14,color:"#374151"}}><strong>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}:</strong><span style={{marginLeft:8}}>{termConfig[term].map(m=>T[lang][MONTHS[m]]).join(", ")||"—"}</span></div>))}
     </div>
+  </div>);}
+function TeacherKPIPage({t,lang,teachers,teacherQuestions,teacherEntries,setTeacherEntries,showNotif,selectedYear,setSelectedYear,availableYears}){
+  const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
+  const [allScores,setAllScores]=useState({});
+  const cm=new Date(selectedDate).getMonth(),cy=new Date(selectedDate).getFullYear();
+  const activeQs=teacherQuestions.filter(q=>q.activeMonths.includes(cm));
+  const setScore=(tid,qid,val)=>{const max=teacherQuestions.find(q=>q.id===qid)?.points||0;setAllScores(p=>({...p,[tid]:{...(p[tid]||{}),[qid]:Math.min(parseInt(val)||0,max)}}));};
+  const getScore=(tid,qid)=>allScores[tid]?.[qid]??"";
+  const getTotal=tid=>activeQs.reduce((s,q)=>s+(parseInt(allScores[tid]?.[q.id])||0),0);
+  const handleSubmit=()=>{const ne=[];teachers.forEach(tc=>{activeQs.forEach(q=>{ne.push({id:Date.now()+Math.random(),targetId:tc.id,questionId:q.id,questionText:q.textBn,questionTextEn:q.textEn,maxPoints:q.points,score:parseInt(allScores[tc.id]?.[q.id])||0,month:cm,year:cy,date:selectedDate,editLog:[]});});});setTeacherEntries(e=>[...e,...ne]);setAllScores({});showNotif(lang==="bn"?"পয়েন্ট জমা হয়েছে!":"Points submitted!");};
+  return(<div style={S.page}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
+      <h2 style={{...S.pt,margin:0}}>{t.tchrKpiEntry}</h2>
+      <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
+    </div>
+    <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
+    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.teachers}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{tc.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(tc.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>)}
+    <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.teachers}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...teacherEntries].reverse().slice(0,50).map((e,i)=>{const tc=teachers.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?tc?.name:tc?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
+  </div>);}
+function ParentKPIPage({t,lang,parents,parentQuestions,parentEntries,setParentEntries,showNotif,selectedYear,setSelectedYear,availableYears}){
+  const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
+  const [allScores,setAllScores]=useState({});
+  const approvedParents=parents.filter(p=>p.status==="approved");
+  const cm=new Date(selectedDate).getMonth(),cy=new Date(selectedDate).getFullYear();
+  const activeQs=parentQuestions.filter(q=>q.activeMonths.includes(cm));
+  const setScore=(pid,qid,val)=>{const max=parentQuestions.find(q=>q.id===qid)?.points||0;setAllScores(p=>({...p,[pid]:{...(p[pid]||{}),[qid]:Math.min(parseInt(val)||0,max)}}));};
+  const getScore=(pid,qid)=>allScores[pid]?.[qid]??"";
+  const getTotal=pid=>activeQs.reduce((s,q)=>s+(parseInt(allScores[pid]?.[q.id])||0),0);
+  const handleSubmit=()=>{const ne=[];approvedParents.forEach(p=>{activeQs.forEach(q=>{ne.push({id:Date.now()+Math.random(),targetId:p.id,questionId:q.id,questionText:q.textBn,questionTextEn:q.textEn,maxPoints:q.points,score:parseInt(allScores[p.id]?.[q.id])||0,month:cm,year:cy,date:selectedDate,editLog:[]});});});setParentEntries(e=>[...e,...ne]);setAllScores({});showNotif(lang==="bn"?"পয়েন্ট জমা হয়েছে!":"Points submitted!");};
+  return(<div style={S.page}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
+      <h2 style={{...S.pt,margin:0}}>{t.parKpiEntry}</h2>
+      <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
+    </div>
+    <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
+    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.parent}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{approvedParents.map((p,i)=>(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{p.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(p.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>)}
+    <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.parent}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...parentEntries].reverse().slice(0,50).map((e,i)=>{const par=parents.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?par?.name:par?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
+  </div>);}
+function MyTeacherKPIPage({t,lang,currentUser,teacherEntries,getTchrMonthKPI,getTchrTermKPI,getTchrYearKPI,selectedYear,setSelectedYear,availableYears,termConfig}){
+  const tid=currentUser.id,cm=new Date().getMonth();
+  const monthData=MONTHS.map((m,i)=>({label:T[lang][m].slice(0,3),val:getTchrMonthKPI(tid,i,selectedYear)}));
+  const tchrYears=[...new Set([...teacherEntries.filter(e=>e.targetId===tid).map(e=>e.year||new Date().getFullYear()),selectedYear])].sort((a,b)=>b-a);
+  return(<div style={S.page}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
+      <div><h2 style={S.pt}>{t.myTchrKPI}</h2><p style={S.ps}>{lang==="bn"?currentUser.name:(currentUser.nameEn||currentUser.name)}</p></div>
+      <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={tchrYears.length>0?tchrYears:[selectedYear]}/>
+    </div>
+    <div style={S.grid4}>
+      <StatCard icon="📅" value={getTchrMonthKPI(tid,cm,selectedYear)} label={T[lang][MONTHS[cm]]+" "+t.myMonthly} color="#6366f1"/>
+      <StatCard icon="📊" value={getTchrYearKPI(tid,selectedYear)} label={selectedYear+" "+t.myYearly} color="#10b981"/>
+      <StatCard icon="🏆" value={getTchrTermKPI(tid,termConfig.term1,selectedYear)} label={t.term1} color="#f59e0b"/>
+      <StatCard icon="🎯" value={getTchrTermKPI(tid,termConfig.term2,selectedYear)} label={t.term2} color="#0ea5e9"/>
+    </div>
+    <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#6366f1"}}>{getTchrTermKPI(tid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
+  </div>);}
+function MyParentKPIPage({t,lang,currentUser,parentEntries,getParMonthKPI,getParTermKPI,getParYearKPI,selectedYear,setSelectedYear,availableYears,termConfig}){
+  const pid=currentUser.id,cm=new Date().getMonth();
+  const monthData=MONTHS.map((m,i)=>({label:T[lang][m].slice(0,3),val:getParMonthKPI(pid,i,selectedYear)}));
+  const parYears=[...new Set([...parentEntries.filter(e=>e.targetId===pid).map(e=>e.year||new Date().getFullYear()),selectedYear])].sort((a,b)=>b-a);
+  return(<div style={S.page}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
+      <div><h2 style={S.pt}>{t.myKPI}</h2><p style={S.ps}>{lang==="bn"?currentUser.name:(currentUser.nameEn||currentUser.name)}</p></div>
+      <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={parYears.length>0?parYears:[selectedYear]}/>
+    </div>
+    <div style={S.grid4}>
+      <StatCard icon="📅" value={getParMonthKPI(pid,cm,selectedYear)} label={T[lang][MONTHS[cm]]+" "+t.myMonthly} color="#6366f1"/>
+      <StatCard icon="📊" value={getParYearKPI(pid,selectedYear)} label={selectedYear+" "+t.myYearly} color="#10b981"/>
+      <StatCard icon="🏆" value={getParTermKPI(pid,termConfig.term1,selectedYear)} label={t.term1} color="#f59e0b"/>
+      <StatCard icon="🎯" value={getParTermKPI(pid,termConfig.term2,selectedYear)} label={t.term2} color="#0ea5e9"/>
+    </div>
+    <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#6366f1"}}>{getParTermKPI(pid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
   </div>);}
 const S={
   app:{display:"flex",minHeight:"100vh",background:"#f8fafc",fontFamily:"'Segoe UI','Noto Sans Bengali',sans-serif"},
