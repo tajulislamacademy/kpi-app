@@ -229,10 +229,10 @@ export default function App() {
   return (
     <div style={S.app}>
       {notif&&<div style={{...S.notif,background:"#10b981",...(isMobile?{top:64,right:12,left:12,width:"auto"}:{})}}>{notif}</div>}
-      {isMobile&&<header style={{position:"fixed",top:0,left:0,right:0,height:56,background:"#1e1b4b",display:"flex",alignItems:"center",gap:8,padding:"0 12px",zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,0.25)"}}>
+      {isMobile&&<header style={{position:"fixed",top:0,left:0,right:0,height:56,background:"#0f172a",display:"flex",alignItems:"center",gap:8,padding:"0 12px",zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,0.25)"}}>
         <button onClick={()=>setNavOpen(true)} style={{background:"none",border:"none",color:"#fff",fontSize:24,cursor:"pointer",padding:"2px 6px",lineHeight:1,flexShrink:0}}>☰</button>
         <div style={S.logoBox}>KPI</div>
-        <span style={{fontSize:12,fontWeight:700,color:"#c7d2fe",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.appTitle}</span>
+        <span style={{fontSize:12,fontWeight:700,color:"#e2e8f0",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.appTitle}</span>
         <div style={{display:"flex",gap:4,flexShrink:0}}>
           <button onClick={()=>setLang("bn")} style={{...S.langBtn,...(lang==="bn"?S.langOn:{}),padding:"3px 7px",fontSize:11}}>বাং</button>
           <button onClick={()=>setLang("en")} style={{...S.langBtn,...(lang==="en"?S.langOn:{}),padding:"3px 7px",fontSize:11}}>EN</button>
@@ -251,7 +251,7 @@ export default function App() {
             <div style={S.ava}>{(currentUser.name||"A")[0]}</div>
             <div><div style={S.uName}>{currentUser.name}</div>
               <div style={S.uRole}>{isAdmin?t.admin:isTeacher?t.teacher:currentUser.role==="student"?t.student:t.parent}</div>
-              {currentUser.systemId&&<div style={{fontSize:10,color:"#818cf8"}}>{currentUser.systemId}</div>}
+              {currentUser.systemId&&<div style={{fontSize:10,color:"#94a3b8"}}>{currentUser.systemId}</div>}
             </div>
           </div>
           <button onClick={()=>setCurrentUser(null)} style={S.logoutBtn}>{t.logout}</button>
@@ -281,9 +281,9 @@ export default function App() {
     </div>
   );
 }
-function YearSelector({t,lang,selectedYear,setSelectedYear,availableYears}){return(<div style={{display:"flex",alignItems:"center",gap:8,background:"#eef2ff",borderRadius:10,padding:"8px 14px"}}><span style={{fontSize:13,fontWeight:700,color:"#4338ca"}}>📅 {lang==="bn"?"বছর":"Year"}:</span><select style={{border:"none",background:"transparent",fontSize:15,fontWeight:800,color:"#4338ca",outline:"none",cursor:"pointer"}} value={selectedYear} onChange={e=>setSelectedYear(parseInt(e.target.value))}>{availableYears.map(y=><option key={y} value={y}>{y}</option>)}</select></div>);}
-function StatCard({icon,value,label,color}){return(<div style={{...S.statCard,borderTop:`4px solid ${color}`}}><div style={{fontSize:24,marginBottom:8}}>{icon}</div><div style={{fontSize:20,fontWeight:800,color,marginBottom:4}}>{value}</div><div style={{fontSize:12,color:"#64748b"}}>{label}</div></div>);}
-function RankCard({title,list,lang,t}){return(<div style={S.card}><h3 style={S.ct}>{title}</h3>{list.map((s,i)=>(<div key={s.id} style={S.rankRow}><div style={{...S.rankBadge,background:i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#cd7c3f":"#e2e8f0",color:i<3?"#fff":"#64748b"}}>{i+1}</div><div style={{flex:1,fontSize:14,fontWeight:500}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:13,fontWeight:700,color:"#6366f1"}}>{s.kpi}</div></div>))}</div>);}
+function YearSelector({t,lang,selectedYear,setSelectedYear,availableYears}){return(<div style={{display:"flex",alignItems:"center",gap:8,background:"#f8fafc",borderRadius:10,padding:"8px 14px"}}><span style={{fontSize:13,fontWeight:700,color:"#334155"}}>📅 {lang==="bn"?"বছর":"Year"}:</span><select style={{border:"none",background:"transparent",fontSize:15,fontWeight:800,color:"#334155",outline:"none",cursor:"pointer"}} value={selectedYear} onChange={e=>setSelectedYear(parseInt(e.target.value))}>{availableYears.map(y=><option key={y} value={y}>{y}</option>)}</select></div>);}
+function StatCard({icon,value,label,color}){return(<div style={{...S.statCard,border:"1px solid #e2e8f0"}}><div style={{fontSize:22,marginBottom:8}}>{icon}</div><div style={{fontSize:20,fontWeight:800,color:"#0f172a",marginBottom:4}}>{value}</div><div style={{fontSize:12,color:"#64748b"}}>{label}</div></div>);}
+function RankCard({title,list,lang,t}){return(<div style={S.card}><h3 style={S.ct}>{title}</h3>{list.map((s,i)=>(<div key={s.id} style={S.rankRow}><div style={{...S.rankBadge,background:i===0?"#0f172a":i===1?"#52525b":i===2?"#a1a1aa":"#f4f4f5",color:i<3?"#fff":"#64748b"}}>{i+1}</div><div style={{flex:1,fontSize:14,fontWeight:500}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{s.kpi}</div></div>))}</div>);}
 function AuthPage({t,lang,setLang,teachers,students,parents,admins,onLogin}){
   const [form,setForm]=useState({id:"",password:""});
   const [error,setError]=useState("");
@@ -307,7 +307,7 @@ function AuthPage({t,lang,setLang,teachers,students,parents,admins,onLogin}){
     <div style={S.loginBg}><div style={S.loginCard}>
       <div style={{textAlign:"center",marginBottom:20}}>
         <div style={S.loginLogo}>KPI</div>
-        <h1 style={{fontSize:20,fontWeight:800,color:"#1e1b4b",margin:"8px 0 4px"}}>{t.appTitle}</h1>
+        <h1 style={{fontSize:20,fontWeight:800,color:"#0f172a",margin:"8px 0 4px"}}>{t.appTitle}</h1>
         <p style={{fontSize:12,color:"#64748b",margin:0}}>{lang==="bn"?"শিক্ষার্থী মূল্যায়ন ব্যবস্থাপনা":"Student Evaluation Management"}</p>
       </div>
       <div style={{display:"flex",gap:8,marginBottom:20,justifyContent:"center"}}>
@@ -339,10 +339,10 @@ function AdminTeacherDashboard({t,lang,students,teachers,entries,getStudentYearK
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
     {isAdmin&&<div style={S.grid4}>
-      <StatCard icon="🎓" value={students.length} label={t.totalStudents} color="#6366f1"/>
-      <StatCard icon="👨‍🏫" value={teachers.length} label={t.totalTeachers} color="#0ea5e9"/>
-      <StatCard icon="✏️" value={totalE} label={t.monthlyKPI} color="#10b981"/>
-      <StatCard icon={pendingParents.length>0?"⏳":"🏆"} value={pendingParents.length>0?pendingParents.length:(lang==="bn"?ranked[0]?.name:ranked[0]?.nameEn||"-")} label={pendingParents.length>0?(lang==="bn"?"অনুমোদন বাকি":"Pending"):(lang==="bn"?"শীর্ষ শিক্ষার্থী":"Top Student")} color="#f59e0b"/>
+      <StatCard icon="🎓" value={students.length} label={t.totalStudents} color="#0f172a"/>
+      <StatCard icon="👨‍🏫" value={teachers.length} label={t.totalTeachers} color="#2563eb"/>
+      <StatCard icon="✏️" value={totalE} label={t.monthlyKPI} color="#0f172a"/>
+      <StatCard icon={pendingParents.length>0?"⏳":"🏆"} value={pendingParents.length>0?pendingParents.length:(lang==="bn"?ranked[0]?.name:ranked[0]?.nameEn||"-")} label={pendingParents.length>0?(lang==="bn"?"অনুমোদন বাকি":"Pending"):(lang==="bn"?"শীর্ষ শিক্ষার্থী":"Top Student")} color="#0f172a"/>
     </div>}
     <div style={S.two}>
       <RankCard title={`🏆 ${t.topStudents} — ${lang==="bn"?"বার্ষিক":"Yearly"} ${selectedYear}`} list={ranked.slice(0,5)} lang={lang} t={t}/>
@@ -353,8 +353,8 @@ function BarChart({data,cm}){
   const maxVal=Math.max(...data.map(d=>d.val),1);
   return(<div style={{display:"flex",alignItems:"flex-end",gap:6,height:120,padding:"8px 0"}}>
     {data.map((d,i)=>(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-      <div style={{fontSize:10,color:"#6366f1",fontWeight:700}}>{d.val||""}</div>
-      <div style={{width:"100%",background:i===cm?"#6366f1":"#c7d2fe",borderRadius:"4px 4px 0 0",height:`${Math.max((d.val/maxVal)*90,d.val>0?8:2)}px`}}/>
+      <div style={{fontSize:10,color:"#0f172a",fontWeight:700}}>{d.val||""}</div>
+      <div style={{width:"100%",background:i===cm?"#0f172a":"#e2e8f0",borderRadius:"4px 4px 0 0",height:`${Math.max((d.val/maxVal)*90,d.val>0?8:2)}px`}}/>
       <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{d.label}</div>
     </div>))}
   </div>);}
@@ -365,18 +365,18 @@ function StudentDashboard({t,lang,currentUser,students,getStudentMonthKPI,getStu
   const monthData=MONTHS.map((m,i)=>({label:T[lang][m].slice(0,3),val:getStudentMonthKPI(sid,i,selectedYear)}));
   return(<div style={S.page}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
-      <div><h2 style={S.pt}>{t.myKPI}</h2><p style={S.ps}>{lang==="bn"?`স্বাগতম, ${currentUser.name}`:`${t.welcome}, ${currentUser.name}`}</p><p style={{fontSize:12,color:"#818cf8",margin:"2px 0 0"}}>{currentUser.systemId}</p></div>
+      <div><h2 style={S.pt}>{t.myKPI}</h2><p style={S.ps}>{lang==="bn"?`স্বাগতম, ${currentUser.name}`:`${t.welcome}, ${currentUser.name}`}</p><p style={{fontSize:12,color:"#94a3b8",margin:"2px 0 0"}}>{currentUser.systemId}</p></div>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
     <div style={S.grid4}>
-      <StatCard icon="🏆" value={`#${myRank}`} label={t.myRank} color="#f59e0b"/>
-      <StatCard icon="📅" value={getStudentMonthKPI(sid,cm,selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} color="#6366f1"/>
-      <StatCard icon="📊" value={getStudentYearKPI(sid,selectedYear)} label={`${selectedYear} ${t.myYearly}`} color="#10b981"/>
-      <StatCard icon="🎓" value={`${currentUser.class}${currentUser.section||""}`} label={t.class} color="#0ea5e9"/>
+      <StatCard icon="🏆" value={`#${myRank}`} label={t.myRank} color="#0f172a"/>
+      <StatCard icon="📅" value={getStudentMonthKPI(sid,cm,selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} color="#0f172a"/>
+      <StatCard icon="📊" value={getStudentYearKPI(sid,selectedYear)} label={`${selectedYear} ${t.myYearly}`} color="#0f172a"/>
+      <StatCard icon="🎓" value={`${currentUser.class}${currentUser.section||""}`} label={t.class} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>
-      {["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#6366f1"}}>{getStudentTermKPI(sid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}
+      {["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getStudentTermKPI(sid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}
     </div>
   </div>);}
 function ParentDashboard({t,lang,currentUser,students,getStudentMonthKPI,getStudentTermKPI,getStudentYearKPI,selectedYear,setSelectedYear,availableYears,termConfig}){
@@ -392,21 +392,21 @@ function ParentDashboard({t,lang,currentUser,students,getStudentMonthKPI,getStud
       <div><h2 style={S.pt}>{t.childKPI}</h2><p style={S.ps}>{relLabel}: {currentUser.name}</p></div>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
-    <div style={{...S.card,background:"linear-gradient(135deg,#eef2ff,#f0fdf4)",marginBottom:16}}>
+    <div style={{...S.card,background:"linear-gradient(135deg,#f8fafc,#f0fdf4)",marginBottom:16}}>
       <div style={{display:"flex",alignItems:"center",gap:14}}>
         <div style={{...S.ava,width:50,height:50,fontSize:22}}>{(lang==="bn"?child.name:child.nameEn)[0]}</div>
-        <div><div style={{fontSize:17,fontWeight:800,color:"#1e1b4b"}}>{lang==="bn"?child.name:child.nameEn}</div><div style={{fontSize:13,color:"#6366f1"}}>{child.systemId}</div><div style={{fontSize:12,color:"#64748b"}}>{t.class} {child.class}{child.section} | {t.roll}: {child.roll}</div></div>
+        <div><div style={{fontSize:17,fontWeight:800,color:"#0f172a"}}>{lang==="bn"?child.name:child.nameEn}</div><div style={{fontSize:13,color:"#0f172a"}}>{child.systemId}</div><div style={{fontSize:12,color:"#64748b"}}>{t.class} {child.class}{child.section} | {t.roll}: {child.roll}</div></div>
       </div>
     </div>
     <div style={S.grid4}>
-      <StatCard icon="🏆" value={`#${myRank}`} label={t.myRank} color="#f59e0b"/>
-      <StatCard icon="📅" value={getStudentMonthKPI(sid,cm,selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} color="#6366f1"/>
-      <StatCard icon="📊" value={getStudentYearKPI(sid,selectedYear)} label={`${selectedYear} ${t.myYearly}`} color="#10b981"/>
-      <StatCard icon="👥" value={students.length} label={lang==="bn"?"মোট শিক্ষার্থী":"Total Students"} color="#0ea5e9"/>
+      <StatCard icon="🏆" value={`#${myRank}`} label={t.myRank} color="#0f172a"/>
+      <StatCard icon="📅" value={getStudentMonthKPI(sid,cm,selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} color="#0f172a"/>
+      <StatCard icon="📊" value={getStudentYearKPI(sid,selectedYear)} label={`${selectedYear} ${t.myYearly}`} color="#0f172a"/>
+      <StatCard icon="👥" value={students.length} label={lang==="bn"?"মোট শিক্ষার্থী":"Total Students"} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>
-      {["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#6366f1"}}>{getStudentTermKPI(sid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}
+      {["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getStudentTermKPI(sid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}
     </div>
   </div>);}
 function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,setTeachers,admins,setAdmins,showNotif}){
@@ -455,10 +455,10 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
   const pending=parents.filter(p=>p.status==="pending"),approved=parents.filter(p=>p.status==="approved"),rejected=parents.filter(p=>p.status==="rejected");
   const current=tab==="pending"?pending:tab==="approved"?approved:rejected;
   const relLabel=r=>r==="father"?t.father:r==="mother"?t.mother:t.guardian;
-  const sColor=s=>s==="approved"?"#dcfce7":s==="rejected"?"#fee2e2":"#fef3c7";
-  const sText=s=>s==="approved"?"#15803d":s==="rejected"?"#991b1b":"#92400e";
+  const sColor=s=>s==="approved"?"#f0fdf4":s==="rejected"?"#fee2e2":"#fef3c7";
+  const sText=s=>s==="approved"?"#166534":s==="rejected"?"#991b1b":"#92400e";
   const adminCount=admins.length+teachers.filter(x=>x.isAdmin).length+students.filter(x=>x.isAdmin).length+parents.filter(x=>x.isAdmin).length;
-  const uBtn=(isOn)=>({padding:"5px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600,border:"1px solid",background:isOn?"#fee2e2":"#dcfce7",color:isOn?"#991b1b":"#15803d",borderColor:isOn?"#fca5a5":"#86efac"});
+  const uBtn=(isOn)=>({padding:"5px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600,border:"1px solid",background:isOn?"#fee2e2":"#f0fdf4",color:isOn?"#991b1b":"#166534",borderColor:isOn?"#fca5a5":"#bbf7d0"});
   const uRow={display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid #f8fafc"};
   return(<div style={S.page}>
     <div style={S.ph}>
@@ -472,7 +472,7 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
       <h3 style={S.ct}>{lang==="bn"?"নতুন অভিভাবক":"New Parent"}</h3>
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{t.studentId}</label><input style={S.inp} value={form.studentId} onChange={e=>setForm({...form,studentId:e.target.value})} placeholder="STD-20260001"/>
-          {form.studentId&&(()=>{const st=students.find(s=>s.systemId===form.studentId);return st?<div style={{fontSize:12,color:"#10b981",marginTop:4}}>✅ {lang==="bn"?st.name:st.nameEn}</div>:<div style={{fontSize:12,color:"#ef4444",marginTop:4}}>❌</div>;})()}
+          {form.studentId&&(()=>{const st=students.find(s=>s.systemId===form.studentId);return st?<div style={{fontSize:12,color:"#0f172a",marginTop:4}}>✅ {lang==="bn"?st.name:st.nameEn}</div>:<div style={{fontSize:12,color:"#ef4444",marginTop:4}}>❌</div>;})()}
         </div>
         <div style={S.fg}><label style={S.lbl}>{t.relation}</label><select style={S.inp} value={form.relation} onChange={e=>setForm({...form,relation:e.target.value})}><option value="father">{t.father}</option><option value="mother">{t.mother}</option><option value="guardian">{t.guardian}</option></select></div>
         <div style={S.fg}><label style={S.lbl}>{t.parentName} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
@@ -493,10 +493,10 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
       <div style={{display:"flex",gap:8}}><button onClick={handleAddAdmin} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowAdminForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
     <div style={S.grid4}>
-      <StatCard icon="⏳" value={pending.length} label={t.pending} color="#f59e0b"/>
-      <StatCard icon="✅" value={approved.length} label={t.approved} color="#10b981"/>
+      <StatCard icon="⏳" value={pending.length} label={t.pending} color="#0f172a"/>
+      <StatCard icon="✅" value={approved.length} label={t.approved} color="#0f172a"/>
       <StatCard icon="❌" value={rejected.length} label={t.rejected} color="#ef4444"/>
-      <StatCard icon="🛡️" value={adminCount} label={lang==="bn"?"মোট অ্যাডমিন":"Total Admins"} color="#6366f1"/>
+      <StatCard icon="🛡️" value={adminCount} label={lang==="bn"?"মোট অ্যাডমিন":"Total Admins"} color="#0f172a"/>
     </div>
     <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
       {[{k:"pending",l:`${t.pending}(${pending.length})`},{k:"approved",l:t.approved},{k:"rejected",l:t.rejected},{k:"admin",l:`${lang==="bn"?"অ্যাডমিন":"Admin"}(${adminCount})`}].map(x=>(<button key={x.k} onClick={()=>setTab(x.k)} style={{...S.reportTab,...(tab===x.k?S.reportTabOn:{})}}>{x.l}</button>))}
@@ -504,30 +504,30 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
     {tab!=="admin"&&(<>
       <div style={S.card}>{current.length===0?<div style={S.empty}>{lang==="bn"?"কোনো অ্যাকাউন্ট নেই":"No accounts"}</div>:(
         <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th>{tab==="pending"&&<th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th>}</tr></thead>
-        <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td>{tab==="pending"&&<td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#dcfce7",color:"#15803d",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></div></td>}</tr>);})}</tbody></table></div>
+        <tbody>{current.map((p,i)=>{const st=students.find(s=>s.systemId===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{p.name}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.studentId}</div></td><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td>{tab==="pending"&&<td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#f0fdf4",color:"#166534",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></div></td>}</tr>);})}</tbody></table></div>
       )}</div>
-      <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষক অ্যাকাউন্ট":"Teacher Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?tc.name:tc.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><code>{tc.password}</code></td></tr>))}</tbody></table></div></div>
-      <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষার্থী অ্যাকাউন্ট":"Student Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{students.map((s,i)=>(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?s.name:s.nameEn}</td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}><code>{s.password}</code></td></tr>))}</tbody></table></div></div>
+      <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষক অ্যাকাউন্ট":"Teacher Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?tc.name:tc.nameEn}</td><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{tc.systemId}</code></td><td style={S.td}><code>{tc.password}</code></td></tr>))}</tbody></table></div></div>
+      <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"শিক্ষার্থী অ্যাকাউন্ট":"Student Accounts"}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.defaultPass}</th></tr></thead><tbody>{students.map((s,i)=>(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{lang==="bn"?s.name:s.nameEn}</td><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{s.systemId}</code></td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}><code>{s.password}</code></td></tr>))}</tbody></table></div></div>
     </>)}
     {tab==="admin"&&(<>
       <div style={S.card}>
         <h3 style={S.ct}>{t.adminAccounts}</h3>
         <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.name}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.defaultPass}</th><th style={S.th}>{lang==="bn"?"ধরন":"Type"}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
-        <tbody>{admins.map((a,i)=>(<tr key={a.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{lang==="bn"?a.name:a.nameEn}</strong></td><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{a.systemId}</code></td><td style={S.td}><code>{a.password}</code></td><td style={S.td}>{a.isRoot?<span style={{background:"#fef3c7",color:"#92400e",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{t.rootAdmin}</span>:<span style={{background:"#dbeafe",color:"#1d4ed8",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>Custom</span>}</td><td style={S.td}>{!a.isRoot&&<button onClick={()=>deleteAdmin(a.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>🗑️ {t.deleteAdmin}</button>}</td></tr>))}</tbody></table></div>
+        <tbody>{admins.map((a,i)=>(<tr key={a.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{lang==="bn"?a.name:a.nameEn}</strong></td><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{a.systemId}</code></td><td style={S.td}><code>{a.password}</code></td><td style={S.td}>{a.isRoot?<span style={{background:"#f5f5f4",color:"#57534e",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{t.rootAdmin}</span>:<span style={{background:"#dbeafe",color:"#1d4ed8",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>Custom</span>}</td><td style={S.td}>{!a.isRoot&&<button onClick={()=>deleteAdmin(a.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>🗑️ {t.deleteAdmin}</button>}</td></tr>))}</tbody></table></div>
       </div>
       <div style={S.card}>
         <h3 style={S.ct}>{t.userToAdmin}</h3>
         <div style={{marginBottom:16}}>
-          <div style={{fontSize:13,fontWeight:700,color:"#1e1b4b",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>👨‍🏫 {t.teachers}</div>
-          {teachers.map(tc=>(<div key={tc.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?tc.name:tc.nameEn}{tc.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#fef3c7",color:"#92400e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{tc.systemId}</div></div><button onClick={()=>toggleUserAdmin("teacher",tc.id)} style={uBtn(tc.isAdmin)}>{tc.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
+          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>👨‍🏫 {t.teachers}</div>
+          {teachers.map(tc=>(<div key={tc.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?tc.name:tc.nameEn}{tc.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#f5f5f4",color:"#57534e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{tc.systemId}</div></div><button onClick={()=>toggleUserAdmin("teacher",tc.id)} style={uBtn(tc.isAdmin)}>{tc.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
         </div>
         <div style={{marginBottom:16}}>
-          <div style={{fontSize:13,fontWeight:700,color:"#1e1b4b",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>🎓 {t.students}</div>
-          {students.map(s=>(<div key={s.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?s.name:s.nameEn}{s.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#fef3c7",color:"#92400e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{s.systemId} | {t.class} {s.class}{s.section}</div></div><button onClick={()=>toggleUserAdmin("student",s.id)} style={uBtn(s.isAdmin)}>{s.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
+          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>🎓 {t.students}</div>
+          {students.map(s=>(<div key={s.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?s.name:s.nameEn}{s.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#f5f5f4",color:"#57534e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{s.systemId} | {t.class} {s.class}{s.section}</div></div><button onClick={()=>toggleUserAdmin("student",s.id)} style={uBtn(s.isAdmin)}>{s.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
         </div>
         <div>
-          <div style={{fontSize:13,fontWeight:700,color:"#1e1b4b",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>👥 {t.parent}</div>
-          {parents.filter(p=>p.status==="approved").map(p=>(<div key={p.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?p.name:p.nameEn}{p.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#fef3c7",color:"#92400e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.systemId}</div></div><button onClick={()=>toggleUserAdmin("parent",p.id)} style={uBtn(p.isAdmin)}>{p.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
+          <div style={{fontSize:13,fontWeight:700,color:"#0f172a",padding:"8px 0",borderBottom:"2px solid #e2e8f0",marginBottom:8}}>👥 {t.parent}</div>
+          {parents.filter(p=>p.status==="approved").map(p=>(<div key={p.id} style={uRow}><div><div style={{fontSize:13,fontWeight:600}}>{lang==="bn"?p.name:p.nameEn}{p.isAdmin&&<span style={{marginLeft:8,fontSize:11,background:"#f5f5f4",color:"#57534e",padding:"2px 6px",borderRadius:10,fontWeight:700}}>🛡️Admin</span>}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.systemId}</div></div><button onClick={()=>toggleUserAdmin("parent",p.id)} style={uBtn(p.isAdmin)}>{p.isAdmin?`❌ ${t.removeAdmin}`:`✅ ${t.makeAdmin}`}</button></div>))}
         </div>
       </div>
     </>)}
@@ -544,9 +544,9 @@ function ProfilePage({t,lang,currentUser,onPasswordChange}){
     setForm({current:"",newPass:"",confirm:""});
   };
   return(<div style={S.page}><h2 style={S.pt}>{t.myProfile}</h2><div style={S.card}>
-    <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20,padding:16,background:"#eef2ff",borderRadius:10}}>
+    <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20,padding:16,background:"#f8fafc",borderRadius:10}}>
       <div style={{...S.ava,width:56,height:56,fontSize:24}}>{(currentUser.name||"A")[0]}</div>
-      <div><div style={{fontSize:18,fontWeight:800,color:"#1e1b4b"}}>{currentUser.name}</div><div style={{fontSize:13,color:"#6366f1"}}>{currentUser.systemId||"admin"}</div></div>
+      <div><div style={{fontSize:18,fontWeight:800,color:"#0f172a"}}>{currentUser.name}</div><div style={{fontSize:13,color:"#0f172a"}}>{currentUser.systemId||"admin"}</div></div>
     </div>
     <h3 style={S.ct}>{t.changePassword}</h3>
     <div style={{maxWidth:360}}>
@@ -582,11 +582,11 @@ function ProfilePage({t,lang,currentUser,onPasswordChange}){
         <div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></div>
       </div>
       <div style={S.sectionBox}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><input type="checkbox" checked={hasClass} onChange={e=>setHasClass(e.target.checked)} id="hc"/><label htmlFor="hc" style={{fontWeight:700,color:"#1e1b4b",fontSize:14}}>{t.classTeacher}?</label></div>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><input type="checkbox" checked={hasClass} onChange={e=>setHasClass(e.target.checked)} id="hc"/><label htmlFor="hc" style={{fontWeight:700,color:"#0f172a",fontSize:14}}>{t.classTeacher}?</label></div>
         {hasClass&&<div style={{display:"flex",gap:8}}><select style={{...S.inp,width:100}} value={form.classTeacher?.class||"8"} onChange={e=>setForm({...form,classTeacher:{...form.classTeacher,class:e.target.value}})}>{CLASSES.map(c=><option key={c}>{c}</option>)}</select><select style={{...S.inp,width:80}} value={form.classTeacher?.section||"A"} onChange={e=>setForm({...form,classTeacher:{...form.classTeacher,section:e.target.value}})}>{SECTIONS.map(s=><option key={s}>{s}</option>)}</select></div>}
       </div>
       <div style={S.sectionBox}>
-        <div style={{fontWeight:700,color:"#1e1b4b",fontSize:14,marginBottom:10}}>{t.subjectAssignments}</div>
+        <div style={{fontWeight:700,color:"#0f172a",fontSize:14,marginBottom:10}}>{t.subjectAssignments}</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
           <select style={{...S.inp,width:80}} value={newAssign.class} onChange={e=>setNewAssign({...newAssign,class:e.target.value})}>{CLASSES.map(c=><option key={c}>{c}</option>)}</select>
           <select style={{...S.inp,width:70}} value={newAssign.section} onChange={e=>setNewAssign({...newAssign,section:e.target.value})}>{SECTIONS.map(s=><option key={s}>{s}</option>)}</select>
@@ -596,13 +596,13 @@ function ProfilePage({t,lang,currentUser,onPasswordChange}){
         <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{form.subjectAssignments.map((a,i)=>(<span key={i} style={S.assignTag}>{t.class}{a.class}{a.section}—{a.subject.split("/")[1]||a.subject}<button onClick={()=>removeAssign(i)} style={S.tagX}>×</button></span>))}</div>
       </div>
       <div style={S.sectionBox}>
-        <div style={{fontWeight:700,color:"#1e1b4b",fontSize:14,marginBottom:10}}>{t.guideStudents}</div>
+        <div style={{fontWeight:700,color:"#0f172a",fontSize:14,marginBottom:10}}>{t.guideStudents}</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{students.map(s=>(<label key={s.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:13,cursor:"pointer"}}><input type="checkbox" checked={form.guideStudents.includes(s.id)} onChange={()=>toggleGuide(s.id)}/>{lang==="bn"?s.name:s.nameEn}({t.class}{s.class}{s.section})</label>))}</div>
       </div>
       <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
     <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.classTeacher}</th><th style={S.th}>{t.subjectAssignments}</th><th style={S.th}>{t.guideStudents}</th></tr></thead>
-    <tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{tc.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?tc.name:tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher?`${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}`:"—"}</td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(tc.subjectAssignments||[]).map((a,j)=>(<span key={j} style={{...S.assignTag,fontSize:11}}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1]||a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents||[]).length}{lang==="bn"?"জন":"sts"}</td></tr>))}</tbody></table></div>
+    <tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{tc.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?tc.name:tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher?`${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}`:"—"}</td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(tc.subjectAssignments||[]).map((a,j)=>(<span key={j} style={{...S.assignTag,fontSize:11}}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1]||a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents||[]).length}{lang==="bn"?"জন":"sts"}</td></tr>))}</tbody></table></div>
   </div>);}
 function StudentsPage({t,lang,students,setStudents,teachers,showNotif}){
   const [showForm,setShowForm]=useState(false);
@@ -628,7 +628,7 @@ function StudentsPage({t,lang,students,setStudents,teachers,showNotif}){
       <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
     <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.section}</th><th style={S.th}>{t.roll}</th><th style={S.th}>{lang==="bn"?"শ্রেণী শিক্ষক":"Class Teacher"}</th></tr></thead>
-    <tbody>{students.map((s,i)=>{const ct=teachers.find(tc=>tc.classTeacher?.class===s.class&&tc.classTeacher?.section===s.section);return(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#eef2ff",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#6366f1"}}>{s.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?s.name:s.nameEn}</strong></td><td style={S.td}>{s.class}</td><td style={S.td}>{s.section||"—"}</td><td style={S.td}>{s.roll}</td><td style={S.td}>{ct?(lang==="bn"?ct.name:ct.nameEn):"—"}</td></tr>);})}</tbody></table></div>
+    <tbody>{students.map((s,i)=>{const ct=teachers.find(tc=>tc.classTeacher?.class===s.class&&tc.classTeacher?.section===s.section);return(<tr key={s.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{s.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?s.name:s.nameEn}</strong></td><td style={S.td}>{s.class}</td><td style={S.td}>{s.section||"—"}</td><td style={S.td}>{s.roll}</td><td style={S.td}>{ct?(lang==="bn"?ct.name:ct.nameEn):"—"}</td></tr>);})}</tbody></table></div>
   </div>);}
 function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeacherQuestions,parentQuestions,setParentQuestions,showNotif}){
   const [qTab,setQTab]=useState("student");
@@ -643,8 +643,8 @@ function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeache
   const isStd=qTab==="student";
   const curQs=isStd?questions:qTab==="teacher"?teacherQuestions:parentQuestions;
   const setCurQs=isStd?setQuestions:qTab==="teacher"?setTeacherQuestions:setParentQuestions;
-  const rColor=r=>r==="classTeacher"?"#dbeafe":r==="subjectTeacher"?"#dcfce7":"#fef3c7";
-  const rText=r=>r==="classTeacher"?"#1d4ed8":r==="subjectTeacher"?"#15803d":"#92400e";
+  const rColor=r=>r==="classTeacher"?"#eff6ff":r==="subjectTeacher"?"#f0fdf4":"#f5f5f4";
+  const rText=r=>r==="classTeacher"?"#1d4ed8":r==="subjectTeacher"?"#166534":"#57534e";
   const rLabel=r=>r==="classTeacher"?t.classTeacher:r==="subjectTeacher"?t.subjectTeacher:t.guideTeacher;
   const openAdd=()=>{setEditId(null);setForm(isStd?blankS:blankO);setShowForm(true);};
   const openEdit=q=>{setEditId(q.id);setForm(isStd?{textBn:q.textBn,textEn:q.textEn,role:q.role,points:q.points,activeMonths:[...q.activeMonths]}:{textBn:q.textBn,textEn:q.textEn,points:q.points,activeMonths:[...q.activeMonths]});setShowForm(true);};
@@ -656,22 +656,22 @@ function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeache
     setShowForm(false);setEditId(null);setForm(isStd?blankS:blankO);
   };
   const aBtn=(bg,cl,bc)=>({padding:"4px 8px",background:bg,color:cl,border:"1px solid "+bc,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
-  const qRow=(q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}><div style={{maxWidth:200,fontWeight:500,fontSize:13}}>{lang==="bn"?q.textBn:q.textEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{q.points}</strong></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#6366f1":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td><td style={S.td}><div style={{display:"flex",gap:4}}><button onClick={()=>setViewQ(q)} style={aBtn("#f0fdf4","#15803d","#86efac")}>👁️</button><button onClick={()=>openEdit(q)} style={aBtn("#eef2ff","#6366f1","#c7d2fe")}>✏️</button><button onClick={()=>setConfirmDel({id:q.id,name:lang==="bn"?q.textBn:q.textEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️</button></div></td></tr>);
+  const qRow=(q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}><div style={{maxWidth:200,fontWeight:500,fontSize:13}}>{lang==="bn"?q.textBn:q.textEn}</div></td><td style={S.td}><strong style={{color:"#0f172a"}}>{q.points}</strong></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#0f172a":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td><td style={S.td}><div style={{display:"flex",gap:4}}><button onClick={()=>setViewQ(q)} style={aBtn("#f0fdf4","#166534","#bbf7d0")}>👁️</button><button onClick={()=>openEdit(q)} style={aBtn("#f8fafc","#0f172a","#e2e8f0")}>✏️</button><button onClick={()=>setConfirmDel({id:q.id,name:lang==="bn"?q.textBn:q.textEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️</button></div></td></tr>);
   const qTable=(list)=>(<div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.activeMonths}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead><tbody>{list.map(qRow)}</tbody></table></div>);
   return(<div style={S.page}>
     {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setCurQs(qs=>qs.filter(q=>q.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
     {viewQ&&(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:520}}>
       <h3 style={S.ct}>🔍 {lang==="bn"?"প্রশ্ন বিবরণ":"Question Details"}</h3>
       <div style={{background:"#f8fafc",borderRadius:10,padding:"14px 16px",marginBottom:14}}>
-        <div style={{fontSize:15,fontWeight:700,color:"#1e1b4b",marginBottom:4}}>{viewQ.textBn}</div>
+        <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>{viewQ.textBn}</div>
         <div style={{fontSize:13,color:"#64748b",marginBottom:12,fontStyle:"italic"}}>{viewQ.textEn}</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           {isStd&&<span style={{background:rColor(viewQ.role),color:rText(viewQ.role),padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{rLabel(viewQ.role)}</span>}
-          <span style={{background:"#eef2ff",color:"#6366f1",padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{t.pointsPerEntry}: {viewQ.points}</span>
+          <span style={{background:"#f8fafc",color:"#0f172a",padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700}}>{t.pointsPerEntry}: {viewQ.points}</span>
         </div>
       </div>
       <div style={S.fg}><label style={{...S.lbl,marginBottom:8}}>{t.activeMonths}:</label>
-        <div style={{display:"flex",flexWrap:"wrap",gap:4}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"3px 9px",borderRadius:6,fontSize:12,fontWeight:600,background:viewQ.activeMonths.includes(mi)?"#6366f1":"#e2e8f0",color:viewQ.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m]}</span>))}</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:4}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"3px 9px",borderRadius:6,fontSize:12,fontWeight:600,background:viewQ.activeMonths.includes(mi)?"#0f172a":"#e2e8f0",color:viewQ.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m]}</span>))}</div>
       </div>
       <div style={{display:"flex",gap:8,marginTop:16}}>
         <button onClick={()=>{setViewQ(null);openEdit(viewQ);}} style={S.saveBtn}>✏️ {t.edit}</button>
@@ -738,22 +738,22 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
         <h3 style={{...S.ct,marginBottom:16}}>✏️ {lang==="bn"?"পয়েন্ট সম্পাদনা":"Edit Points"}</h3>
         <div style={S.editInfoBox}>{[[lang==="bn"?"শিক্ষার্থী":"Student",lang==="bn"?s?.name:s?.nameEn],[lang==="bn"?"শিক্ষক":"Teacher",`${lang==="bn"?tc?.name:tc?.nameEn}(${editEntry.date})`],[lang==="bn"?"বর্তমান":"Current",`${editEntry.score}/${q?.points||editEntry.maxPoints}`]].map(([l,v],i)=>(<div key={i} style={S.editInfoRow}><span style={S.editInfoLabel}>{l}:</span><span style={S.editInfoVal}>{v}</span></div>))}</div>
         {(editEntry.editLog||[]).length>0&&<div style={{background:"#fef3c7",borderRadius:8,padding:"10px 12px",marginBottom:14}}><div style={{fontSize:12,fontWeight:700,color:"#92400e",marginBottom:6}}>{lang==="bn"?"ইতিহাস":"History"}</div>{editEntry.editLog.map((log,i)=>(<div key={i} style={{fontSize:12,color:"#78350f",padding:"3px 0"}}>{log.editedAt}: {log.oldScore}→{log.newScore}</div>))}</div>}
-        <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"নতুন পয়েন্ট":"New Score"} (max:{q?.points||editEntry.maxPoints})</label><input style={{...S.inp,maxWidth:120,fontSize:18,fontWeight:700,color:"#6366f1"}} type="number" min="0" max={q?.points||editEntry.maxPoints} value={editScore} onChange={e=>setEditScore(Math.min(parseInt(e.target.value)||0,q?.points||editEntry.maxPoints||0))}/></div>
+        <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"নতুন পয়েন্ট":"New Score"} (max:{q?.points||editEntry.maxPoints})</label><input style={{...S.inp,maxWidth:120,fontSize:18,fontWeight:700,color:"#0f172a"}} type="number" min="0" max={q?.points||editEntry.maxPoints} value={editScore} onChange={e=>setEditScore(Math.min(parseInt(e.target.value)||0,q?.points||editEntry.maxPoints||0))}/></div>
         <div style={{display:"flex",gap:8}}><button onClick={handleEditSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setEditEntry(null)} style={S.cancelBtn}>{t.cancel}</button></div>
       </div></div>
     );})()}
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
     <div style={{display:"flex",gap:6,flexWrap:"wrap",margin:"16px 0"}}>{tabs.map(tab=>(<button key={tab.key} onClick={()=>{setActiveRole(tab.key);setAllScores({});setSelectedAssign(null);}} style={{...S.reportTab,...(activeRole===tab.key?S.reportTabOn:{})}}>{tab.label}</button>))}</div>
-    {activeRole==="subjectTeacher"&&<div style={{...S.card,marginBottom:12}}><label style={S.lbl}>{lang==="bn"?"শ্রেণী ও বিষয় নির্বাচন":"Select Class & Subject"}</label><div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:8}}>{(isAdmin?[{class:"8",section:"A",subject:"গণিত/Math"}]:subjectAssignments).map((a,i)=>(<button key={i} onClick={()=>{setSelectedAssign(a);setAllScores({});}} style={{padding:"8px 14px",border:"2px solid",borderColor:selectedAssign===a?"#6366f1":"#e2e8f0",borderRadius:8,background:selectedAssign===a?"#eef2ff":"#fff",color:selectedAssign===a?"#6366f1":"#64748b",cursor:"pointer",fontSize:13,fontWeight:600}}>{t.class}{a.class}{a.section}—{a.subject}</button>))}</div></div>}
+    {activeRole==="subjectTeacher"&&<div style={{...S.card,marginBottom:12}}><label style={S.lbl}>{lang==="bn"?"শ্রেণী ও বিষয় নির্বাচন":"Select Class & Subject"}</label><div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:8}}>{(isAdmin?[{class:"8",section:"A",subject:"গণিত/Math"}]:subjectAssignments).map((a,i)=>(<button key={i} onClick={()=>{setSelectedAssign(a);setAllScores({});}} style={{padding:"8px 14px",border:"2px solid",borderColor:selectedAssign===a?"#0f172a":"#e2e8f0",borderRadius:8,background:selectedAssign===a?"#f8fafc":"#fff",color:selectedAssign===a?"#0f172a":"#64748b",cursor:"pointer",fontSize:13,fontWeight:600}}>{t.class}{a.class}{a.section}—{a.subject}</button>))}</div></div>}
     {activeRole==="guideTeacher"&&<div style={{background:"#fef3c7",border:"1px solid #fbbf24",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13,color:"#92400e"}}>⚠️{lang==="bn"?"গাইড শিক্ষক সপ্তাহে ১ বার।":"Guide teacher: once per week."}</div>}
     {activeRole==="classTeacher"&&!isAdmin&&!currentUser.classTeacher&&<div style={S.empty}>{t.noClassRole}</div>}
     {activeRole==="subjectTeacher"&&!selectedAssign&&<div style={S.empty}>{t.selectClassSubject}</div>}
     {curStudents.length>0&&roleQs.length>0&&(activeRole!=="subjectTeacher"||selectedAssign)&&(isMobile?(
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
         {curStudents.map((s)=>{const wd=activeRole==="guideTeacher"&&weekDoneCheck(s.id);const maxPts=roleQs.reduce((x,q)=>x+q.points,0);return(<div key={s.id} style={{...S.card,marginBottom:0,opacity:wd?0.65:1}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #eef2ff"}}>
-            <div><div style={{fontWeight:700,fontSize:15,color:"#1e1b4b"}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{s.systemId} · {t.class}{s.class}{s.section} · Roll {s.roll}</div></div>
-            <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#6366f1",lineHeight:1}}>{getTotal(s.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{maxPts} pts</div></div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #f8fafc"}}>
+            <div><div style={{fontWeight:700,fontSize:15,color:"#0f172a"}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{s.systemId} · {t.class}{s.class}{s.section} · Roll {s.roll}</div></div>
+            <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#0f172a",lineHeight:1}}>{getTotal(s.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{maxPts} pts</div></div>
           </div>
           {activeRole==="guideTeacher"&&wd&&<div style={{background:"#fee2e2",color:"#991b1b",borderRadius:8,padding:"8px 12px",fontSize:13,fontWeight:600,marginBottom:8}}>⚠️ {lang==="bn"?"এই সপ্তাহে পয়েন্ট দেওয়া হয়েছে":"Already submitted this week"}</div>}
           {roleQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
@@ -766,15 +766,15 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
     ):(<div style={S.card}>
       <div style={{overflowX:"auto"}}><table style={S.table}><thead><tr>
         <th style={{...S.th,minWidth:120}}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th>
-        {roleQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600,color:"#475569"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}
+        {roleQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600,color:"#475569"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#0f172a"}}>/{q.points}</div></th>))}
         <th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th>
         {activeRole==="guideTeacher"&&<th style={{...S.th,minWidth:70}}>{lang==="bn"?"অবস্থা":"Status"}</th>}
       </tr></thead><tbody>
         {curStudents.map((s,i)=>{const wd=activeRole==="guideTeacher"&&weekDoneCheck(s.id);return(<tr key={s.id} style={{...(i%2===0?{background:"#fafafa"}:{}),opacity:wd?0.5:1}}>
           <td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{s.systemId}</div></td>
           {roleQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} disabled={wd} style={{...S.scoreInp,width:52}} value={getScore(s.id,q.id)} onChange={e=>setScore(s.id,q.id,e.target.value)} placeholder="0"/></td>))}
-          <td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(s.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{roleQs.reduce((s,q)=>s+q.points,0)}</div></td>
-          {activeRole==="guideTeacher"&&<td style={S.td}>{wd?<span style={{fontSize:11,color:"#ef4444",fontWeight:600}}>⚠️{lang==="bn"?"দেওয়া":"Done"}</span>:<span style={{fontSize:11,color:"#10b981",fontWeight:600}}>✅{lang==="bn"?"বাকি":"Pending"}</span>}</td>}
+          <td style={{...S.td,textAlign:"center"}}><strong style={{color:"#0f172a",fontSize:15}}>{getTotal(s.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{roleQs.reduce((s,q)=>s+q.points,0)}</div></td>
+          {activeRole==="guideTeacher"&&<td style={S.td}>{wd?<span style={{fontSize:11,color:"#ef4444",fontWeight:600}}>⚠️{lang==="bn"?"দেওয়া":"Done"}</span>:<span style={{fontSize:11,color:"#0f172a",fontWeight:600}}>✅{lang==="bn"?"বাকি":"Pending"}</span>}</td>}
         </tr>);})}
       </tbody></table></div>
       <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div>
@@ -787,8 +787,8 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
       </div>)}
       <div style={{fontSize:12,color:"#64748b",marginBottom:8}}>{lang==="bn"?`${filtered.length}টি এন্ট্রি`:`${filtered.length} entries`}</div>
       <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{lang==="bn"?"শিক্ষক":"Teacher"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{lang==="bn"?"ভূমিকা":"Role"}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Q"}</th><th style={S.th}>{t.points}</th>{isAdmin&&<th style={S.th}>✏️</th>}</tr></thead>
-      <tbody>{filtered.map((e,i)=>{const s=students.find(x=>x.id===e.studentId),q=questions.find(x=>x.id===e.questionId),tc=teachers?.find(x=>x.id===e.teacherId),edited=(e.editLog||[]).length>0;const rC=e.role==="classTeacher"?"#dbeafe":e.role==="subjectTeacher"?"#dcfce7":"#fef3c7";const rT=e.role==="classTeacher"?"#1d4ed8":e.role==="subjectTeacher"?"#15803d":"#92400e";const rL=e.role==="classTeacher"?t.classTeacher:e.role==="subjectTeacher"?t.subjectTeacher:t.guideTeacher;
-        return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?tc?.name:tc?.nameEn}</div>{edited&&<span style={{fontSize:10,background:"#fef3c7",color:"#92400e",padding:"1px 5px",borderRadius:4,fontWeight:600}}>✏️{lang==="bn"?"সম্পাদিত":"Edited"}</span>}</td><td style={S.td}>{lang==="bn"?s?.name:s?.nameEn}</td><td style={S.td}><span style={{fontSize:11,background:rC,color:rT,padding:"2px 7px",borderRadius:10,fontWeight:600}}>{rL}</span></td><td style={S.td}><div style={{maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:13}}>{lang==="bn"?(q?.textBn||e.questionText):(q?.textEn||e.questionTextEn)}</div></td><td style={S.td}>{edited?<span><span style={{textDecoration:"line-through",color:"#94a3b8",fontSize:12,marginRight:4}}>{e.editLog[0].oldScore}</span><strong style={{color:"#6366f1"}}>{e.score}</strong></span>:<strong style={{color:"#6366f1"}}>{e.score}</strong>}</td>{isAdmin&&<td style={S.td}><button onClick={()=>{setEditEntry(e);setEditScore(e.score);}} style={{padding:"4px 10px",background:"#eef2ff",color:"#6366f1",border:"1px solid #c7d2fe",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✏️</button></td>}</tr>);})}</tbody></table></div>
+      <tbody>{filtered.map((e,i)=>{const s=students.find(x=>x.id===e.studentId),q=questions.find(x=>x.id===e.questionId),tc=teachers?.find(x=>x.id===e.teacherId),edited=(e.editLog||[]).length>0;const rC=e.role==="classTeacher"?"#eff6ff":e.role==="subjectTeacher"?"#f0fdf4":"#f5f5f4";const rT=e.role==="classTeacher"?"#1d4ed8":e.role==="subjectTeacher"?"#166534":"#57534e";const rL=e.role==="classTeacher"?t.classTeacher:e.role==="subjectTeacher"?t.subjectTeacher:t.guideTeacher;
+        return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?tc?.name:tc?.nameEn}</div>{edited&&<span style={{fontSize:10,background:"#f5f5f4",color:"#57534e",padding:"1px 5px",borderRadius:4,fontWeight:600}}>✏️{lang==="bn"?"সম্পাদিত":"Edited"}</span>}</td><td style={S.td}>{lang==="bn"?s?.name:s?.nameEn}</td><td style={S.td}><span style={{fontSize:11,background:rC,color:rT,padding:"2px 7px",borderRadius:10,fontWeight:600}}>{rL}</span></td><td style={S.td}><div style={{maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:13}}>{lang==="bn"?(q?.textBn||e.questionText):(q?.textEn||e.questionTextEn)}</div></td><td style={S.td}>{edited?<span><span style={{textDecoration:"line-through",color:"#94a3b8",fontSize:12,marginRight:4}}>{e.editLog[0].oldScore}</span><strong style={{color:"#0f172a"}}>{e.score}</strong></span>:<strong style={{color:"#0f172a"}}>{e.score}</strong>}</td>{isAdmin&&<td style={S.td}><button onClick={()=>{setEditEntry(e);setEditScore(e.score);}} style={{padding:"4px 10px",background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✏️</button></td>}</tr>);})}</tbody></table></div>
     </div>
   </div>);}
 function ReportsPage({t,lang,students,entries,termConfig,getStudentMonthKPI,getStudentTermKPI,getStudentYearKPI,currentUser,isAdmin,selectedYear,setSelectedYear,availableYears}){
@@ -798,15 +798,15 @@ function ReportsPage({t,lang,students,entries,termConfig,getStudentMonthKPI,getS
   let vis=students;
   if(!isAdmin){if(currentUser.classTeacher)vis=students.filter(s=>s.class===currentUser.classTeacher.class&&s.section===currentUser.classTeacher.section);else if(isStudent)vis=students.filter(s=>s.id===currentUser.id);else if(isParent)vis=students.filter(s=>s.systemId===currentUser.studentId);else if((currentUser.guideStudents||[]).length>0)vis=students.filter(s=>currentUser.guideStudents.includes(s.id));}
   const ranked=[...vis].map(s=>({...s,kpi:rType==="monthly"?getStudentMonthKPI(s.id,selMonth,selectedYear):rType==="term1"?getStudentTermKPI(s.id,termConfig.term1,selectedYear):rType==="term2"?getStudentTermKPI(s.id,termConfig.term2,selectedYear):rType==="term3"?getStudentTermKPI(s.id,termConfig.term3,selectedYear):rType==="term4"?getStudentTermKPI(s.id,termConfig.term4,selectedYear):getStudentYearKPI(s.id,selectedYear)})).sort((a,b)=>b.kpi-a.kpi);
-  const mc=i=>i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#cd7c3f":"transparent";
+  const mc=i=>i===0?"#0f172a":i===1?"#52525b":i===2?"#a1a1aa":"transparent";
   return(<div style={S.page}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}><h2 style={{...S.pt,margin:0}}>{t.reports}</h2><YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/></div>
     <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>{[{k:"monthly",l:lang==="bn"?"মাসিক":"Monthly"},{k:"term1",l:t.term1},{k:"term2",l:t.term2},{k:"term3",l:t.term3},{k:"term4",l:t.term4},{k:"yearly",l:lang==="bn"?"বার্ষিক":"Yearly"}].map(x=>(<button key={x.k} onClick={()=>setRType(x.k)} style={{...S.reportTab,...(rType===x.k?S.reportTabOn:{})}}>{x.l}</button>))}</div>
     {rType==="monthly"&&<div style={S.fg}><label style={S.lbl}>{t.month}</label><select style={{...S.inp,maxWidth:180}} value={selMonth} onChange={e=>setSelMonth(parseInt(e.target.value))}>{MONTHS.map((m,i)=><option key={m} value={i}>{T[lang][m]}</option>)}</select></div>}
-    {!isStudent&&!isParent&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12,margin:"16px 0"}}>{ranked.slice(0,3).map((s,i)=>(<div key={s.id} style={{...S.card,textAlign:"center",borderTop:`4px solid ${mc(i)||"#e2e8f0"}`}}><div style={{fontSize:28}}>{i===0?"🥇":i===1?"🥈":"🥉"}</div><div style={{fontWeight:700,fontSize:14,color:"#1e1b4b"}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:26,fontWeight:900,color:mc(i)||"#6366f1"}}>{s.kpi}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>}
+    {!isStudent&&!isParent&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12,margin:"16px 0"}}>{ranked.slice(0,3).map((s,i)=>(<div key={s.id} style={{...S.card,textAlign:"center",border:"1px solid #e2e8f0"}}><div style={{fontSize:28}}>{i===0?"🥇":i===1?"🥈":"🥉"}</div><div style={{fontWeight:700,fontSize:14,color:"#0f172a"}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:26,fontWeight:900,color:mc(i)||"#0f172a"}}>{s.kpi}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>}
     <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"র‍্যাংকিং":"Rankings"}</h3>
       <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.rank}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.class}</th><th style={S.th}>{t.roll}</th><th style={S.th}>{t.totalPoints}</th></tr></thead>
-      <tbody>{ranked.map((s,i)=>{const isMe=isStudent&&s.id===currentUser.id;return(<tr key={s.id} style={{...(i%2===0?{background:"#fafafa"}:{}),fontWeight:i<3?"700":"400",...(isMe?{background:"#eef2ff"}:{})}}><td style={S.td}><span style={{display:"inline-block",width:28,height:28,lineHeight:"28px",textAlign:"center",borderRadius:6,background:i===0?"#fef3c7":i===1?"#f1f5f9":i===2?"#fff7ed":"transparent",color:mc(i)||"#64748b",fontWeight:700}}>{i<3?["🥇","🥈","🥉"][i]:i+1}</span></td><td style={S.td}>{lang==="bn"?s.name:s.nameEn}{isMe&&<span style={{fontSize:11,color:"#6366f1",marginLeft:6}}>(আমি)</span>}</td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}>{s.roll}</td><td style={S.td}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{height:8,borderRadius:4,background:"linear-gradient(90deg,#6366f1,#818cf8)",width:`${Math.min(100,(s.kpi/(ranked[0]?.kpi||1))*100)}%`,minWidth:4}}/><span style={{fontSize:13,fontWeight:700,color:"#6366f1"}}>{s.kpi}</span></div></td></tr>);})}</tbody></table></div>
+      <tbody>{ranked.map((s,i)=>{const isMe=isStudent&&s.id===currentUser.id;return(<tr key={s.id} style={{...(i%2===0?{background:"#fafafa"}:{}),fontWeight:i<3?"700":"400",...(isMe?{background:"#f8fafc"}:{})}}><td style={S.td}><span style={{display:"inline-block",width:28,height:28,lineHeight:"28px",textAlign:"center",borderRadius:6,background:i===0?"#fef3c7":i===1?"#f1f5f9":i===2?"#fff7ed":"transparent",color:mc(i)||"#64748b",fontWeight:700}}>{i<3?["🥇","🥈","🥉"][i]:i+1}</span></td><td style={S.td}>{lang==="bn"?s.name:s.nameEn}{isMe&&<span style={{fontSize:11,color:"#0f172a",marginLeft:6}}>(আমি)</span>}</td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}>{s.roll}</td><td style={S.td}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{height:8,borderRadius:4,background:"linear-gradient(90deg,#0f172a,#64748b)",width:`${Math.min(100,(s.kpi/(ranked[0]?.kpi||1))*100)}%`,minWidth:4}}/><span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{s.kpi}</span></div></td></tr>);})}</tbody></table></div>
     </div>
   </div>);}
 function SettingsPage({t,lang,termConfig,setTermConfig,showNotif}){
@@ -814,7 +814,7 @@ function SettingsPage({t,lang,termConfig,setTermConfig,showNotif}){
   const toggle=(term,m)=>{const cur=cfg[term];setCfg({...cfg,[term]:cur.includes(m)?cur.filter(x=>x!==m):[...cur,m].sort((a,b)=>a-b)});};
   return(<div style={S.page}><h2 style={S.pt}>{t.settings}</h2>
     <div style={S.card}><h3 style={S.ct}>{t.termConfig}</h3>
-      {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{marginBottom:20}}><div style={{fontWeight:700,color:"#1e1b4b",fontSize:14,marginBottom:8}}>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{MONTHS.map((m,mi)=>(<button key={m} onClick={()=>toggle(term,mi)} style={{...S.mBtn,...(cfg[term].includes(mi)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>))}
+      {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{marginBottom:20}}><div style={{fontWeight:700,color:"#0f172a",fontSize:14,marginBottom:8}}>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{MONTHS.map((m,mi)=>(<button key={m} onClick={()=>toggle(term,mi)} style={{...S.mBtn,...(cfg[term].includes(mi)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>))}
       <button onClick={()=>{setTermConfig(cfg);showNotif(lang==="bn"?"সেটিংস সংরক্ষণ!":"Settings saved!");}} style={S.saveBtn}>{t.save}</button>
     </div>
     <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"বর্তমান কনফিগারেশন":"Current Configuration"}</h3>
@@ -839,9 +839,9 @@ function TeacherKPIPage({t,lang,teachers,teacherQuestions,teacherEntries,setTeac
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
     {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(isMobile?(<div style={{display:"flex",flexDirection:"column",gap:10}}>
       {teachers.map(tc=>(<div key={tc.id} style={{...S.card,marginBottom:0}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #eef2ff"}}>
-          <div><div style={{fontWeight:700,fontSize:15,color:"#1e1b4b"}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{tc.systemId}</div></div>
-          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#6366f1",lineHeight:1}}>{getTotal(tc.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #f8fafc"}}>
+          <div><div style={{fontWeight:700,fontSize:15,color:"#0f172a"}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{tc.systemId}</div></div>
+          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#0f172a",lineHeight:1}}>{getTotal(tc.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
         </div>
         {activeQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
           <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>max {q.points}</div></div>
@@ -849,8 +849,8 @@ function TeacherKPIPage({t,lang,teachers,teacherQuestions,teacherEntries,setTeac
         </div>))}
       </div>))}
       <button onClick={handleSubmit} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10}}>{t.submitPoints}</button>
-    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.teachers}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{tc.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(tc.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>))}
-    <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.teachers}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...teacherEntries].reverse().slice(0,50).map((e,i)=>{const tc=teachers.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?tc?.name:tc?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
+    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.teachers}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#0f172a"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{tc.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#0f172a",fontSize:15}}>{getTotal(tc.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>))}
+    <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.teachers}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...teacherEntries].reverse().slice(0,50).map((e,i)=>{const tc=teachers.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?tc?.name:tc?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#0f172a"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
   </div>);}
 function ParentKPIPage({t,lang,parents,parentQuestions,parentEntries,setParentEntries,showNotif,selectedYear,setSelectedYear,availableYears}){
   const isMobile=useIsMobile();
@@ -871,9 +871,9 @@ function ParentKPIPage({t,lang,parents,parentQuestions,parentEntries,setParentEn
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
     {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(isMobile?(<div style={{display:"flex",flexDirection:"column",gap:10}}>
       {approvedParents.map(p=>(<div key={p.id} style={{...S.card,marginBottom:0}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #eef2ff"}}>
-          <div><div style={{fontWeight:700,fontSize:15,color:"#1e1b4b"}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.systemId}</div></div>
-          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#6366f1",lineHeight:1}}>{getTotal(p.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #f8fafc"}}>
+          <div><div style={{fontWeight:700,fontSize:15,color:"#0f172a"}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.systemId}</div></div>
+          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#0f172a",lineHeight:1}}>{getTotal(p.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
         </div>
         {activeQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
           <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>max {q.points}</div></div>
@@ -881,8 +881,8 @@ function ParentKPIPage({t,lang,parents,parentQuestions,parentEntries,setParentEn
         </div>))}
       </div>))}
       <button onClick={handleSubmit} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10}}>{t.submitPoints}</button>
-    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.parent}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{approvedParents.map((p,i)=>(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{p.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(p.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>))}
-    <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.parent}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...parentEntries].reverse().slice(0,50).map((e,i)=>{const par=parents.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?par?.name:par?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
+    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.parent}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#0f172a"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{approvedParents.map((p,i)=>(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{p.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#0f172a",fontSize:15}}>{getTotal(p.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>))}
+    <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.parent}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...parentEntries].reverse().slice(0,50).map((e,i)=>{const par=parents.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?par?.name:par?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#0f172a"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
   </div>);}
 function MyTeacherKPIPage({t,lang,currentUser,teacherEntries,getTchrMonthKPI,getTchrTermKPI,getTchrYearKPI,selectedYear,setSelectedYear,availableYears,termConfig}){
   const tid=currentUser.id,cm=new Date().getMonth();
@@ -894,13 +894,13 @@ function MyTeacherKPIPage({t,lang,currentUser,teacherEntries,getTchrMonthKPI,get
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={tchrYears.length>0?tchrYears:[selectedYear]}/>
     </div>
     <div style={S.grid4}>
-      <StatCard icon="📅" value={getTchrMonthKPI(tid,cm,selectedYear)} label={T[lang][MONTHS[cm]]+" "+t.myMonthly} color="#6366f1"/>
-      <StatCard icon="📊" value={getTchrYearKPI(tid,selectedYear)} label={selectedYear+" "+t.myYearly} color="#10b981"/>
-      <StatCard icon="🏆" value={getTchrTermKPI(tid,termConfig.term1,selectedYear)} label={t.term1} color="#f59e0b"/>
-      <StatCard icon="🎯" value={getTchrTermKPI(tid,termConfig.term2,selectedYear)} label={t.term2} color="#0ea5e9"/>
+      <StatCard icon="📅" value={getTchrMonthKPI(tid,cm,selectedYear)} label={T[lang][MONTHS[cm]]+" "+t.myMonthly} color="#0f172a"/>
+      <StatCard icon="📊" value={getTchrYearKPI(tid,selectedYear)} label={selectedYear+" "+t.myYearly} color="#0f172a"/>
+      <StatCard icon="🏆" value={getTchrTermKPI(tid,termConfig.term1,selectedYear)} label={t.term1} color="#0f172a"/>
+      <StatCard icon="🎯" value={getTchrTermKPI(tid,termConfig.term2,selectedYear)} label={t.term2} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#6366f1"}}>{getTchrTermKPI(tid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getTchrTermKPI(tid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
   </div>);}
 function MyParentKPIPage({t,lang,currentUser,parentEntries,getParMonthKPI,getParTermKPI,getParYearKPI,selectedYear,setSelectedYear,availableYears,termConfig}){
   const pid=currentUser.id,cm=new Date().getMonth();
@@ -912,63 +912,63 @@ function MyParentKPIPage({t,lang,currentUser,parentEntries,getParMonthKPI,getPar
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={parYears.length>0?parYears:[selectedYear]}/>
     </div>
     <div style={S.grid4}>
-      <StatCard icon="📅" value={getParMonthKPI(pid,cm,selectedYear)} label={T[lang][MONTHS[cm]]+" "+t.myMonthly} color="#6366f1"/>
-      <StatCard icon="📊" value={getParYearKPI(pid,selectedYear)} label={selectedYear+" "+t.myYearly} color="#10b981"/>
-      <StatCard icon="🏆" value={getParTermKPI(pid,termConfig.term1,selectedYear)} label={t.term1} color="#f59e0b"/>
-      <StatCard icon="🎯" value={getParTermKPI(pid,termConfig.term2,selectedYear)} label={t.term2} color="#0ea5e9"/>
+      <StatCard icon="📅" value={getParMonthKPI(pid,cm,selectedYear)} label={T[lang][MONTHS[cm]]+" "+t.myMonthly} color="#0f172a"/>
+      <StatCard icon="📊" value={getParYearKPI(pid,selectedYear)} label={selectedYear+" "+t.myYearly} color="#0f172a"/>
+      <StatCard icon="🏆" value={getParTermKPI(pid,termConfig.term1,selectedYear)} label={t.term1} color="#0f172a"/>
+      <StatCard icon="🎯" value={getParTermKPI(pid,termConfig.term2,selectedYear)} label={t.term2} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#6366f1"}}>{getParTermKPI(pid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getParTermKPI(pid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
   </div>);}
 const S={
-  app:{display:"flex",minHeight:"100vh",background:"#f8fafc",fontFamily:"'Segoe UI','Noto Sans Bengali',sans-serif"},
-  sidebar:{width:230,background:"#1e1b4b",color:"#e2e8f0",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",flexShrink:0},
-  sidebarTop:{padding:"20px 16px 10px",borderBottom:"1px solid #312e81"},
-  logoBox:{background:"#6366f1",color:"#fff",fontWeight:900,fontSize:13,borderRadius:7,padding:"4px 8px",display:"inline-block",marginBottom:6,letterSpacing:2},
-  logoText:{fontSize:12,fontWeight:700,color:"#c7d2fe",lineHeight:1.4},
+  app:{display:"flex",minHeight:"100vh",background:"#f9fafb",fontFamily:"'Segoe UI','Noto Sans Bengali',sans-serif"},
+  sidebar:{width:230,background:"#0f172a",color:"#e2e8f0",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",flexShrink:0},
+  sidebarTop:{padding:"20px 16px 10px",borderBottom:"1px solid #1e293b"},
+  logoBox:{background:"#0f172a",color:"#fff",fontWeight:900,fontSize:13,borderRadius:7,padding:"4px 8px",display:"inline-block",marginBottom:6,letterSpacing:2},
+  logoText:{fontSize:12,fontWeight:700,color:"#e2e8f0",lineHeight:1.4},
   langRow:{display:"flex",gap:4,padding:"8px 16px"},
-  langBtn:{flex:1,padding:"4px 8px",border:"1px solid #4338ca",background:"transparent",color:"#a5b4fc",borderRadius:6,cursor:"pointer",fontSize:12},
-  langOn:{background:"#6366f1",color:"#fff",borderColor:"#6366f1"},
+  langBtn:{flex:1,padding:"4px 8px",border:"1px solid #334155",background:"transparent",color:"#94a3b8",borderRadius:6,cursor:"pointer",fontSize:12},
+  langOn:{background:"#0f172a",color:"#fff",borderColor:"#0f172a"},
   nav:{flex:1,padding:"6px 8px",overflowY:"auto"},
-  navBtn:{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"9px 12px",background:"transparent",border:"none",color:"#a5b4fc",borderRadius:8,cursor:"pointer",fontSize:13,textAlign:"left",marginBottom:2},
-  navBtnOn:{background:"#6366f1",color:"#fff"},
-  sidebarFoot:{padding:"12px 16px",borderTop:"1px solid #312e81"},
+  navBtn:{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"9px 12px",background:"transparent",border:"none",color:"#94a3b8",borderRadius:8,cursor:"pointer",fontSize:13,textAlign:"left",marginBottom:2},
+  navBtnOn:{background:"#0f172a",color:"#fff"},
+  sidebarFoot:{padding:"12px 16px",borderTop:"1px solid #1e293b"},
   userRow:{display:"flex",alignItems:"center",gap:10,marginBottom:8},
-  ava:{width:34,height:34,borderRadius:"50%",background:"#6366f1",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:15,color:"#fff",flexShrink:0},
+  ava:{width:34,height:34,borderRadius:"50%",background:"#0f172a",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:15,color:"#fff",flexShrink:0},
   uName:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
-  uRole:{fontSize:11,color:"#818cf8"},
-  logoutBtn:{width:"100%",padding:"7px",background:"transparent",border:"1px solid #4338ca",color:"#a5b4fc",borderRadius:6,cursor:"pointer",fontSize:13},
+  uRole:{fontSize:11,color:"#94a3b8"},
+  logoutBtn:{width:"100%",padding:"7px",background:"transparent",border:"1px solid #334155",color:"#94a3b8",borderRadius:6,cursor:"pointer",fontSize:13},
   main:{flex:1,overflowY:"auto",minWidth:0},
   page:{padding:"clamp(12px,3vw,24px)",maxWidth:960,margin:"0 auto"},
   ph:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:10},
-  pt:{fontSize:"clamp(17px,4vw,22px)",fontWeight:800,color:"#1e1b4b",margin:0},
+  pt:{fontSize:"clamp(17px,4vw,22px)",fontWeight:800,color:"#0f172a",margin:0},
   ps:{fontSize:13,color:"#64748b",margin:"4px 0 0"},
   grid4:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10,marginBottom:14},
   grid2:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:12},
   two:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:16},
   statCard:{background:"#fff",borderRadius:12,padding:"clamp(10px,2.5vw,18px)",boxShadow:"0 1px 3px rgba(0,0,0,0.08)"},
   card:{background:"#fff",borderRadius:12,padding:"clamp(12px,2.5vw,20px)",boxShadow:"0 1px 3px rgba(0,0,0,0.08)",marginBottom:16},
-  ct:{fontSize:15,fontWeight:700,color:"#1e1b4b",marginBottom:14,marginTop:0},
+  ct:{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:14,marginTop:0},
   rankRow:{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #f1f5f9"},
   rankBadge:{width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,flexShrink:0},
-  addBtn:{padding:"9px 16px",background:"#6366f1",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:600},
+  addBtn:{padding:"9px 16px",background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:600},
   fg:{marginBottom:12},
   lbl:{display:"block",fontSize:13,fontWeight:600,color:"#374151",marginBottom:5},
   inp:{width:"100%",padding:"9px 12px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:14,color:"#1e293b",background:"#fff",boxSizing:"border-box",outline:"none"},
-  saveBtn:{padding:"9px 20px",background:"#6366f1",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:600},
+  saveBtn:{padding:"9px 20px",background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:600},
   cancelBtn:{padding:"9px 20px",background:"#f1f5f9",color:"#64748b",border:"none",borderRadius:8,cursor:"pointer",fontSize:14},
-  submitBtn:{padding:"11px 28px",background:"#6366f1",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:15,fontWeight:700},
+  submitBtn:{padding:"11px 28px",background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:15,fontWeight:700},
   tableWrap:{overflowX:"auto"},
   table:{width:"100%",borderCollapse:"collapse",fontSize:14},
   th:{padding:"10px 12px",textAlign:"left",background:"#f8fafc",color:"#475569",fontWeight:600,fontSize:13,borderBottom:"2px solid #e2e8f0"},
   td:{padding:"9px 12px",color:"#334155",borderBottom:"1px solid #f1f5f9",verticalAlign:"middle"},
   mBtn:{padding:"5px 10px",border:"1px solid #e2e8f0",borderRadius:6,background:"#fff",color:"#64748b",cursor:"pointer",fontSize:13},
-  mOn:{background:"#6366f1",color:"#fff",borderColor:"#6366f1"},
+  mOn:{background:"#0f172a",color:"#fff",borderColor:"#0f172a"},
   reportTab:{padding:"7px 14px",border:"1px solid #e2e8f0",borderRadius:20,background:"#fff",color:"#64748b",cursor:"pointer",fontSize:13},
-  reportTabOn:{background:"#6366f1",color:"#fff",borderColor:"#6366f1",fontWeight:700},
-  scoreInp:{padding:"5px 4px",border:"2px solid #e2e8f0",borderRadius:6,fontSize:14,fontWeight:700,textAlign:"center",color:"#6366f1",outline:"none",boxSizing:"border-box"},
-  assignTag:{display:"inline-flex",alignItems:"center",gap:4,background:"#eef2ff",color:"#4338ca",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:600},
-  tagX:{background:"none",border:"none",cursor:"pointer",color:"#6366f1",fontSize:14,padding:"0 2px",lineHeight:1},
+  reportTabOn:{background:"#0f172a",color:"#fff",borderColor:"#0f172a",fontWeight:700},
+  scoreInp:{padding:"5px 4px",border:"1px solid #d1d5db",borderRadius:6,fontSize:14,fontWeight:700,textAlign:"center",color:"#0f172a",outline:"none",boxSizing:"border-box"},
+  assignTag:{display:"inline-flex",alignItems:"center",gap:4,background:"#f8fafc",color:"#334155",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:600},
+  tagX:{background:"none",border:"none",cursor:"pointer",color:"#0f172a",fontSize:14,padding:"0 2px",lineHeight:1},
   sectionBox:{background:"#f8fafc",borderRadius:8,padding:"12px 14px",marginBottom:12},
   empty:{textAlign:"center",padding:32,color:"#94a3b8",fontSize:14},
   notif:{position:"fixed",top:20,right:20,color:"#fff",padding:"12px 20px",borderRadius:8,fontWeight:600,zIndex:999,boxShadow:"0 4px 12px rgba(0,0,0,0.15)",fontSize:14},
@@ -978,8 +978,8 @@ const S={
   editInfoRow:{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #f1f5f9",fontSize:13},
   editInfoLabel:{color:"#64748b",minWidth:120,fontWeight:600},
   editInfoVal:{color:"#1e293b",flex:1},
-  loginBg:{minHeight:"100vh",background:"linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4f46e5 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:12},
+  loginBg:{minHeight:"100vh",background:"linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#4f46e5 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:12},
   loginCard:{background:"#fff",borderRadius:16,padding:"clamp(16px,5vw,32px)",width:"100%",maxWidth:400,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},
-  loginLogo:{display:"inline-block",background:"#6366f1",color:"#fff",fontWeight:900,fontSize:18,borderRadius:10,padding:"8px 16px",letterSpacing:3},
-  loginBtn:{width:"100%",padding:12,background:"#6366f1",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:16,fontWeight:700,marginTop:4},
+  loginLogo:{display:"inline-block",background:"#0f172a",color:"#fff",fontWeight:900,fontSize:18,borderRadius:10,padding:"8px 16px",letterSpacing:3},
+  loginBtn:{width:"100%",padding:12,background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:16,fontWeight:700,marginTop:4},
 };
