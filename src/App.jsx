@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function useLocalStorage(key,init){
   const [val,setVal]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
   const set=v=>{setVal(prev=>{const next=typeof v==="function"?v(prev):v;try{localStorage.setItem(key,JSON.stringify(next));}catch{}return next;});};
   return[val,set];
+}
+
+function useIsMobile(){
+  const [m,setM]=useState(()=>typeof window!=="undefined"?window.innerWidth<768:false);
+  useEffect(()=>{const h=()=>setM(window.innerWidth<768);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
+  return m;
 }
 
 const T = {
@@ -201,6 +207,9 @@ export default function App() {
   };
   if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} admins={admins} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
   const isAdmin=currentUser.role==="admin",isTeacher=currentUser.role==="teacher";
+  const isMobile=useIsMobile();
+  const [navOpen,setNavOpen]=useState(false);
+  const goTab=k=>{setActiveTab(k);setNavOpen(false);};
   const pendingParents=parents.filter(p=>p.status==="pending");
   const navItems=[
     {key:"dashboard",icon:"⬛",label:t.dashboard},
@@ -219,14 +228,24 @@ export default function App() {
   ];
   return (
     <div style={S.app}>
-      {notif&&<div style={{...S.notif,background:"#10b981"}}>{notif}</div>}
-      <aside style={S.sidebar}>
+      {notif&&<div style={{...S.notif,background:"#10b981",...(isMobile?{top:64,right:12,left:12,width:"auto"}:{})}}>{notif}</div>}
+      {isMobile&&<header style={{position:"fixed",top:0,left:0,right:0,height:56,background:"#1e1b4b",display:"flex",alignItems:"center",gap:8,padding:"0 12px",zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,0.25)"}}>
+        <button onClick={()=>setNavOpen(true)} style={{background:"none",border:"none",color:"#fff",fontSize:24,cursor:"pointer",padding:"2px 6px",lineHeight:1,flexShrink:0}}>☰</button>
+        <div style={S.logoBox}>KPI</div>
+        <span style={{fontSize:12,fontWeight:700,color:"#c7d2fe",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.appTitle}</span>
+        <div style={{display:"flex",gap:4,flexShrink:0}}>
+          <button onClick={()=>setLang("bn")} style={{...S.langBtn,...(lang==="bn"?S.langOn:{}),padding:"3px 7px",fontSize:11}}>বাং</button>
+          <button onClick={()=>setLang("en")} style={{...S.langBtn,...(lang==="en"?S.langOn:{}),padding:"3px 7px",fontSize:11}}>EN</button>
+        </div>
+      </header>}
+      {isMobile&&navOpen&&<div onClick={()=>setNavOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200}}/>}
+      <aside style={isMobile?{...S.sidebar,position:"fixed",top:0,bottom:0,left:navOpen?0:-260,width:250,zIndex:300,transition:"left .25s ease",height:"100%",overflowY:"auto"}:S.sidebar}>
         <div style={S.sidebarTop}><div style={S.logoBox}>KPI</div><div style={S.logoText}>{t.appTitle}</div></div>
         <div style={S.langRow}>
           <button onClick={()=>setLang("bn")} style={{...S.langBtn,...(lang==="bn"?S.langOn:{})}}>বাং</button>
           <button onClick={()=>setLang("en")} style={{...S.langBtn,...(lang==="en"?S.langOn:{})}}>EN</button>
         </div>
-        <nav style={S.nav}>{navItems.map(item=>(<button key={item.key} onClick={()=>setActiveTab(item.key)} style={{...S.navBtn,...(activeTab===item.key?S.navBtnOn:{})}}><span>{item.icon}</span><span>{item.label}</span></button>))}</nav>
+        <nav style={S.nav}>{navItems.map(item=>(<button key={item.key} onClick={()=>goTab(item.key)} style={{...S.navBtn,...(activeTab===item.key?S.navBtnOn:{})}}><span>{item.icon}</span><span>{item.label}</span></button>))}</nav>
         <div style={S.sidebarFoot}>
           <div style={S.userRow}>
             <div style={S.ava}>{(currentUser.name||"A")[0]}</div>
@@ -238,7 +257,7 @@ export default function App() {
           <button onClick={()=>setCurrentUser(null)} style={S.logoutBtn}>{t.logout}</button>
         </div>
       </aside>
-      <main style={S.main}>
+      <main style={{...S.main,...(isMobile?{marginTop:56}:{})}}>
         {activeTab==="dashboard"&&(isAdmin||isTeacher
           ?<AdminTeacherDashboard t={t} lang={lang} students={students} teachers={teachers} entries={entries} getStudentYearKPI={getStudentYearKPI} getStudentMonthKPI={getStudentMonthKPI} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} pendingParents={pendingParents}/>
           :currentUser.role==="student"
@@ -258,6 +277,7 @@ export default function App() {
         {activeTab==="myTchrKpi"&&isTeacher&&<MyTeacherKPIPage t={t} lang={lang} currentUser={currentUser} teacherEntries={teacherEntries} getTchrMonthKPI={getTchrMonthKPI} getTchrTermKPI={getTchrTermKPI} getTchrYearKPI={getTchrYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>}
         {activeTab==="myParKpi"&&currentUser.role==="parent"&&<MyParentKPIPage t={t} lang={lang} currentUser={currentUser} parentEntries={parentEntries} getParMonthKPI={getParMonthKPI} getParTermKPI={getParTermKPI} getParYearKPI={getParYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>}
       </main>
+      <style>{`*{box-sizing:border-box}body{overflow-x:hidden}@media(max-width:767px){table{font-size:12px!important}th,td{padding:6px 8px!important}}`}</style>
     </div>
   );
 }
@@ -877,15 +897,15 @@ const S={
   uRole:{fontSize:11,color:"#818cf8"},
   logoutBtn:{width:"100%",padding:"7px",background:"transparent",border:"1px solid #4338ca",color:"#a5b4fc",borderRadius:6,cursor:"pointer",fontSize:13},
   main:{flex:1,overflowY:"auto",minWidth:0},
-  page:{padding:24,maxWidth:960,margin:"0 auto"},
-  ph:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12},
-  pt:{fontSize:22,fontWeight:800,color:"#1e1b4b",margin:0},
+  page:{padding:"clamp(12px,3vw,24px)",maxWidth:960,margin:"0 auto"},
+  ph:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:10},
+  pt:{fontSize:"clamp(17px,4vw,22px)",fontWeight:800,color:"#1e1b4b",margin:0},
   ps:{fontSize:13,color:"#64748b",margin:"4px 0 0"},
-  grid4:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14,marginBottom:20},
+  grid4:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10,marginBottom:14},
   grid2:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:12},
   two:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:16},
-  statCard:{background:"#fff",borderRadius:12,padding:18,boxShadow:"0 1px 3px rgba(0,0,0,0.08)"},
-  card:{background:"#fff",borderRadius:12,padding:20,boxShadow:"0 1px 3px rgba(0,0,0,0.08)",marginBottom:16},
+  statCard:{background:"#fff",borderRadius:12,padding:"clamp(10px,2.5vw,18px)",boxShadow:"0 1px 3px rgba(0,0,0,0.08)"},
+  card:{background:"#fff",borderRadius:12,padding:"clamp(12px,2.5vw,20px)",boxShadow:"0 1px 3px rgba(0,0,0,0.08)",marginBottom:16},
   ct:{fontSize:15,fontWeight:700,color:"#1e1b4b",marginBottom:14,marginTop:0},
   rankRow:{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #f1f5f9"},
   rankBadge:{width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,flexShrink:0},
@@ -911,13 +931,13 @@ const S={
   empty:{textAlign:"center",padding:32,color:"#94a3b8",fontSize:14},
   notif:{position:"fixed",top:20,right:20,color:"#fff",padding:"12px 20px",borderRadius:8,fontWeight:600,zIndex:999,boxShadow:"0 4px 12px rgba(0,0,0,0.15)",fontSize:14},
   modalBg:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:998,padding:16},
-  modalBox:{background:"#fff",borderRadius:14,padding:24,width:"100%",maxWidth:440,boxShadow:"0 20px 60px rgba(0,0,0,0.25)"},
+  modalBox:{background:"#fff",borderRadius:14,padding:"clamp(14px,4vw,24px)",width:"100%",maxWidth:440,boxShadow:"0 20px 60px rgba(0,0,0,0.25)"},
   editInfoBox:{background:"#f8fafc",borderRadius:8,padding:"12px 14px",marginBottom:14},
   editInfoRow:{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #f1f5f9",fontSize:13},
   editInfoLabel:{color:"#64748b",minWidth:120,fontWeight:600},
   editInfoVal:{color:"#1e293b",flex:1},
-  loginBg:{minHeight:"100vh",background:"linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4f46e5 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:16},
-  loginCard:{background:"#fff",borderRadius:16,padding:32,width:"100%",maxWidth:400,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},
+  loginBg:{minHeight:"100vh",background:"linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4f46e5 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:12},
+  loginCard:{background:"#fff",borderRadius:16,padding:"clamp(16px,5vw,32px)",width:"100%",maxWidth:400,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},
   loginLogo:{display:"inline-block",background:"#6366f1",color:"#fff",fontWeight:900,fontSize:18,borderRadius:10,padding:"8px 16px",letterSpacing:3},
   loginBtn:{width:"100%",padding:12,background:"#6366f1",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:16,fontWeight:700,marginTop:4},
 };
