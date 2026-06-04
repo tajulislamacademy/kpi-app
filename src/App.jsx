@@ -205,11 +205,11 @@ export default function App() {
     setCurrentUser(prev=>({...prev,password:newPassword}));
     showNotif(t.passwordChanged);
   };
-  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} admins={admins} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
-  const isAdmin=currentUser.role==="admin",isTeacher=currentUser.role==="teacher";
   const isMobile=useIsMobile();
   const [navOpen,setNavOpen]=useState(false);
   const goTab=k=>{setActiveTab(k);setNavOpen(false);};
+  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} admins={admins} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
+  const isAdmin=currentUser.role==="admin",isTeacher=currentUser.role==="teacher";
   const pendingParents=parents.filter(p=>p.status==="pending");
   const navItems=[
     {key:"dashboard",icon:"⬛",label:t.dashboard},
