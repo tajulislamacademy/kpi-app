@@ -698,6 +698,7 @@ function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeache
   </div>);}
 
 function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntries,showNotif,isAdmin,teachers}){
+  const isMobile=useIsMobile();
   const [activeRole,setActiveRole]=useState("classTeacher");
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
   const [selectedAssign,setSelectedAssign]=useState(null);
@@ -747,7 +748,22 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
     {activeRole==="guideTeacher"&&<div style={{background:"#fef3c7",border:"1px solid #fbbf24",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13,color:"#92400e"}}>⚠️{lang==="bn"?"গাইড শিক্ষক সপ্তাহে ১ বার।":"Guide teacher: once per week."}</div>}
     {activeRole==="classTeacher"&&!isAdmin&&!currentUser.classTeacher&&<div style={S.empty}>{t.noClassRole}</div>}
     {activeRole==="subjectTeacher"&&!selectedAssign&&<div style={S.empty}>{t.selectClassSubject}</div>}
-    {curStudents.length>0&&roleQs.length>0&&(activeRole!=="subjectTeacher"||selectedAssign)&&(<div style={S.card}>
+    {curStudents.length>0&&roleQs.length>0&&(activeRole!=="subjectTeacher"||selectedAssign)&&(isMobile?(
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {curStudents.map((s)=>{const wd=activeRole==="guideTeacher"&&weekDoneCheck(s.id);const maxPts=roleQs.reduce((x,q)=>x+q.points,0);return(<div key={s.id} style={{...S.card,marginBottom:0,opacity:wd?0.65:1}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #eef2ff"}}>
+            <div><div style={{fontWeight:700,fontSize:15,color:"#1e1b4b"}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{s.systemId} · {t.class}{s.class}{s.section} · Roll {s.roll}</div></div>
+            <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#6366f1",lineHeight:1}}>{getTotal(s.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{maxPts} pts</div></div>
+          </div>
+          {activeRole==="guideTeacher"&&wd&&<div style={{background:"#fee2e2",color:"#991b1b",borderRadius:8,padding:"8px 12px",fontSize:13,fontWeight:600,marginBottom:8}}>⚠️ {lang==="bn"?"এই সপ্তাহে পয়েন্ট দেওয়া হয়েছে":"Already submitted this week"}</div>}
+          {roleQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
+            <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>সর্বোচ্চ {q.points} পয়েন্ট</div></div>
+            <input type="number" min="0" max={q.points} disabled={wd} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(s.id,q.id)} onChange={e=>setScore(s.id,q.id,e.target.value)} placeholder="0"/>
+          </div>))}
+        </div>);})}
+        <button onClick={handleSubmit} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10}}>{t.submitPoints}</button>
+      </div>
+    ):(<div style={S.card}>
       <div style={{overflowX:"auto"}}><table style={S.table}><thead><tr>
         <th style={{...S.th,minWidth:120}}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th>
         {roleQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600,color:"#475569"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}
@@ -762,7 +778,7 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
         </tr>);})}
       </tbody></table></div>
       <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div>
-    </div>)}
+    </div>))}
     <div style={S.card}>
       <h3 style={S.ct}>{lang==="bn"?"এন্ট্রি তালিকা":"Entry List"}</h3>
       {isAdmin&&(<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:10,marginBottom:16,background:"#f8fafc",borderRadius:10,padding:"14px 16px"}}>
@@ -806,6 +822,7 @@ function SettingsPage({t,lang,termConfig,setTermConfig,showNotif}){
     </div>
   </div>);}
 function TeacherKPIPage({t,lang,teachers,teacherQuestions,teacherEntries,setTeacherEntries,showNotif,selectedYear,setSelectedYear,availableYears}){
+  const isMobile=useIsMobile();
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
   const [allScores,setAllScores]=useState({});
   const cm=new Date(selectedDate).getMonth(),cy=new Date(selectedDate).getFullYear();
@@ -820,10 +837,23 @@ function TeacherKPIPage({t,lang,teachers,teacherQuestions,teacherEntries,setTeac
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
-    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.teachers}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{tc.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(tc.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>)}
+    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(isMobile?(<div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {teachers.map(tc=>(<div key={tc.id} style={{...S.card,marginBottom:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #eef2ff"}}>
+          <div><div style={{fontWeight:700,fontSize:15,color:"#1e1b4b"}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{tc.systemId}</div></div>
+          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#6366f1",lineHeight:1}}>{getTotal(tc.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
+        </div>
+        {activeQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
+          <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>max {q.points}</div></div>
+          <input type="number" min="0" max={q.points} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/>
+        </div>))}
+      </div>))}
+      <button onClick={handleSubmit} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10}}>{t.submitPoints}</button>
+    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.teachers}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{tc.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(tc.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>))}
     <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.teachers}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...teacherEntries].reverse().slice(0,50).map((e,i)=>{const tc=teachers.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?tc?.name:tc?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
   </div>);}
 function ParentKPIPage({t,lang,parents,parentQuestions,parentEntries,setParentEntries,showNotif,selectedYear,setSelectedYear,availableYears}){
+  const isMobile=useIsMobile();
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
   const [allScores,setAllScores]=useState({});
   const approvedParents=parents.filter(p=>p.status==="approved");
@@ -839,7 +869,19 @@ function ParentKPIPage({t,lang,parents,parentQuestions,parentEntries,setParentEn
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
-    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.parent}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{approvedParents.map((p,i)=>(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{p.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(p.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>)}
+    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(isMobile?(<div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {approvedParents.map(p=>(<div key={p.id} style={{...S.card,marginBottom:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #eef2ff"}}>
+          <div><div style={{fontWeight:700,fontSize:15,color:"#1e1b4b"}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.systemId}</div></div>
+          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#6366f1",lineHeight:1}}>{getTotal(p.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
+        </div>
+        {activeQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
+          <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>max {q.points}</div></div>
+          <input type="number" min="0" max={q.points} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/>
+        </div>))}
+      </div>))}
+      <button onClick={handleSubmit} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10}}>{t.submitPoints}</button>
+    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.parent}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#6366f1"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{approvedParents.map((p,i)=>(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{p.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/></td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#6366f1",fontSize:15}}>{getTotal(p.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div></div>))}
     <div style={S.card}><h3 style={S.ct}>{t.entryHistory}</h3><div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"তারিখ":"Date"}</th><th style={S.th}>{t.parent}</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.points}</th></tr></thead><tbody>{[...parentEntries].reverse().slice(0,50).map((e,i)=>{const par=parents.find(x=>x.id===e.targetId);return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}>{lang==="bn"?par?.name:par?.nameEn}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?e.questionText:e.questionTextEn}</div></td><td style={S.td}><strong style={{color:"#6366f1"}}>{e.score}</strong></td></tr>);})}</tbody></table></div></div>
   </div>);}
 function MyTeacherKPIPage({t,lang,currentUser,teacherEntries,getTchrMonthKPI,getTchrTermKPI,getTchrYearKPI,selectedYear,setSelectedYear,availableYears,termConfig}){
