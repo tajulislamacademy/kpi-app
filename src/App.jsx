@@ -1,4 +1,15 @@
 import { useState, useEffect } from "react";
+import { supabase } from "./supabase";
+
+// system_id -> synthetic email used by Supabase Auth (Option B).
+// Root admin entered as "admin" or "ADM-20260001" maps to admin@kpi.local.
+const loginToEmail=(id)=>{
+  const v=(id||"").trim();
+  if(!v)return "";
+  if(v.includes("@"))return v.toLowerCase();                                   // already a full email
+  if(v.toLowerCase()==="admin"||v.toUpperCase()==="ADM-20260001")return "admin@kpi.local";
+  return v.toLowerCase()+"@kpi.local";
+};
 
 function useLocalStorage(key,init){
   const [val,setVal]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
@@ -209,7 +220,8 @@ export default function App() {
   const isMobile=useIsMobile();
   const [navOpen,setNavOpen]=useState(false);
   const goTab=k=>{setActiveTab(k);setNavOpen(false);};
-  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} admins={admins} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
+  const handleLogout=async()=>{try{await supabase.auth.signOut();}catch{/* no active backend session */}setCurrentUser(null);};
+  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
   const isAdmin=currentUser.role==="admin",isTeacher=currentUser.role==="teacher";
   const pendingParents=parents.filter(p=>p.status==="pending");
   const navItems=[
@@ -255,7 +267,7 @@ export default function App() {
               {currentUser.systemId&&<div style={{fontSize:10,color:"#94a3b8"}}>{currentUser.systemId}</div>}
             </div>
           </div>
-          <button onClick={()=>setCurrentUser(null)} style={S.logoutBtn}>{t.logout}</button>
+          <button onClick={handleLogout} style={S.logoutBtn}>{t.logout}</button>
         </div>
       </aside>
       <main style={{...S.main,...(isMobile?{marginTop:56}:{})}}>
@@ -285,13 +297,35 @@ export default function App() {
 function YearSelector({t,lang,selectedYear,setSelectedYear,availableYears}){return(<div style={{display:"flex",alignItems:"center",gap:8,background:"#f8fafc",borderRadius:10,padding:"8px 14px"}}><span style={{fontSize:13,fontWeight:700,color:"#334155"}}>📅 {lang==="bn"?"বছর":"Year"}:</span><select style={{border:"none",background:"transparent",fontSize:15,fontWeight:800,color:"#334155",outline:"none",cursor:"pointer"}} value={selectedYear} onChange={e=>setSelectedYear(parseInt(e.target.value))}>{availableYears.map(y=><option key={y} value={y}>{y}</option>)}</select></div>);}
 function StatCard({icon,value,label,color}){return(<div style={{...S.statCard,border:"1px solid #e2e8f0"}}><div style={{fontSize:22,marginBottom:8}}>{icon}</div><div style={{fontSize:20,fontWeight:800,color:"#0f172a",marginBottom:4}}>{value}</div><div style={{fontSize:12,color:"#64748b"}}>{label}</div></div>);}
 function RankCard({title,list,lang,t}){return(<div style={S.card}><h3 style={S.ct}>{title}</h3>{list.map((s,i)=>(<div key={s.id} style={S.rankRow}><div style={{...S.rankBadge,background:i===0?"#0f172a":i===1?"#52525b":i===2?"#a1a1aa":"#f4f4f5",color:i<3?"#fff":"#64748b"}}>{i+1}</div><div style={{flex:1,fontSize:14,fontWeight:500}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{s.kpi}</div></div>))}</div>);}
-function AuthPage({t,lang,setLang,teachers,students,parents,admins,onLogin}){
+function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
   const [form,setForm]=useState({id:"",password:""});
   const [error,setError]=useState("");
-  const doLogin=()=>{
+  const [busy,setBusy]=useState(false);
+  const doLogin=async()=>{
     setError("");
-    const adm=admins.find(x=>(x.systemId===form.id||(x.isRoot&&form.id==="admin"))&&x.password===form.password);
-    if(adm){onLogin({...adm,name:lang==="bn"?adm.name:adm.nameEn,role:"admin"});return;}
+    setBusy(true);
+    try{
+      // 1) Supabase Auth — real backend accounts (admin migrated so far)
+      const email=loginToEmail(form.id);
+      if(email&&form.password){
+        const {data,error:authErr}=await supabase.auth.signInWithPassword({email,password:form.password});
+        if(!authErr&&data?.user){
+          const {data:prof}=await supabase.from("profiles").select("*").eq("auth_id",data.user.id).maybeSingle();
+          if(prof){
+            onLogin({id:prof.id,systemId:prof.system_id,name:lang==="bn"?prof.name:prof.name_en,nameEn:prof.name_en,role:prof.role,isRoot:prof.is_root,backend:true});
+            return;
+          }
+          // authenticated but no profile row — undo and fall through to demo auth
+          await supabase.auth.signOut();
+        }
+      }
+      // 2) Fallback — localStorage demo accounts (teacher/student/parent not yet migrated)
+      doLocalLogin();
+    }finally{setBusy(false);}
+  };
+  const doLocalLogin=()=>{
+    // Admin is migrated to Supabase Auth — no localStorage admin fallback.
+    // teacher/student/parent stay on demo localStorage until their slices migrate.
     const tc=teachers.find(x=>x.systemId===form.id&&x.password===form.password);
     if(tc){onLogin({...tc,name:lang==="bn"?tc.name:tc.nameEn,role:tc.isAdmin?"admin":"teacher"});return;}
     const st=students.find(x=>x.systemId===form.id&&x.password===form.password);
@@ -318,9 +352,9 @@ function AuthPage({t,lang,setLang,teachers,students,parents,admins,onLogin}){
       <div style={S.fg}><label style={S.lbl}>{t.username}</label>
         <input style={S.inp} value={form.id} onChange={e=>setForm({...form,id:e.target.value})} placeholder="admin | TCH-20260001 | STD-20260001"/></div>
       <div style={S.fg}><label style={S.lbl}>{t.password}</label>
-        <input style={S.inp} type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+        <input style={S.inp} type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} onKeyDown={e=>e.key==="Enter"&&!busy&&doLogin()}/></div>
       {error&&<div style={{color:"#ef4444",fontSize:13,marginBottom:8,textAlign:"center"}}>{error}</div>}
-      <button onClick={doLogin} style={S.loginBtn}>{t.loginBtn}</button>
+      <button onClick={doLogin} disabled={busy} style={{...S.loginBtn,...(busy?{opacity:0.6,cursor:"wait"}:{})}}>{busy?(lang==="bn"?"প্রবেশ করা হচ্ছে…":"Signing in…"):t.loginBtn}</button>
       <div style={{marginTop:14,background:"#f8fafc",borderRadius:8,padding:"10px 14px",fontSize:12,color:"#64748b"}}>
         <div style={{fontWeight:700,marginBottom:4,color:"#475569"}}>{lang==="bn"?"ডেমো:":"Demo:"}</div>
         <div>admin / admin</div><div>TCH-20260001 / 1234</div>
