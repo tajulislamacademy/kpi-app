@@ -3,6 +3,8 @@
 // Writes require an authenticated admin session (enforced by RLS).
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
+import { provisionAuthUser } from "./provision";
+import { systemIdToEmail } from "./identity";
 
 // Shape returned to the UI mirrors the old localStorage student object
 // ({ id, systemId, name, nameEn, class, section, roll }) so consumers barely change.
@@ -26,12 +28,19 @@ export async function listStudents() {
     .sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
 }
 
+// Creates a student. If `password` is given, first provisions a login account
+// (auth user) and links it via auth_id, so the student can sign in. Without a
+// password the student is a login-less record (auth_id stays null).
 // Two dependent inserts: profile first (returns uuid), then student detail.
 // Roll back the profile if the student insert fails, so no orphan profile remains.
-export async function createStudent({ systemId, name, nameEn, cls, section, roll }) {
+export async function createStudent({ systemId, name, nameEn, cls, section, roll, password }) {
+  let authId = null;
+  if (password) {
+    authId = await provisionAuthUser(systemIdToEmail(systemId), password);
+  }
   const { data: prof, error: e1 } = await supabase
     .from("profiles")
-    .insert({ system_id: systemId, role: "student", name, name_en: nameEn || name })
+    .insert({ system_id: systemId, role: "student", name, name_en: nameEn || name, auth_id: authId })
     .select("id")
     .single();
   if (e1) throw e1;

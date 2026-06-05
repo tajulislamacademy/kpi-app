@@ -1,16 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
 import { useDbStudents, createStudent, updateStudent, deleteStudent } from "./api/students";
-
-// system_id -> synthetic email used by Supabase Auth (Option B).
-// Root admin entered as "admin" or "ADM-20260001" maps to admin@kpi.local.
-const loginToEmail=(id)=>{
-  const v=(id||"").trim();
-  if(!v)return "";
-  if(v.includes("@"))return v.toLowerCase();                                   // already a full email
-  if(v.toLowerCase()==="admin"||v.toUpperCase()==="ADM-20260001")return "admin@kpi.local";
-  return v.toLowerCase()+"@kpi.local";
-};
+import { systemIdToEmail } from "./api/identity";
 
 function useLocalStorage(key,init){
   const [val,setVal]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
@@ -307,7 +298,7 @@ function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
     setBusy(true);
     try{
       // 1) Supabase Auth — real backend accounts (admin migrated so far)
-      const email=loginToEmail(form.id);
+      const email=systemIdToEmail(form.id);
       if(email&&form.password){
         const {data,error:authErr}=await supabase.auth.signInWithPassword({email,password:form.password});
         if(!authErr&&data?.user){
@@ -667,7 +658,7 @@ function StudentsPage({t,lang,teachers,parents,showNotif}){
   const {students,loading,error,reload}=useDbStudents(true);
   const [showForm,setShowForm]=useState(false);
   const [editId,setEditId]=useState(null);
-  const blank={name:"",nameEn:"",class:"8",section:"",roll:""};
+  const blank={name:"",nameEn:"",class:"8",section:"",roll:"",password:"123456"};
   const [form,setForm]=useState(blank);
   const [confirmDel,setConfirmDel]=useState(null);
   const [saving,setSaving]=useState(false);
@@ -681,6 +672,7 @@ function StudentsPage({t,lang,teachers,parents,showNotif}){
   };
   const handleSave=async()=>{
     if(!form.name){showNotif(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
+    if(!editId&&form.password&&form.password.length<6){showNotif(lang==="bn"?"পাসওয়ার্ড কমপক্ষে ৬ অক্ষর":"Password must be at least 6 characters");return;}
     setSaving(true);
     try{
       const roll=parseInt(form.roll)||null;
@@ -689,7 +681,7 @@ function StudentsPage({t,lang,teachers,parents,showNotif}){
         showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
       }else{
         const systemId=nextSystemId();
-        await createStudent({systemId,name:form.name,nameEn:form.nameEn,cls:form.class,section:form.section,roll});
+        await createStudent({systemId,name:form.name,nameEn:form.nameEn,cls:form.class,section:form.section,roll,password:form.password});
         showNotif(lang==="bn"?`শিক্ষার্থী যোগ! ID: ${systemId}`:`Student added! ID: ${systemId}`);
       }
       await reload();
@@ -714,6 +706,7 @@ function StudentsPage({t,lang,teachers,parents,showNotif}){
         <div style={S.fg}><label style={S.lbl}>{t.class}</label><select style={S.inp} value={form.class} onChange={e=>setForm({...form,class:e.target.value})}>{CLASSES.map(c=><option key={c}>{c}</option>)}</select></div>
         <div style={S.fg}><label style={S.lbl}>{t.section}</label><input style={S.inp} value={form.section} onChange={e=>setForm({...form,section:e.target.value})} placeholder="A, B..."/></div>
         <div style={S.fg}><label style={S.lbl}>{t.roll}</label><input style={S.inp} type="number" value={form.roll} onChange={e=>setForm({...form,roll:e.target.value})}/></div>
+        {!editId&&<div style={S.fg}><label style={S.lbl}>{t.defaultPass} ({lang==="bn"?"login":"login"})</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder={lang==="bn"?"খালি = login ছাড়া":"blank = no login"}/></div>}
       </div>
       <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} disabled={saving} style={{...S.saveBtn,...(saving?{opacity:0.6,cursor:"wait"}:{})}}>{saving?(lang==="bn"?"সংরক্ষণ…":"Saving…"):t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
