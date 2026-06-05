@@ -55,7 +55,7 @@ const T = {
     wrongPassword:"বর্তমান পাসওয়ার্ড ভুল",
     myRank:"আমার র‍্যাংক", myMonthly:"মাসিক পয়েন্ট", myYearly:"বার্ষিক পয়েন্ট",
     progressChart:"অগ্রগতি চার্ট",
-    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",teacherKPI:"শিক্ষক KPI",parentKPI:"অভিভাবক KPI",tchrKpiEntry:"শিক্ষক KPI এন্ট্রি",parKpiEntry:"অভিভাবক KPI এন্ট্রি",stdQuestions:"শিক্ষার্থী প্রশ্ন",tchrQuestions:"শিক্ষক প্রশ্ন",parQuestions:"অভিভাবক প্রশ্ন",entryHistory:"এন্ট্রি ইতিহাস",noQForMonth:"এই মাসে কোনো প্রশ্ন নেই",myTchrKPI:"আমার KPI",
+    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",teacherKPI:"শিক্ষক KPI",parentKPI:"অভিভাবক KPI",tchrKpiEntry:"শিক্ষক KPI এন্ট্রি",parKpiEntry:"অভিভাবক KPI এন্ট্রি",stdQuestions:"শিক্ষার্থী প্রশ্ন",tchrQuestions:"শিক্ষক প্রশ্ন",parQuestions:"অভিভাবক প্রশ্ন",entryHistory:"এন্ট্রি ইতিহাস",noQForMonth:"এই মাসে কোনো প্রশ্ন নেই",myTchrKPI:"আমার KPI",frequency:"পুনরাবৃত্তি",daily:"দৈনিক",weekly:"সাপ্তাহিক",monthly:"মাসিক",quarterly:"ত্রৈমাসিক",annual:"বার্ষিক",alreadyDone:"এই সময়ে দেওয়া হয়েছে",
   },
   en: {
     appTitle:"Student KPI System", dashboard:"Dashboard", teachers:"Teachers",
@@ -99,7 +99,7 @@ const T = {
     wrongPassword:"Current password is incorrect",
     myRank:"My Rank", myMonthly:"Monthly Points", myYearly:"Yearly Points",
     progressChart:"Progress Chart",
-    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",teacherKPI:"Teacher KPI",parentKPI:"Parent KPI",tchrKpiEntry:"Teacher KPI Entry",parKpiEntry:"Parent KPI Entry",stdQuestions:"Student Questions",tchrQuestions:"Teacher Questions",parQuestions:"Parent Questions",entryHistory:"Entry History",noQForMonth:"No questions for this month",myTchrKPI:"My KPI",
+    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",teacherKPI:"Teacher KPI",parentKPI:"Parent KPI",tchrKpiEntry:"Teacher KPI Entry",parKpiEntry:"Parent KPI Entry",stdQuestions:"Student Questions",tchrQuestions:"Teacher Questions",parQuestions:"Parent Questions",entryHistory:"Entry History",noQForMonth:"No questions for this month",myTchrKPI:"My KPI",frequency:"Frequency",daily:"Daily",weekly:"Weekly",monthly:"Monthly",quarterly:"Quarterly",annual:"Annual",alreadyDone:"Already done this period",
   }
 };
 
@@ -129,16 +129,16 @@ const initParents=[
   {id:3,systemId:"PAR-20260003",name:"হাসান মিয়া",nameEn:"Hasan Mia",studentId:"STD-20260002",relation:"father",password:"1234",status:"approved"},
 ];
 const initQuestions=[
-  {id:1,textBn:"উপস্থিতি ও সময়মতো আসা",textEn:"Attendance & Punctuality",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:2,textBn:"শ্রেণীকক্ষে শৃঙ্খলা",textEn:"Classroom Discipline",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:3,textBn:"পরিষ্কার-পরিচ্ছন্নতা",textEn:"Cleanliness",role:"classTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:4,textBn:"সহপাঠীদের সাথে সহযোগিতা",textEn:"Cooperation with Peers",role:"classTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:5,textBn:"পাঠে মনোযোগ",textEn:"Attention in Class",role:"subjectTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:6,textBn:"হোমওয়ার্ক সম্পন্ন করা",textEn:"Homework Completion",role:"subjectTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:7,textBn:"প্রশ্ন করার আগ্রহ",textEn:"Eagerness to Ask Questions",role:"subjectTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:8,textBn:"নৈতিক আচরণ ও মূল্যবোধ",textEn:"Moral Behavior & Values",role:"guideTeacher",points:15,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:9,textBn:"ব্যক্তিগত লক্ষ্য পূরণ",textEn:"Personal Goal Achievement",role:"guideTeacher",points:15,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:10,textBn:"নেতৃত্বগুণ ও দলগত কাজ",textEn:"Leadership & Teamwork",role:"guideTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:1,textBn:"উপস্থিতি ও সময়মতো আসা",textEn:"Attendance & Punctuality",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
+  {id:2,textBn:"শ্রেণীকক্ষে শৃঙ্খলা",textEn:"Classroom Discipline",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
+  {id:3,textBn:"পরিষ্কার-পরিচ্ছন্নতা",textEn:"Cleanliness",role:"classTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
+  {id:4,textBn:"সহপাঠীদের সাথে সহযোগিতা",textEn:"Cooperation with Peers",role:"classTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
+  {id:5,textBn:"পাঠে মনোযোগ",textEn:"Attention in Class",role:"subjectTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
+  {id:6,textBn:"হোমওয়ার্ক সম্পন্ন করা",textEn:"Homework Completion",role:"subjectTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
+  {id:7,textBn:"প্রশ্ন করার আগ্রহ",textEn:"Eagerness to Ask Questions",role:"subjectTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
+  {id:8,textBn:"নৈতিক আচরণ ও মূল্যবোধ",textEn:"Moral Behavior & Values",role:"guideTeacher",points:15,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"weekly"},
+  {id:9,textBn:"ব্যক্তিগত লক্ষ্য পূরণ",textEn:"Personal Goal Achievement",role:"guideTeacher",points:15,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"weekly"},
+  {id:10,textBn:"নেতৃত্বগুণ ও দলগত কাজ",textEn:"Leadership & Teamwork",role:"guideTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"weekly"},
 ];
 const initEntries=[
   {id:1,studentId:1,teacherId:1,date:"2026-01-15",questionId:1,score:9,month:0,year:2026,role:"classTeacher",subject:"",editLog:[]},
@@ -153,18 +153,19 @@ const initEntries=[
   {id:10,studentId:2,teacherId:1,date:"2026-02-10",questionId:1,score:8,month:1,year:2026,role:"classTeacher",subject:"",editLog:[]},
   {id:11,studentId:3,teacherId:1,date:"2026-02-10",questionId:1,score:9,month:1,year:2026,role:"classTeacher",subject:"",editLog:[]},
 ];
+const FREQ_OPTS=["daily","weekly","monthly","quarterly","annual"];
 const initTeacherQuestions=[
-  {id:1,textBn:"সময়মতো উপস্থিতি ও পাঠদান",textEn:"Punctuality & Teaching",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:2,textBn:"শ্রেণীকক্ষ পরিচালনা",textEn:"Classroom Management",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:3,textBn:"শিক্ষার্থীর উন্নতিতে মনোযোগ",textEn:"Student Progress Focus",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:4,textBn:"পেশাদারিত্ব ও আচরণ",textEn:"Professionalism & Conduct",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:5,textBn:"সহকর্মীদের সাথে সহযোগিতা",textEn:"Colleague Cooperation",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:1,textBn:"সময়মতো উপস্থিতি ও পাঠদান",textEn:"Punctuality & Teaching",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
+  {id:2,textBn:"শ্রেণীকক্ষ পরিচালনা",textEn:"Classroom Management",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
+  {id:3,textBn:"শিক্ষার্থীর উন্নতিতে মনোযোগ",textEn:"Student Progress Focus",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
+  {id:4,textBn:"পেশাদারিত্ব ও আচরণ",textEn:"Professionalism & Conduct",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
+  {id:5,textBn:"সহকর্মীদের সাথে সহযোগিতা",textEn:"Colleague Cooperation",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
 ];
 const initParentQuestions=[
-  {id:1,textBn:"অভিভাবক সভায় উপস্থিতি",textEn:"Parent Meeting Attendance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:2,textBn:"সন্তানের পড়াশোনায় সহযোগিতা",textEn:"Child Study Support",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:3,textBn:"শিক্ষকের সাথে যোগাযোগ",textEn:"Teacher Communication",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
-  {id:4,textBn:"স্কুলের নিয়ম মেনে চলা",textEn:"School Rule Compliance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {id:1,textBn:"অভিভাবক সভায় উপস্থিতি",textEn:"Parent Meeting Attendance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
+  {id:2,textBn:"সন্তানের পড়াশোনায় সহযোগিতা",textEn:"Child Study Support",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
+  {id:3,textBn:"শিক্ষকের সাথে যোগাযোগ",textEn:"Teacher Communication",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
+  {id:4,textBn:"স্কুলের নিয়ম মেনে চলা",textEn:"School Rule Compliance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
 ];
 export default function App() {
   const [lang,setLang]=useState("bn");
@@ -672,8 +673,8 @@ function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeache
   const [editId,setEditId]=useState(null);
   const [viewQ,setViewQ]=useState(null);
   const [confirmDel,setConfirmDel]=useState(null);
-  const blankS={textBn:"",textEn:"",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]};
-  const blankO={textBn:"",textEn:"",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11]};
+  const blankS={textBn:"",textEn:"",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"};
+  const blankO={textBn:"",textEn:"",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"};
   const [form,setForm]=useState(blankS);
   const toggleM=m=>{const am=form.activeMonths.includes(m)?form.activeMonths.filter(x=>x!==m):[...form.activeMonths,m];setForm({...form,activeMonths:am});};
   const isStd=qTab==="student";
@@ -683,17 +684,18 @@ function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeache
   const rText=r=>r==="classTeacher"?"#1d4ed8":r==="subjectTeacher"?"#166534":"#57534e";
   const rLabel=r=>r==="classTeacher"?t.classTeacher:r==="subjectTeacher"?t.subjectTeacher:t.guideTeacher;
   const openAdd=()=>{setEditId(null);setForm(isStd?blankS:blankO);setShowForm(true);};
-  const openEdit=q=>{setEditId(q.id);setForm(isStd?{textBn:q.textBn,textEn:q.textEn,role:q.role,points:q.points,activeMonths:[...q.activeMonths]}:{textBn:q.textBn,textEn:q.textEn,points:q.points,activeMonths:[...q.activeMonths]});setShowForm(true);};
+  const openEdit=q=>{setEditId(q.id);setForm(isStd?{textBn:q.textBn,textEn:q.textEn,role:q.role,points:q.points,activeMonths:[...q.activeMonths],frequency:q.frequency||"monthly"}:{textBn:q.textBn,textEn:q.textEn,points:q.points,activeMonths:[...q.activeMonths],frequency:q.frequency||"monthly"});setShowForm(true);};
   const handleSave=()=>{
     if(!form.textBn){showNotif(lang==="bn"?"প্রশ্ন লিখুন":"Enter question");return;}
     const pts=parseInt(form.points)||0;
-    if(editId){setCurQs(qs=>qs.map(q=>q.id===editId?{...q,...form,points:pts}:q));showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");}
-    else{setCurQs(qs=>[...qs,{...form,id:Date.now(),points:pts}]);showNotif(lang==="bn"?"প্রশ্ন যোগ হয়েছে!":"Question added!");}
+    if(editId){setCurQs(qs=>qs.map(q=>q.id===editId?{...q,...form,points:pts,frequency:form.frequency||"monthly"}:q));showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");}
+    else{setCurQs(qs=>[...qs,{...form,id:Date.now(),points:pts,frequency:form.frequency||"monthly"}]);showNotif(lang==="bn"?"প্রশ্ন যোগ হয়েছে!":"Question added!");}
     setShowForm(false);setEditId(null);setForm(isStd?blankS:blankO);
   };
   const aBtn=(bg,cl,bc)=>({padding:"4px 8px",background:bg,color:cl,border:"1px solid "+bc,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
-  const qRow=(q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}><div style={{maxWidth:200,fontWeight:500,fontSize:13}}>{lang==="bn"?q.textBn:q.textEn}</div></td><td style={S.td}><strong style={{color:"#0f172a"}}>{q.points}</strong></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#0f172a":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td><td style={S.td}><div style={{display:"flex",gap:4}}><button onClick={()=>setViewQ(q)} style={aBtn("#f0fdf4","#166534","#bbf7d0")}>👁️</button><button onClick={()=>openEdit(q)} style={aBtn("#f8fafc","#0f172a","#e2e8f0")}>✏️</button><button onClick={()=>setConfirmDel({id:q.id,name:lang==="bn"?q.textBn:q.textEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️</button></div></td></tr>);
-  const qTable=(list)=>(<div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.activeMonths}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead><tbody>{list.map(qRow)}</tbody></table></div>);
+  const freqLabel=(f)=>({"daily":t.daily,"weekly":t.weekly,"monthly":t.monthly,"quarterly":t.quarterly,"annual":t.annual}[f]||t.monthly);
+  const qRow=(q,i)=>(<tr key={q.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{i+1}</td><td style={S.td}><div style={{maxWidth:200,fontWeight:500,fontSize:13}}>{lang==="bn"?q.textBn:q.textEn}</div></td><td style={S.td}><strong style={{color:"#0f172a"}}>{q.points}</strong></td><td style={S.td}><span style={{background:"#f1f5f9",color:"#334155",padding:"2px 8px",borderRadius:20,fontSize:11,fontWeight:600}}>{freqLabel(q.frequency||"monthly")}</span></td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:2}}>{MONTHS.map((m,mi)=>(<span key={m} style={{padding:"1px 5px",borderRadius:4,fontSize:11,fontWeight:600,background:q.activeMonths.includes(mi)?"#0f172a":"#e2e8f0",color:q.activeMonths.includes(mi)?"#fff":"#94a3b8"}}>{T[lang][m].slice(0,3)}</span>))}</div></td><td style={S.td}><div style={{display:"flex",gap:4}}><button onClick={()=>setViewQ(q)} style={aBtn("#f0fdf4","#166534","#bbf7d0")}>👁️</button><button onClick={()=>openEdit(q)} style={aBtn("#f8fafc","#0f172a","#e2e8f0")}>✏️</button><button onClick={()=>setConfirmDel({id:q.id,name:lang==="bn"?q.textBn:q.textEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️</button></div></td></tr>);
+  const qTable=(list)=>(<div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.frequency}</th><th style={S.th}>{t.activeMonths}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead><tbody>{list.map(qRow)}</tbody></table></div>);
   return(<div style={S.page}>
     {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{setCurQs(qs=>qs.filter(q=>q.id!==confirmDel.id));setConfirmDel(null);showNotif(lang==="bn"?"মুছা হয়েছে!":"Deleted!");}} onCancel={()=>setConfirmDel(null)}/>}
     {viewQ&&(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:520}}>
@@ -725,6 +727,7 @@ function QuestionsPage({t,lang,questions,setQuestions,teacherQuestions,setTeache
         <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"প্রশ্ন (ইংরেজি)":"Question (EN)"}</label><input style={S.inp} value={form.textEn} onChange={e=>setForm({...form,textEn:e.target.value})}/></div>
         {isStd&&<div style={S.fg}><label style={S.lbl}>{t.role}</label><select style={S.inp} value={form.role} onChange={e=>setForm({...form,role:e.target.value})}><option value="classTeacher">{t.classTeacher}</option><option value="subjectTeacher">{t.subjectTeacher}</option><option value="guideTeacher">{t.guideTeacher}</option></select></div>}
         <div style={S.fg}><label style={S.lbl}>{t.pointsPerEntry}</label><input style={S.inp} type="number" value={form.points} onChange={e=>setForm({...form,points:e.target.value})}/></div>
+        <div style={S.fg}><label style={S.lbl}>{t.frequency}</label><select style={S.inp} value={form.frequency||"monthly"} onChange={e=>setForm({...form,frequency:e.target.value})}><option value="daily">{t.daily}</option><option value="weekly">{t.weekly}</option><option value="monthly">{t.monthly}</option><option value="quarterly">{t.quarterly}</option><option value="annual">{t.annual}</option></select></div>
       </div>
       <div style={S.fg}><label style={S.lbl}>{t.activeMonths}</label><div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:6}}>{MONTHS.map((m,i)=>(<button key={m} onClick={()=>toggleM(i)} style={{...S.mBtn,...(form.activeMonths.includes(i)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>
       <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
@@ -749,6 +752,7 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
   const guideIds=currentUser.guideStudents||[];
   const guideStudents=students.filter(s=>guideIds.includes(s.id));
   const weekDoneCheck=sid=>entries.some(e=>e.studentId===sid&&e.teacherId===currentUser.id&&e.role==="guideTeacher"&&getWeekNumber(e.date)===cw&&new Date(e.date).getFullYear()===cy);
+  const isQFreqDone=(sid,qid)=>{const q=questions.find(x=>x.id===qid);const freq=q?.frequency||"monthly";const d=new Date(selectedDate),year=d.getFullYear(),month=d.getMonth();return entries.some(e=>{if(e.studentId!==sid||e.questionId!==qid)return false;const ed=new Date(e.date),eYear=e.year||2026;switch(freq){case"daily":return e.date===selectedDate;case"weekly":return getWeekNumber(e.date)===cw&&eYear===year;case"quarterly":return Math.floor(ed.getMonth()/3)===Math.floor(month/3)&&eYear===year;case"annual":return eYear===year;default:return e.month===month&&eYear===year;}});};
   const roleQs=questions.filter(q=>q.role===activeRole&&q.activeMonths.includes(cm));
   const curStudents=activeRole==="classTeacher"?classStudents:activeRole==="subjectTeacher"?subjectStudents:guideStudents;
   const setScore=(sid,qid,val)=>{const max=questions.find(q=>q.id===qid)?.points||0;setAllScores(p=>({...p,[sid]:{...(p[sid]||{}),[qid]:Math.min(parseInt(val)||0,max)}}));};
@@ -792,23 +796,23 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
             <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#0f172a",lineHeight:1}}>{getTotal(s.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{maxPts} pts</div></div>
           </div>
           {activeRole==="guideTeacher"&&wd&&<div style={{background:"#fee2e2",color:"#991b1b",borderRadius:8,padding:"8px 12px",fontSize:13,fontWeight:600,marginBottom:8}}>⚠️ {lang==="bn"?"এই সপ্তাহে পয়েন্ট দেওয়া হয়েছে":"Already submitted this week"}</div>}
-          {roleQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
-            <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>সর্বোচ্চ {q.points} পয়েন্ট</div></div>
-            <input type="number" min="0" max={q.points} disabled={wd} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(s.id,q.id)} onChange={e=>setScore(s.id,q.id,e.target.value)} placeholder="0"/>
-          </div>))}
+          {roleQs.map(q=>{const qd=isQFreqDone(s.id,q.id);return(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
+            <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{{"daily":t.daily,"weekly":t.weekly,"monthly":t.monthly,"quarterly":t.quarterly,"annual":t.annual}[q.frequency||"monthly"]} · max {q.points}</div></div>
+            {qd?<div style={{width:64,height:44,display:"flex",alignItems:"center",justifyContent:"center",background:"#f0fdf4",borderRadius:8,fontSize:12,color:"#166534",fontWeight:700}}>✓</div>:<input type="number" min="0" max={q.points} disabled={wd} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(s.id,q.id)} onChange={e=>setScore(s.id,q.id,e.target.value)} placeholder="0"/>}
+          </div>);})}
         </div>);})}
         <button onClick={handleSubmit} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10}}>{t.submitPoints}</button>
       </div>
     ):(<div style={S.card}>
       <div style={{overflowX:"auto"}}><table style={S.table}><thead><tr>
         <th style={{...S.th,minWidth:120}}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th>
-        {roleQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600,color:"#475569"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#0f172a"}}>/{q.points}</div></th>))}
+        {roleQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600,color:"#475569"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#0f172a"}}>/{q.points}</div><div style={{fontSize:9,color:"#64748b",marginTop:1}}>{{"daily":t.daily,"weekly":t.weekly,"monthly":t.monthly,"quarterly":t.quarterly,"annual":t.annual}[q.frequency||"monthly"]}</div></th>))}
         <th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th>
         {activeRole==="guideTeacher"&&<th style={{...S.th,minWidth:70}}>{lang==="bn"?"অবস্থা":"Status"}</th>}
       </tr></thead><tbody>
         {curStudents.map((s,i)=>{const wd=activeRole==="guideTeacher"&&weekDoneCheck(s.id);return(<tr key={s.id} style={{...(i%2===0?{background:"#fafafa"}:{}),opacity:wd?0.5:1}}>
           <td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{s.systemId}</div></td>
-          {roleQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}><input type="number" min="0" max={q.points} disabled={wd} style={{...S.scoreInp,width:52}} value={getScore(s.id,q.id)} onChange={e=>setScore(s.id,q.id,e.target.value)} placeholder="0"/></td>))}
+          {roleQs.map(q=>{const qd=isQFreqDone(s.id,q.id);return(<td key={q.id} style={{...S.td,textAlign:"center"}}>{qd?<span style={{fontSize:10,color:"#94a3b8",fontWeight:600}}>✓</span>:<input type="number" min="0" max={q.points} disabled={wd} style={{...S.scoreInp,width:52}} value={getScore(s.id,q.id)} onChange={e=>setScore(s.id,q.id,e.target.value)} placeholder="0"/>}</td>);})}
           <td style={{...S.td,textAlign:"center"}}><strong style={{color:"#0f172a",fontSize:15}}>{getTotal(s.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{roleQs.reduce((s,q)=>s+q.points,0)}</div></td>
           {activeRole==="guideTeacher"&&<td style={S.td}>{wd?<span style={{fontSize:11,color:"#ef4444",fontWeight:600}}>⚠️{lang==="bn"?"দেওয়া":"Done"}</span>:<span style={{fontSize:11,color:"#0f172a",fontWeight:600}}>✅{lang==="bn"?"বাকি":"Pending"}</span>}</td>}
         </tr>);})}
