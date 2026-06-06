@@ -5,6 +5,7 @@ import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "./ap
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "./api/questions";
 import { useDbStudentEntries, insertEntries, updateEntryScore, studentKpiHelpers, useDbEntriesByTarget, targetKpiHelpers } from "./api/entries";
 import { useDbParents, createParent, updateParent, setParentStatus, deleteParent } from "./api/parents";
+import { useDbTermConfig, updateTermConfig } from "./api/config";
 import { seedDemoData } from "./api/seed";
 import { systemIdToEmail } from "./api/identity";
 
@@ -224,7 +225,8 @@ export default function App() {
   const [questions,setQuestions]=useLocalStorage("kpi_questions",initQuestions);
   const [entries,setEntries]=useLocalStorage("kpi_entries",initEntries);
   const [admins,setAdmins]=useLocalStorage("kpi_admins",[{id:0,systemId:"ADM-20260001",name:"অ্যাডমিন",nameEn:"Admin",password:"admin",isRoot:true}]);
-  const [termConfig,setTermConfig]=useLocalStorage("kpi_termConfig",{term1:[0,1,2],term2:[3,4,5],term3:[6,7,8],term4:[9,10,11]});
+  const {termConfig,reload:reloadTermConfig}=useDbTermConfig(true);
+  const saveTermConfig=async(cfg)=>{await updateTermConfig(cfg);await reloadTermConfig();};
   const [teacherQuestions,setTeacherQuestions]=useLocalStorage("kpi_tchrQ",initTeacherQuestions);
   const [teacherEntries,setTeacherEntries]=useLocalStorage("kpi_tchrE",[]);
   const [parentQuestions,setParentQuestions]=useLocalStorage("kpi_parQ",initParentQuestions);
@@ -319,7 +321,7 @@ export default function App() {
         {activeTab==="questions"&&isAdmin&&<QuestionsPage t={t} lang={lang} showNotif={showNotif}/>}
         {activeTab==="accounts"&&isAdmin&&<AccountsPage t={t} lang={lang} showNotif={showNotif}/>}
         {activeTab==="reports"&&<ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
-        {activeTab==="settings"&&isAdmin&&<SettingsPage t={t} lang={lang} termConfig={termConfig} setTermConfig={setTermConfig} showNotif={showNotif}/>}
+        {activeTab==="settings"&&isAdmin&&<SettingsPage t={t} lang={lang} termConfig={termConfig} onSaveTermConfig={saveTermConfig} showNotif={showNotif}/>}
         {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} onPasswordChange={handlePasswordChange} showNotif={showNotif}/>}
         {activeTab==="teacherKpi"&&isAdmin&&<TeacherKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
         {activeTab==="parentKpi"&&isAdmin&&<ParentKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
@@ -999,10 +1001,13 @@ function ReportsPage({t,lang,termConfig,currentUser,isAdmin,selectedYear,setSele
       <tbody>{ranked.map((s,i)=>{const isMe=isStudent&&s.id===currentUser.id;return(<tr key={s.id} style={{...(i%2===0?{background:"#fafafa"}:{}),fontWeight:i<3?"700":"400",...(isMe?{background:"#f8fafc"}:{})}}><td style={S.td}><span style={{display:"inline-block",width:28,height:28,lineHeight:"28px",textAlign:"center",borderRadius:6,background:i===0?"#fef3c7":i===1?"#f1f5f9":i===2?"#fff7ed":"transparent",color:mc(i)||"#64748b",fontWeight:700}}>{i<3?["🥇","🥈","🥉"][i]:i+1}</span></td><td style={S.td}>{lang==="bn"?s.name:s.nameEn}{isMe&&<span style={{fontSize:11,color:"#0f172a",marginLeft:6}}>(আমি)</span>}</td><td style={S.td}>{s.class}{s.section}</td><td style={S.td}>{s.roll}</td><td style={S.td}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{height:8,borderRadius:4,background:"linear-gradient(90deg,#0f172a,#64748b)",width:`${Math.min(100,(s.kpi/(ranked[0]?.kpi||1))*100)}%`,minWidth:4}}/><span style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{s.kpi}</span></div></td></tr>);})}</tbody></table></div>
     </div>
   </div>);}
-function SettingsPage({t,lang,termConfig,setTermConfig,showNotif}){
+function SettingsPage({t,lang,termConfig,onSaveTermConfig,showNotif}){
   const [cfg,setCfg]=useState({...termConfig});
   const [seeding,setSeeding]=useState(false);
+  const [savingTerm,setSavingTerm]=useState(false);
+  useEffect(()=>{setCfg({...termConfig});},[termConfig]);
   const toggle=(term,m)=>{const cur=cfg[term];setCfg({...cfg,[term]:cur.includes(m)?cur.filter(x=>x!==m):[...cur,m].sort((a,b)=>a-b)});};
+  const handleSaveTerm=async()=>{setSavingTerm(true);try{await onSaveTermConfig(cfg);showNotif(lang==="bn"?"সেটিংস সংরক্ষণ!":"Settings saved!");}catch(e){showNotif((lang==="bn"?"ত্রুটি: ":"Error: ")+(e.message||e));}finally{setSavingTerm(false);}};
   const handleSeed=async()=>{
     setSeeding(true);
     try{await seedDemoData(msg=>showNotif(msg));}
@@ -1016,7 +1021,7 @@ function SettingsPage({t,lang,termConfig,setTermConfig,showNotif}){
     </div>}
     <div style={S.card}><h3 style={S.ct}>{t.termConfig}</h3>
       {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{marginBottom:20}}><div style={{fontWeight:700,color:"#0f172a",fontSize:14,marginBottom:8}}>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{MONTHS.map((m,mi)=>(<button key={m} onClick={()=>toggle(term,mi)} style={{...S.mBtn,...(cfg[term].includes(mi)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>))}
-      <button onClick={()=>{setTermConfig(cfg);showNotif(lang==="bn"?"সেটিংস সংরক্ষণ!":"Settings saved!");}} style={S.saveBtn}>{t.save}</button>
+      <button onClick={handleSaveTerm} disabled={savingTerm} style={{...S.saveBtn,...(savingTerm?{opacity:0.6,cursor:"wait"}:{})}}>{savingTerm?(lang==="bn"?"সংরক্ষণ…":"Saving…"):t.save}</button>
     </div>
     <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"বর্তমান কনফিগারেশন":"Current Configuration"}</h3>
       {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{padding:"8px 0",borderBottom:"1px solid #f1f5f9",fontSize:14,color:"#374151"}}><strong>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}:</strong><span style={{marginLeft:8}}>{termConfig[term].map(m=>T[lang][MONTHS[m]]).join(", ")||"—"}</span></div>))}
