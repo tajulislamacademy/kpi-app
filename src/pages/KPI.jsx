@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../hooks";
 import { freqDone } from "../lib";
-import { StatCard, BarChart, YearSelector } from "../components";
+import { StatCard, BarChart, YearSelector, TermBreakdown } from "../components";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
 import { useDbQuestions } from "../api/questions";
@@ -141,7 +141,7 @@ export function MyTeacherKPIPage({t,lang,currentUser,selectedYear,setSelectedYea
       <StatCard icon="🎯" value={getTchrTermKPI(tid,termConfig.term2,selectedYear)} label={t.term2} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getTchrTermKPI(tid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
+    <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getTchrTermKPI} id={tid}/>
   </div>);}
 
 export function MyParentKPIPage({t,lang,currentUser,selectedYear,setSelectedYear,termConfig}){
@@ -162,5 +162,5 @@ export function MyParentKPIPage({t,lang,currentUser,selectedYear,setSelectedYear
       <StatCard icon="🎯" value={getParTermKPI(pid,termConfig.term2,selectedYear)} label={t.term2} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getParTermKPI(pid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
+    <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getParTermKPI} id={pid}/>
   </div>);}

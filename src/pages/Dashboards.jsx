@@ -1,7 +1,7 @@
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { StatCard, RankCard, BarChart, YearSelector } from "../components";
+import { StatCard, RankCard, BarChart, YearSelector, TermBreakdown } from "../components";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbStudentEntries, studentKpiHelpers } from "../api/entries";
@@ -58,9 +58,7 @@ export function StudentDashboard({t,lang,currentUser,selectedYear,setSelectedYea
       <StatCard icon="🎓" value={`${currentUser.class}${currentUser.section||""}`} label={t.class} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>
-      {["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getStudentTermKPI(sid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}
-    </div>
+    <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getStudentTermKPI} id={sid}/>
   </div>);}
 
 export function ParentDashboard({t,lang,currentUser,selectedYear,setSelectedYear,termConfig}){
@@ -95,7 +93,5 @@ export function ParentDashboard({t,lang,currentUser,selectedYear,setSelectedYear
       <StatCard icon="👥" value={students.length} label={lang==="bn"?"মোট শিক্ষার্থী":"Total Students"} color="#2563eb"/>
     </div>
     <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>
-      {["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getStudentTermKPI(sid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}
-    </div>
+    <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getStudentTermKPI} id={sid}/>
   </div>);}
