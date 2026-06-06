@@ -1,13 +1,18 @@
 import { Component } from "react";
+import type { ErrorInfo, ReactNode } from "react";
 import { S } from "../theme";
+import type { Lang } from "../types";
+
+interface Props { lang: Lang; children: ReactNode; }
+interface State { error: Error | null; }
 
 // Catches render/runtime errors in the page subtree so one broken page shows a
 // fallback instead of blanking the whole app. Key it by route to auto-reset on
 // navigation. The sidebar/nav live outside this boundary and keep working.
-export class ErrorBoundary extends Component {
-  constructor(props) { super(props); this.state = { error: null }; }
-  static getDerivedStateFromError(error) { return { error }; }
-  componentDidCatch(error, info) { console.error("Page crashed:", error, info); }
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error: Error): State { return { error }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.error("Page crashed:", error, info); }
   render() {
     if (this.state.error) {
       const bn = this.props.lang === "bn";
