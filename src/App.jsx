@@ -22,6 +22,7 @@ import { PointEntryPage } from "./pages/PointEntry";
 import { QuestionsPage } from "./pages/Questions";
 import { StudentsPage } from "./pages/Students";
 import { TeachersPage } from "./pages/Teachers";
+import { ProfilePage } from "./pages/Profile";
 
 // Builds the in-app user from a profiles row, loading role-specific extras the
 // app relies on: a teacher's class/subject/guide assignments (in the teachers
@@ -274,37 +275,4 @@ function AccountsPage({t,lang,showNotif}){
       <tbody>{current.map((p,i)=>{const st=dbStudents.find(s=>s.id===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{lang==="bn"?p.name:p.nameEn}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{st?.systemId}</div></td><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td><td style={S.td}><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{tab==="pending"&&<><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#f0fdf4",color:"#166534",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></>}<button onClick={()=>openEditParent(p)} style={{padding:"4px 10px",background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✏️</button><button onClick={()=>setConfirmParentDel({id:p.id,name:lang==="bn"?p.name:p.nameEn})} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>🗑️</button></div></td></tr>);})}</tbody></table></div>
     )}</div>
   </div>);}
-function ProfilePage({t,lang,currentUser,showNotif}){
-  const [form,setForm]=useState({current:"",newPass:"",confirm:""});
-  const [error,setError]=useState("");
-  const [busy,setBusy]=useState(false);
-  const handle=async()=>{
-    setError("");
-    if(form.newPass!==form.confirm){setError(t.passwordMismatch);return;}
-    if(form.newPass.length<6){setError(lang==="bn"?"কমপক্ষে ৬ অক্ষর":"Min 6 chars");return;}
-    setBusy(true);
-    try{
-      // Verify the current password by re-auth, then update via Supabase Auth.
-      const {error:authErr}=await supabase.auth.signInWithPassword({email:systemIdToEmail(currentUser.systemId),password:form.current});
-      if(authErr){setError(t.wrongPassword);return;}
-      const {error:upErr}=await supabase.auth.updateUser({password:form.newPass});
-      if(upErr){setError(upErr.message);return;}
-      showNotif(t.passwordChanged);
-      setForm({current:"",newPass:"",confirm:""});
-    }finally{setBusy(false);}
-  };
-  return(<div style={S.page}><h2 style={S.pt}>{t.myProfile}</h2><div style={S.card}>
-    <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20,padding:16,background:"#f8fafc",borderRadius:10}}>
-      <div style={{...S.ava,width:56,height:56,fontSize:24}}>{(currentUser.name||"A")[0]}</div>
-      <div><div style={{fontSize:18,fontWeight:800,color:"#0f172a"}}>{currentUser.name}</div><div style={{fontSize:13,color:"#0f172a"}}>{currentUser.systemId||"admin"}</div></div>
-    </div>
-    <h3 style={S.ct}>{t.changePassword}</h3>
-    <div style={{maxWidth:360}}>
-      <div style={S.fg}><label style={S.lbl}>{t.currentPassword}</label><input style={S.inp} type="password" value={form.current} onChange={e=>setForm({...form,current:e.target.value})}/></div>
-      <div style={S.fg}><label style={S.lbl}>{t.newPassword}</label><input style={S.inp} type="password" value={form.newPass} onChange={e=>setForm({...form,newPass:e.target.value})}/></div>
-      <div style={S.fg}><label style={S.lbl}>{t.confirmPassword}</label><input style={S.inp} type="password" value={form.confirm} onChange={e=>setForm({...form,confirm:e.target.value})}/></div>
-      {error&&<div style={{color:"#ef4444",fontSize:13,marginBottom:8}}>{error}</div>}
-      <button onClick={handle} disabled={busy} style={{...S.saveBtn,...(busy?{opacity:0.6,cursor:"wait"}:{})}}>{busy?(lang==="bn"?"পরিবর্তন হচ্ছে…":"Changing…"):t.changePassword}</button>
-    </div>
-  </div></div>);}
 
