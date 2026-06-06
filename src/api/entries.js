@@ -69,6 +69,63 @@ export function studentKpiHelpers(entries) {
   return { monthKPI, termKPI, yearKPI };
 }
 
+// --- Generic target entries (teacher / parent KPI) --------------------------
+const toUiTarget = (r) => ({
+  id: r.id,
+  targetId: r.target_id,
+  date: r.entry_date,
+  questionId: r.question_id,
+  questionText: r.question_text,
+  questionTextEn: r.question_text_en,
+  maxPoints: r.max_points,
+  score: r.score,
+  month: r.month,
+  year: r.year,
+  editLog: r.edit_log || [],
+});
+
+export async function listEntriesByTarget(targetType) {
+  const { data, error } = await supabase.from("kpi_entries").select("*").eq("target_type", targetType);
+  if (error) throw error;
+  return (data || []).map(toUiTarget);
+}
+
+// Aggregation over target entries (keyed by targetId), same shape as students.
+export function targetKpiHelpers(entries) {
+  const monthKPI = (tid, month, year) =>
+    entries.filter((e) => e.targetId === tid && e.month === month && e.year === year).reduce((s, e) => s + e.score, 0);
+  const termKPI = (tid, months, year) => (months || []).reduce((s, m) => s + monthKPI(tid, m, year), 0);
+  const yearKPI = (tid, year) => {
+    let total = 0;
+    for (let m = 0; m < 12; m++) total += monthKPI(tid, m, year);
+    return total;
+  };
+  return { monthKPI, termKPI, yearKPI };
+}
+
+export function useDbEntriesByTarget(targetType, enabled = true) {
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const reload = useCallback(async () => {
+    if (!enabled) return;
+    setLoading(true);
+    setError(null);
+    try {
+      setEntries(await listEntriesByTarget(targetType));
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [enabled, targetType]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    reload();
+  }, [reload]);
+  return { entries, loading, error, reload };
+}
+
 export function useDbStudentEntries(enabled = true) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
