@@ -1,7 +1,45 @@
 # KPI App — Audit Report & Refactor Plan
 
-> Prepared: 2026-06-05 · Auditor: Opus 4.8 · Scope: full codebase (`src/App.jsx` 1021 lines, `src/supabase.js`, config)
+> Prepared: 2026-06-05 · Auditor: Opus 4.8 · Scope: full codebase (`src/App.jsx`, `src/supabase.js`, config)
 > Status: **Functional prototype. NOT production-ready.**
+> Reconciled against `docs/DEVELOPER_HANDOVER.md` + live deployment facts (see Part 0).
+
+---
+
+## Part 0 — Live Facts & Reconciliation (read first)
+
+Verified against the owner's handover doc and the current repo state:
+
+- **Live:** https://kpi.tajulislamacademy.com (Vercel, auto-deploys from `main`).
+- **Scale:** ~200+ students, 15–20 teachers, Pre–Class 10. Small dataset → either SERIAL or UUID PKs perform fine; the choice is driven by the auth model below, not by scale.
+- **Supabase project already exists** (`xskjbszzuwdxiybsvlox.supabase.co`) but has **no tables yet**. So Phase 1 = "create schema", not "create project".
+- **Env key format is the new one:** `VITE_SUPABASE_ANON_KEY=sb_publishable_****` (not the legacy `eyJ...` JWT). Both are valid anon keys; new projects issue `sb_publishable_`.
+- **Env convention is `.env.local`**, which `.gitignore` already covers via `*.local`. Secret-leak risk is therefore low **as long as the bare `.env` filename is avoided** — Phase 0 still hardens this.
+- **`frequency` now exists** on every question (`daily|weekly|monthly|quarterly|annual`) with client-side rate enforcement. The schema (Part 4) and migration must carry it. This feature post-dates the first audit pass.
+
+### The one decision that reshapes the plan — Auth model
+
+The current data keeps `password` columns and integer IDs. Two valid paths:
+
+| | **Option A — Custom auth (keep shape)** | **Option B — Supabase Auth (recommended)** |
+|---|---|---|
+| User tables | SERIAL int PK + hashed `password` column | UUID PK = `auth.users.id`, no password column |
+| Login by `TCH-2026…` | query table, compare hash | map system_id → synthetic email, `signInWithPassword` |
+| Migration size | Smaller; 1:1 with current data | Larger; introduces auth + email mapping |
+| RLS quality | Weaker — `auth.uid()` not available, policies hard | Strong — policies key off `auth.uid()` |
+| Sessions / reset | Hand-rolled | Built-in (JWT, refresh, password reset) |
+
+**DECISION (locked 2026-06-05): Option B — Supabase Auth.** Chosen by owner. The schema in Part 4
+applies as-is. Consequences now binding on the plan:
+
+- **anon key is public by design.** It ships in the Vite bundle (any `VITE_` var does) and is already
+  visible on the live site via DevTools. This is expected — security comes from **RLS, not secrecy**.
+  Therefore **every table MUST have RLS enabled before it holds real data** (Phase 1, non-negotiable).
+- **`service_role` / secret key must NEVER appear in `.env`, any `VITE_` var, or frontend code.**
+  It belongs only in Supabase Edge Function secrets (server-side). Admin-only writes (create user,
+  approve parent) route through an Edge Function using that key — never the browser.
+- Secret hygiene: real values live in `.env.local` / `.env` (both gitignored); `.env.example` holds
+  placeholders only; Vercel env stores the anon key only.
 
 ---
 
@@ -167,8 +205,13 @@ create table questions (
   text_bn      text not null,
   text_en      text,
   points       int not null,
+  frequency    text not null default 'monthly', -- daily|weekly|monthly|quarterly|annual
   active_months int[] not null               -- 0..11
 );
+-- NOTE: `frequency` drives entry-rate enforcement (one entry per question per
+-- period). Currently enforced client-side (weekDoneCheck etc.). On migration this
+-- check must move to a DB constraint / unique index or an RPC to be tamper-proof,
+-- e.g. a partial unique index on (target_id, question_id, period_key).
 
 -- Unified KPI entries (student/teacher/parent via target_type)
 create table kpi_entries (
@@ -209,19 +252,21 @@ create table term_config (
 Each phase is independently shippable and leaves the app working.
 
 ### Phase 0 — Safety net & hygiene (½ day) 🔴
-- [ ] Add `.env` to `.gitignore`; create `.env.example` with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+- [ ] Use `.env.local` (already gitignored via `*.local`); also add the bare `.env` to `.gitignore` as belt-and-suspenders; create `.env.example` with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
 - [ ] Add a top-level `ErrorBoundary` around `<App/>`.
 - [ ] Remove demo credentials block from the login screen (or gate behind `import.meta.env.DEV`).
 - [ ] Stop rendering plain-text passwords in admin tables.
-- [ ] Replace README with real project docs (setup, env, scripts, architecture).
+- [ ] README already superseded by `docs/DEVELOPER_HANDOVER.md`; trim the stale Vite-template README or point it at the handover.
 
 ### Phase 1 — Backend foundation (1–2 days) 🔴
-- [ ] Create Supabase project; commit SQL migrations for the schema in Part 4.
-- [ ] Enable RLS on every table; add the policies in Part 4.
-- [ ] Seed reference data (term_config defaults, sample questions) via migration.
+- [ ] Supabase project exists (`xskjbszzuwdxiybsvlox`) — **create the schema**: commit SQL migrations for Part 4 (incl. `questions.frequency`).
+- [ ] Enable RLS on every table; add the policies in Part 4 (assumes Auth Option B).
+- [ ] Seed reference data (term_config defaults, sample questions w/ frequency) via migration.
+- [ ] Add a tamper-proof rate-limit (partial unique index or RPC) for question `frequency`.
 - [ ] `supabase gen types typescript` → `src/types/db.ts`.
 
-### Phase 2 — Auth migration (1–2 days) 🔴
+### Phase 2 — Auth migration (1–2 days) 🔴 — assumes Option B (see Part 0)
+- [ ] Confirm anon key (`sb_publishable_…`) is set in `.env.local` and in Vercel env (redeploy after).
 - [ ] Wire `supabase.auth` — login by system_id→synthetic-email mapping, `signOut`, `onAuthStateChange`.
 - [ ] Build `AuthContext` (session, profile, role) replacing the `kpi_currentUser` localStorage user.
 - [ ] Admin "create user" flows go through a Supabase **Edge Function** (service role) that creates
