@@ -12,6 +12,7 @@ const toUi = (r) => ({
   systemId: r.profiles?.system_id,
   name: r.profiles?.name,
   nameEn: r.profiles?.name_en,
+  authId: r.profiles?.auth_id,
   classTeacher: r.class_teacher,
   subjectAssignments: r.subject_assignments || [],
   guideStudents: r.guide_students || [],
@@ -20,7 +21,7 @@ const toUi = (r) => ({
 export async function listTeachers() {
   const { data, error } = await supabase
     .from("teachers")
-    .select("id, class_teacher, subject_assignments, guide_students, profiles(system_id, name, name_en)");
+    .select("id, class_teacher, subject_assignments, guide_students, profiles(system_id, name, name_en, auth_id)");
   if (error) throw error;
   return (data || [])
     .map(toUi)
@@ -49,7 +50,9 @@ export async function createTeacher({ systemId, name, nameEn, password, classTea
   return prof.id;
 }
 
-export async function updateTeacher(id, { name, nameEn, classTeacher, subjectAssignments, guideStudents }) {
+// `password` (optional): reset an existing login via admin_set_password, or
+// provision a new login for a login-less teacher (authId/systemId distinguish).
+export async function updateTeacher(id, { name, nameEn, classTeacher, subjectAssignments, guideStudents, password, authId, systemId }) {
   const { error: e1 } = await supabase.from("profiles").update({ name, name_en: nameEn || name }).eq("id", id);
   if (e1) throw e1;
   const { error: e2 } = await supabase
@@ -61,6 +64,16 @@ export async function updateTeacher(id, { name, nameEn, classTeacher, subjectAss
     })
     .eq("id", id);
   if (e2) throw e2;
+  if (password) {
+    if (authId) {
+      const { error: e3 } = await supabase.rpc("admin_set_password", { p_profile_id: id, p_password: password });
+      if (e3) throw e3;
+    } else {
+      const newAuthId = await provisionAuthUser(systemIdToEmail(systemId), password);
+      const { error: e4 } = await supabase.from("profiles").update({ auth_id: newAuthId }).eq("id", id);
+      if (e4) throw e4;
+    }
+  }
 }
 
 export async function deleteTeacher(id) {
