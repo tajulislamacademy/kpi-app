@@ -1,5 +1,8 @@
 // Small pure helpers shared across the app.
 
+// Safe message from an unknown catch value (strict mode types catch vars unknown).
+export const errMsg = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+
 export const genId = (prefix: string, year: number | undefined, seq: number): string =>
   `${prefix}-${year || new Date().getFullYear()}${String(seq).padStart(4, "0")}`;
 
