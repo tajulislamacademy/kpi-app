@@ -1,5 +1,6 @@
 // Inline style objects used across the app (referenced as S.<key>).
-export const S={
+import type { CSSProperties } from "react";
+export const S: Record<string, CSSProperties> = {
   app:{display:"flex",minHeight:"100vh",background:"#f9fafb",fontFamily:"'Segoe UI','Noto Sans Bengali',sans-serif"},
   sidebar:{width:230,background:"#0f172a",color:"#e2e8f0",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",flexShrink:0},
   sidebarTop:{padding:"20px 16px 10px",borderBottom:"1px solid #1e293b"},
