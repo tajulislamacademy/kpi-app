@@ -4,7 +4,7 @@ import { useDbStudents, createStudent, updateStudent, deleteStudent } from "./ap
 import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "./api/teachers";
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "./api/questions";
 import { useDbStudentEntries, insertEntries, updateEntryScore, studentKpiHelpers } from "./api/entries";
-import { useDbParents } from "./api/parents";
+import { useDbParents, createParent, updateParent, setParentStatus, deleteParent } from "./api/parents";
 import { seedDemoData } from "./api/seed";
 import { systemIdToEmail } from "./api/identity";
 
@@ -968,7 +968,7 @@ function ReportsPage({t,lang,termConfig,currentUser,isAdmin,selectedYear,setSele
   const availableYears=yearsSet.sort((a,b)=>b-a);
   const isStudent=currentUser.role==="student",isParent=currentUser.role==="parent";
   let vis=students;
-  if(!isAdmin){if(currentUser.classTeacher)vis=students.filter(s=>s.class===currentUser.classTeacher.class&&s.section===currentUser.classTeacher.section);else if(isStudent)vis=students.filter(s=>s.id===currentUser.id);else if(isParent)vis=students.filter(s=>s.systemId===currentUser.studentId);else if((currentUser.guideStudents||[]).length>0)vis=students.filter(s=>currentUser.guideStudents.includes(s.id));}
+  if(!isAdmin){if(currentUser.classTeacher)vis=students.filter(s=>s.class===currentUser.classTeacher.class&&s.section===currentUser.classTeacher.section);else if(isStudent)vis=students.filter(s=>s.id===currentUser.id);else if(isParent)vis=students.filter(s=>s.id===currentUser.studentId);else if((currentUser.guideStudents||[]).length>0)vis=students.filter(s=>currentUser.guideStudents.includes(s.id));}
   const ranked=[...vis].map(s=>({...s,kpi:rType==="monthly"?getStudentMonthKPI(s.id,selMonth,selectedYear):rType==="term1"?getStudentTermKPI(s.id,termConfig.term1,selectedYear):rType==="term2"?getStudentTermKPI(s.id,termConfig.term2,selectedYear):rType==="term3"?getStudentTermKPI(s.id,termConfig.term3,selectedYear):rType==="term4"?getStudentTermKPI(s.id,termConfig.term4,selectedYear):getStudentYearKPI(s.id,selectedYear)})).sort((a,b)=>b.kpi-a.kpi);
   const mc=i=>i===0?"#0f172a":i===1?"#52525b":i===2?"#a1a1aa":"transparent";
   return(<div style={S.page}>
