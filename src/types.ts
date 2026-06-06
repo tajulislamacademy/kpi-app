@@ -2,6 +2,10 @@
 // distinct from the snake_case Supabase rows. Raw rows stay `any` (no generated
 // DB types); these describe what flows through the app.
 
+export type Lang = "bn" | "en";
+// The active-language string table (T[lang]); keys accessed as t.save etc.
+export type Dict = Record<string, string>;
+
 export type Role = "admin" | "teacher" | "student" | "parent";
 export type QuestionCategory = "student" | "teacher" | "parent";
 export type Frequency = "daily" | "weekly" | "monthly" | "quarterly" | "annual";
