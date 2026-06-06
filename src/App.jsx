@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 import { useDbStudents, createStudent, updateStudent, deleteStudent } from "./api/students";
 import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "./api/teachers";
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "./api/questions";
-import { useDbStudentEntries, insertEntries, updateEntryScore } from "./api/entries";
+import { useDbStudentEntries, insertEntries, updateEntryScore, studentKpiHelpers } from "./api/entries";
 import { seedDemoData } from "./api/seed";
 import { systemIdToEmail } from "./api/identity";
 
@@ -284,9 +284,9 @@ export default function App() {
       </aside>
       <main style={{...S.main,...(isMobile?{marginTop:56}:{})}}>
         {activeTab==="dashboard"&&(isAdmin||isTeacher
-          ?<AdminTeacherDashboard t={t} lang={lang} students={students} teachers={teachers} entries={entries} getStudentYearKPI={getStudentYearKPI} getStudentMonthKPI={getStudentMonthKPI} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} pendingParents={pendingParents}/>
+          ?<AdminTeacherDashboard t={t} lang={lang} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} pendingParents={pendingParents}/>
           :currentUser.role==="student"
-            ?<StudentDashboard t={t} lang={lang} currentUser={currentUser} students={students} getStudentMonthKPI={getStudentMonthKPI} getStudentTermKPI={getStudentTermKPI} getStudentYearKPI={getStudentYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>
+            ?<StudentDashboard t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig}/>
             :<ParentDashboard t={t} lang={lang} currentUser={currentUser} students={students} getStudentMonthKPI={getStudentMonthKPI} getStudentTermKPI={getStudentTermKPI} getStudentYearKPI={getStudentYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>
         )}
         {activeTab==="pointEntry"&&(isAdmin||isTeacher)&&<PointEntryPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} isAdmin={isAdmin}/>}
@@ -294,7 +294,7 @@ export default function App() {
         {activeTab==="students"&&isAdmin&&<StudentsPage t={t} lang={lang} teachers={teachers} parents={parents} showNotif={showNotif}/>}
         {activeTab==="questions"&&isAdmin&&<QuestionsPage t={t} lang={lang} showNotif={showNotif}/>}
         {activeTab==="accounts"&&isAdmin&&<AccountsPage t={t} lang={lang} parents={parents} setParents={setParents} students={students} setStudents={setStudents} teachers={teachers} setTeachers={setTeachers} admins={admins} setAdmins={setAdmins} showNotif={showNotif}/>}
-        {activeTab==="reports"&&<ReportsPage t={t} lang={lang} students={students} entries={entries} termConfig={termConfig} getStudentMonthKPI={getStudentMonthKPI} getStudentTermKPI={getStudentTermKPI} getStudentYearKPI={getStudentYearKPI} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
+        {activeTab==="reports"&&<ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
         {activeTab==="settings"&&isAdmin&&<SettingsPage t={t} lang={lang} termConfig={termConfig} setTermConfig={setTermConfig} showNotif={showNotif}/>}
         {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} onPasswordChange={handlePasswordChange}/>}
         {activeTab==="teacherKpi"&&isAdmin&&<TeacherKPIPage t={t} lang={lang} teachers={teachers} teacherQuestions={teacherQuestions} teacherEntries={teacherEntries} setTeacherEntries={setTeacherEntries} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
@@ -375,11 +375,18 @@ function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
     </div></div>
   );
 }
-function AdminTeacherDashboard({t,lang,students,teachers,entries,getStudentYearKPI,getStudentMonthKPI,currentUser,isAdmin,selectedYear,setSelectedYear,availableYears,pendingParents}){
+function AdminTeacherDashboard({t,lang,currentUser,isAdmin,selectedYear,setSelectedYear,pendingParents}){
   const cm=new Date().getMonth();
+  const {students}=useDbStudents(true);
+  const {teachers}=useDbTeachers(true);
+  const {entries}=useDbStudentEntries(true);
+  const {monthKPI:getStudentMonthKPI,yearKPI:getStudentYearKPI}=studentKpiHelpers(entries);
+  const yearsSet=[...new Set(entries.map(e=>e.year))];
+  if(!yearsSet.includes(selectedYear))yearsSet.push(selectedYear);
+  const availableYears=yearsSet.sort((a,b)=>b-a);
   const ranked=[...students].map(s=>({...s,kpi:getStudentYearKPI(s.id,selectedYear)})).sort((a,b)=>b.kpi-a.kpi);
   const mRanked=[...students].map(s=>({...s,kpi:getStudentMonthKPI(s.id,cm,selectedYear)})).sort((a,b)=>b.kpi-a.kpi);
-  const totalE=entries.filter(e=>e.month===cm&&(e.year||2026)===selectedYear).length;
+  const totalE=entries.filter(e=>e.month===cm&&e.year===selectedYear).length;
   return(<div style={S.page}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
       <div><h2 style={S.pt}>{t.dashboard}</h2><p style={S.ps}>{lang==="bn"?`স্বাগতম, ${currentUser.name}`:`${t.welcome}, ${currentUser.name}`}</p></div>
@@ -405,8 +412,14 @@ function BarChart({data,cm}){
       <div style={{fontSize:9,color:"#94a3b8",fontWeight:600}}>{d.label}</div>
     </div>))}
   </div>);}
-function StudentDashboard({t,lang,currentUser,students,getStudentMonthKPI,getStudentTermKPI,getStudentYearKPI,selectedYear,setSelectedYear,availableYears,termConfig}){
+function StudentDashboard({t,lang,currentUser,selectedYear,setSelectedYear,termConfig}){
   const sid=currentUser.id,cm=new Date().getMonth();
+  const {students}=useDbStudents(true);
+  const {entries}=useDbStudentEntries(true);
+  const {monthKPI:getStudentMonthKPI,termKPI:getStudentTermKPI,yearKPI:getStudentYearKPI}=studentKpiHelpers(entries);
+  const yearsSet=[...new Set(entries.map(e=>e.year))];
+  if(!yearsSet.includes(selectedYear))yearsSet.push(selectedYear);
+  const availableYears=yearsSet.sort((a,b)=>b-a);
   const allRanked=[...students].map(s=>({...s,kpi:getStudentYearKPI(s.id,selectedYear)})).sort((a,b)=>b.kpi-a.kpi);
   const myRank=allRanked.findIndex(s=>s.id===sid)+1;
   const monthData=MONTHS.map((m,i)=>({label:T[lang][m].slice(0,3),val:getStudentMonthKPI(sid,i,selectedYear)}));
@@ -955,9 +968,15 @@ function PointEntryPage({t,lang,currentUser,showNotif,isAdmin}){
         return(<tr key={i} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}>{e.date}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?tc?.name:tc?.nameEn}</div>{edited&&<span style={{fontSize:10,background:"#f5f5f4",color:"#57534e",padding:"1px 5px",borderRadius:4,fontWeight:600}}>✏️{lang==="bn"?"সম্পাদিত":"Edited"}</span>}</td><td style={S.td}>{lang==="bn"?s?.name:s?.nameEn}</td><td style={S.td}><span style={{fontSize:11,background:rC,color:rT,padding:"2px 7px",borderRadius:10,fontWeight:600}}>{rL}</span></td><td style={S.td}><div style={{maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:13}}>{lang==="bn"?(q?.textBn||e.questionText):(q?.textEn||e.questionTextEn)}</div></td><td style={S.td}>{edited?<span><span style={{textDecoration:"line-through",color:"#94a3b8",fontSize:12,marginRight:4}}>{e.editLog[0].oldScore}</span><strong style={{color:"#0f172a"}}>{e.score}</strong></span>:<strong style={{color:"#0f172a"}}>{e.score}</strong>}</td>{isAdmin&&<td style={S.td}><button onClick={()=>{setEditEntry(e);setEditScore(e.score);}} style={{padding:"4px 10px",background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✏️</button></td>}</tr>);})}</tbody></table></div>
     </div>
   </div>);}
-function ReportsPage({t,lang,students,entries,termConfig,getStudentMonthKPI,getStudentTermKPI,getStudentYearKPI,currentUser,isAdmin,selectedYear,setSelectedYear,availableYears}){
+function ReportsPage({t,lang,termConfig,currentUser,isAdmin,selectedYear,setSelectedYear}){
   const [rType,setRType]=useState("monthly");
   const [selMonth,setSelMonth]=useState(new Date().getMonth());
+  const {students}=useDbStudents(true);
+  const {entries}=useDbStudentEntries(true);
+  const {monthKPI:getStudentMonthKPI,termKPI:getStudentTermKPI,yearKPI:getStudentYearKPI}=studentKpiHelpers(entries);
+  const yearsSet=[...new Set(entries.map(e=>e.year))];
+  if(!yearsSet.includes(selectedYear))yearsSet.push(selectedYear);
+  const availableYears=yearsSet.sort((a,b)=>b-a);
   const isStudent=currentUser.role==="student",isParent=currentUser.role==="parent";
   let vis=students;
   if(!isAdmin){if(currentUser.classTeacher)vis=students.filter(s=>s.class===currentUser.classTeacher.class&&s.section===currentUser.classTeacher.section);else if(isStudent)vis=students.filter(s=>s.id===currentUser.id);else if(isParent)vis=students.filter(s=>s.systemId===currentUser.studentId);else if((currentUser.guideStudents||[]).length>0)vis=students.filter(s=>currentUser.guideStudents.includes(s.id));}

@@ -56,6 +56,19 @@ export async function updateEntryScore(id, newScore, oldScore, editor) {
   if (error) throw error;
 }
 
+// Aggregation helpers over a loaded student-entries array (uuid student ids).
+export function studentKpiHelpers(entries) {
+  const monthKPI = (sid, month, year) =>
+    entries.filter((e) => e.studentId === sid && e.month === month && e.year === year).reduce((s, e) => s + e.score, 0);
+  const termKPI = (sid, months, year) => (months || []).reduce((s, m) => s + monthKPI(sid, m, year), 0);
+  const yearKPI = (sid, year) => {
+    let total = 0;
+    for (let m = 0; m < 12; m++) total += monthKPI(sid, m, year);
+    return total;
+  };
+  return { monthKPI, termKPI, yearKPI };
+}
+
 export function useDbStudentEntries(enabled = true) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
