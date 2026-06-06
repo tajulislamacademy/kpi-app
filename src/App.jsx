@@ -716,7 +716,7 @@ function StudentsPage({t,lang,teachers,parents,showNotif}){
   const [confirmDel,setConfirmDel]=useState(null);
   const [saving,setSaving]=useState(false);
   const openAdd=()=>{setEditId(null);setForm(blank);setShowForm(true);};
-  const openEdit=s=>{setEditId(s.id);setForm({name:s.name,nameEn:s.nameEn||"",class:s.class,section:s.section||"",roll:s.roll||""});setShowForm(true);};
+  const openEdit=s=>{setEditId(s.id);setForm({name:s.name,nameEn:s.nameEn||"",class:s.class,section:s.section||"",roll:s.roll||"",password:"",_authId:s.authId,_systemId:s.systemId});setShowForm(true);};
   // Next STD id from the MAX existing suffix (not array length) — survives deletes.
   const nextSystemId=()=>{
     const yr=new Date().getFullYear();
@@ -725,12 +725,12 @@ function StudentsPage({t,lang,teachers,parents,showNotif}){
   };
   const handleSave=async()=>{
     if(!form.name){showNotif(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
-    if(!editId&&form.password&&form.password.length<6){showNotif(lang==="bn"?"পাসওয়ার্ড কমপক্ষে ৬ অক্ষর":"Password must be at least 6 characters");return;}
+    if(form.password&&form.password.length<6){showNotif(lang==="bn"?"পাসওয়ার্ড কমপক্ষে ৬ অক্ষর":"Password must be at least 6 characters");return;}
     setSaving(true);
     try{
       const roll=parseInt(form.roll)||null;
       if(editId){
-        await updateStudent(editId,{name:form.name,nameEn:form.nameEn,cls:form.class,section:form.section,roll});
+        await updateStudent(editId,{name:form.name,nameEn:form.nameEn,cls:form.class,section:form.section,roll,password:form.password||null,authId:form._authId,systemId:form._systemId});
         showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
       }else{
         const systemId=nextSystemId();
@@ -759,7 +759,7 @@ function StudentsPage({t,lang,teachers,parents,showNotif}){
         <div style={S.fg}><label style={S.lbl}>{t.class}</label><select style={S.inp} value={form.class} onChange={e=>setForm({...form,class:e.target.value})}>{CLASSES.map(c=><option key={c}>{c}</option>)}</select></div>
         <div style={S.fg}><label style={S.lbl}>{t.section}</label><input style={S.inp} value={form.section} onChange={e=>setForm({...form,section:e.target.value})} placeholder="A, B..."/></div>
         <div style={S.fg}><label style={S.lbl}>{t.roll}</label><input style={S.inp} type="number" value={form.roll} onChange={e=>setForm({...form,roll:e.target.value})}/></div>
-        {!editId&&<div style={S.fg}><label style={S.lbl}>{t.defaultPass} ({lang==="bn"?"login":"login"})</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder={lang==="bn"?"খালি = login ছাড়া":"blank = no login"}/></div>}
+        <div style={S.fg}><label style={S.lbl}>{editId?(lang==="bn"?"পাসওয়ার্ড":"Password"):(t.defaultPass+" (login)")}</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder={editId?(form._authId?(lang==="bn"?"খালি = অপরিবর্তিত":"blank = unchanged"):(lang==="bn"?"login দিতে পাসওয়ার্ড দিন":"set to give a login")):(lang==="bn"?"খালি = login ছাড়া":"blank = no login")}/></div>
       </div>
       <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} disabled={saving} style={{...S.saveBtn,...(saving?{opacity:0.6,cursor:"wait"}:{})}}>{saving?(lang==="bn"?"সংরক্ষণ…":"Saving…"):t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}

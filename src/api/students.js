@@ -13,6 +13,7 @@ const toUi = (r) => ({
   systemId: r.profiles?.system_id,
   name: r.profiles?.name,
   nameEn: r.profiles?.name_en,
+  authId: r.profiles?.auth_id,
   class: r.class,
   section: r.section,
   roll: r.roll,
@@ -21,7 +22,7 @@ const toUi = (r) => ({
 export async function listStudents() {
   const { data, error } = await supabase
     .from("students")
-    .select("id, class, section, roll, profiles(system_id, name, name_en)");
+    .select("id, class, section, roll, profiles(system_id, name, name_en, auth_id)");
   if (error) throw error;
   return (data || [])
     .map(toUi)
@@ -54,7 +55,10 @@ export async function createStudent({ systemId, name, nameEn, cls, section, roll
   return prof.id;
 }
 
-export async function updateStudent(id, { name, nameEn, cls, section, roll }) {
+// `password` (optional): reset the login of a student who has one (via the
+// admin_set_password RPC), or provision a brand-new login for a login-less
+// student. authId/systemId tell us which case we're in.
+export async function updateStudent(id, { name, nameEn, cls, section, roll, password, authId, systemId }) {
   const { error: e1 } = await supabase
     .from("profiles")
     .update({ name, name_en: nameEn || name })
@@ -65,6 +69,16 @@ export async function updateStudent(id, { name, nameEn, cls, section, roll }) {
     .update({ class: cls, section: section || null, roll: roll || null })
     .eq("id", id);
   if (e2) throw e2;
+  if (password) {
+    if (authId) {
+      const { error: e3 } = await supabase.rpc("admin_set_password", { p_profile_id: id, p_password: password });
+      if (e3) throw e3;
+    } else {
+      const newAuthId = await provisionAuthUser(systemIdToEmail(systemId), password);
+      const { error: e4 } = await supabase.from("profiles").update({ auth_id: newAuthId }).eq("id", id);
+      if (e4) throw e4;
+    }
+  }
 }
 
 // Deleting the profile cascades to the students row (FK on delete cascade).
