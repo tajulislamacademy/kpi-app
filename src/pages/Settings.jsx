@@ -3,6 +3,7 @@ import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { seedDemoData } from "../api/seed";
+import { MonthsPicker } from "../components";
 
 export function SettingsPage({t,lang,termConfig,onSaveTermConfig,showNotif}){
   const [cfg,setCfg]=useState({...termConfig});
@@ -24,7 +25,7 @@ export function SettingsPage({t,lang,termConfig,onSaveTermConfig,showNotif}){
       <button onClick={handleSeed} disabled={seeding} style={{...S.saveBtn,...(seeding?{opacity:0.6,cursor:"wait"}:{})}}>{seeding?(lang==="bn"?"সীড হচ্ছে…":"Seeding…"):(lang==="bn"?"ডেমো ডেটা সীড করুন":"Seed demo data")}</button>
     </div>}
     <div style={S.card}><h3 style={S.ct}>{t.termConfig}</h3>
-      {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{marginBottom:20}}><div style={{fontWeight:700,color:"#0f172a",fontSize:14,marginBottom:8}}>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{MONTHS.map((m,mi)=>(<button key={m} onClick={()=>toggle(term,mi)} style={{...S.mBtn,...(cfg[term].includes(mi)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>))}
+      {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{marginBottom:20}}><div style={{fontWeight:700,color:"#0f172a",fontSize:14,marginBottom:8}}>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}</div><MonthsPicker lang={lang} value={cfg[term]} onToggle={(mi)=>toggle(term,mi)}/></div>))}
       <button onClick={handleSaveTerm} disabled={savingTerm} style={{...S.saveBtn,...(savingTerm?{opacity:0.6,cursor:"wait"}:{})}}>{savingTerm?(lang==="bn"?"সংরক্ষণ…":"Saving…"):t.save}</button>
     </div>
     <div style={S.card}><h3 style={S.ct}>{lang==="bn"?"বর্তমান কনফিগারেশন":"Current Configuration"}</h3>

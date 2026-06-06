@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { ConfirmDialog, Modal, PageHeader, Tabs } from "../components";
+import { ConfirmDialog, Modal, PageHeader, Tabs, MonthsPicker } from "../components";
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/questions";
 
 export function QuestionsPage({t,lang,showNotif}){
@@ -80,7 +80,7 @@ export function QuestionsPage({t,lang,showNotif}){
         <div style={S.fg}><label style={S.lbl}>{t.pointsPerEntry}</label><input style={S.inp} type="number" value={form.points} onChange={e=>setForm({...form,points:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.frequency}</label><select style={S.inp} value={form.frequency||"monthly"} onChange={e=>setForm({...form,frequency:e.target.value})}><option value="daily">{t.daily}</option><option value="weekly">{t.weekly}</option><option value="monthly">{t.monthly}</option><option value="quarterly">{t.quarterly}</option><option value="annual">{t.annual}</option></select></div>
       </div>
-      <div style={S.fg}><label style={S.lbl}>{t.activeMonths}</label><div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:6}}>{MONTHS.map((m,i)=>(<button key={m} onClick={()=>toggleM(i)} style={{...S.mBtn,...(form.activeMonths.includes(i)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>
+      <div style={S.fg}><label style={S.lbl}>{t.activeMonths}</label><MonthsPicker lang={lang} value={form.activeMonths} onToggle={toggleM} style={{marginTop:6}}/></div>
       <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSave} disabled={saving} style={{...S.saveBtn,...(saving?{opacity:0.6,cursor:"wait"}:{})}}>{saving?(lang==="bn"?"সংরক্ষণ…":"Saving…"):t.save}</button><button onClick={()=>{setShowForm(false);setEditId(null);}} style={S.cancelBtn}>{t.cancel}</button></div>
     </div>)}
     {isStd&&["classTeacher","subjectTeacher","guideTeacher"].map(role=>(<div key={role} style={S.card}><h3 style={S.ct}><span style={{background:rColor(role),color:rText(role),padding:"3px 10px",borderRadius:20,fontSize:13,fontWeight:700}}>{rLabel(role)}</span></h3>{qTable(curQs.filter(q=>q.role===role))}</div>))}
