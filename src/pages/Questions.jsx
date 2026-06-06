@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { ConfirmDialog, Modal } from "../components";
+import { ConfirmDialog, Modal, PageHeader } from "../components";
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/questions";
 
 export function QuestionsPage({t,lang,showNotif}){
@@ -68,7 +68,7 @@ export function QuestionsPage({t,lang,showNotif}){
         <button onClick={()=>setViewQ(null)} style={S.cancelBtn}>{t.cancel}</button>
       </div>
     </Modal>)}
-    <div style={S.ph}><div><h2 style={S.pt}>{t.questions}</h2><p style={S.ps}>{lang==="bn"?"মোট "+curQs.length+"টি":"Total "+curQs.length}{loading?" · …":""}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addQuestion}</button></div>
+    <PageHeader title={t.questions} subtitle={`${lang==="bn"?"মোট "+curQs.length+"টি":"Total "+curQs.length}${loading?" · …":""}`} actionLabel={`+ ${t.addQuestion}`} onAction={openAdd}/>
     {error&&<div style={{background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13}}>{(lang==="bn"?"ডেটা লোড ব্যর্থ: ":"Load failed: ")+error}</div>}
     <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
       {[{k:"student",l:t.stdQuestions,n:stdQ.length},{k:"teacher",l:t.tchrQuestions,n:tchrQ.length},{k:"parent",l:t.parQuestions,n:parQ.length}].map(x=>(<button key={x.k} onClick={()=>{setQTab(x.k);setShowForm(false);setEditId(null);}} style={{...S.reportTab,...(qTab===x.k?S.reportTabOn:{})}}>{x.l} ({x.n})</button>))}

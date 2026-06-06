@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { S } from "../theme";
 import { genId } from "../lib";
-import { ConfirmDialog, StatCard, Modal } from "../components";
+import { ConfirmDialog, StatCard, Modal, PageHeader } from "../components";
 import { useDbParents, createParent, updateParent, setParentStatus, deleteParent } from "../api/parents";
 import { useDbStudents } from "../api/students";
 
@@ -59,10 +59,7 @@ export function AccountsPage({t,lang,showNotif}){
   return(<div style={S.page}>
     {editParent&&(<Modal><h3 style={S.ct}>{lang==="bn"?"অভিভাবক সম্পাদনা":"Edit Parent"}</h3><div style={S.grid2}><div style={S.fg}><label style={S.lbl}>{t.parentName} (বাংলা)</label><input style={S.inp} value={parentForm.name} onChange={e=>setParentForm({...parentForm,name:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.parentName} (English)</label><input style={S.inp} value={parentForm.nameEn} onChange={e=>setParentForm({...parentForm,nameEn:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={parentForm.password} onChange={e=>setParentForm({...parentForm,password:e.target.value})}/></div><div style={S.fg}><label style={S.lbl}>{t.relation}</label><select style={S.inp} value={parentForm.relation} onChange={e=>setParentForm({...parentForm,relation:e.target.value})}><option value="father">{t.father}</option><option value="mother">{t.mother}</option><option value="guardian">{t.guardian}</option></select></div><div style={S.fg}><label style={S.lbl}>{lang==="bn"?"অবস্থা":"Status"}</label><select style={S.inp} value={parentForm.status} onChange={e=>setParentForm({...parentForm,status:e.target.value})}><option value="approved">{t.approved}</option><option value="pending">{t.pending}</option><option value="rejected">{t.rejected}</option></select></div></div><div style={{display:"flex",gap:8,marginTop:12}}><button onClick={handleSaveParent} disabled={saving} style={{...S.saveBtn,...(saving?{opacity:0.6,cursor:"wait"}:{})}}>{t.save}</button><button onClick={()=>setEditParent(null)} style={S.cancelBtn}>{t.cancel}</button></div></Modal>)}
     {confirmParentDel&&<ConfirmDialog lang={lang} name={confirmParentDel.name} onConfirm={()=>{const id=confirmParentDel.id;setConfirmParentDel(null);doDelete(id);}} onCancel={()=>setConfirmParentDel(null)}/>}
-    <div style={S.ph}>
-      <div><h2 style={S.pt}>{t.accountManagement}</h2></div>
-      <button onClick={()=>setShowForm(!showForm)} style={S.addBtn}>+ {lang==="bn"?"অভিভাবক যোগ":"Add Parent"}</button>
-    </div>
+    <PageHeader title={t.accountManagement} actionLabel={`+ ${lang==="bn"?"অভিভাবক যোগ":"Add Parent"}`} onAction={()=>setShowForm(!showForm)}/>
     {showForm&&(<div style={S.card}>
       <h3 style={S.ct}>{lang==="bn"?"নতুন অভিভাবক":"New Parent"}</h3>
       <div style={S.grid2}>
