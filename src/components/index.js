@@ -11,3 +11,4 @@ export { BarChart } from "./BarChart";
 export { TermBreakdown } from "./TermBreakdown";
 export { EditScoreModal } from "./EditScoreModal";
 export { EntryHistoryTable } from "./EntryHistoryTable";
+export { ScoreEntryGrid } from "./ScoreEntryGrid";
