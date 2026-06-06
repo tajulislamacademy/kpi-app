@@ -4,6 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../hooks";
 import { getWeekNumber } from "../lib";
+import { Tabs } from "../components";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbQuestions } from "../api/questions";
@@ -76,7 +77,7 @@ export function PointEntryPage({t,lang,currentUser,showNotif,isAdmin}){
       </div></div>
     );})()}
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
-    <div style={{display:"flex",gap:6,flexWrap:"wrap",margin:"16px 0"}}>{tabs.map(tab=>(<button key={tab.key} onClick={()=>{setActiveRole(tab.key);setAllScores({});setSelectedAssign(null);}} style={{...S.reportTab,...(activeRole===tab.key?S.reportTabOn:{})}}>{tab.label}</button>))}</div>
+    <Tabs items={tabs} active={activeRole} onChange={(k)=>{setActiveRole(k);setAllScores({});setSelectedAssign(null);}} style={{marginTop:16}}/>
     {activeRole==="subjectTeacher"&&<div style={{...S.card,marginBottom:12}}><label style={S.lbl}>{lang==="bn"?"শ্রেণী ও বিষয় নির্বাচন":"Select Class & Subject"}</label><div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:8}}>{(isAdmin?[{class:"8",section:"A",subject:"গণিত/Math"}]:subjectAssignments).map((a,i)=>(<button key={i} onClick={()=>{setSelectedAssign(a);setAllScores({});}} style={{padding:"8px 14px",border:"2px solid",borderColor:selectedAssign===a?"#0f172a":"#e2e8f0",borderRadius:8,background:selectedAssign===a?"#f8fafc":"#fff",color:selectedAssign===a?"#0f172a":"#64748b",cursor:"pointer",fontSize:13,fontWeight:600}}>{t.class}{a.class}{a.section}—{a.subject}</button>))}</div></div>}
     {activeRole==="guideTeacher"&&<div style={{background:"#fef3c7",border:"1px solid #fbbf24",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13,color:"#92400e"}}>⚠️{lang==="bn"?"গাইড শিক্ষক সপ্তাহে ১ বার।":"Guide teacher: once per week."}</div>}
     {activeRole==="classTeacher"&&!isAdmin&&!currentUser.classTeacher&&<div style={S.empty}>{t.noClassRole}</div>}

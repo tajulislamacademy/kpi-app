@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { S } from "../theme";
 import { genId } from "../lib";
-import { ConfirmDialog, StatCard, Modal, PageHeader } from "../components";
+import { ConfirmDialog, StatCard, Modal, PageHeader, Tabs } from "../components";
 import { useDbParents, createParent, updateParent, setParentStatus, deleteParent } from "../api/parents";
 import { useDbStudents } from "../api/students";
 
@@ -80,9 +80,7 @@ export function AccountsPage({t,lang,showNotif}){
       <StatCard icon="❌" value={rejected.length} label={t.rejected} color="#ef4444"/>
       <StatCard icon="👥" value={parents.length} label={lang==="bn"?"মোট অভিভাবক":"Total Parents"} color="#0f172a"/>
     </div>
-    <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
-      {[{k:"pending",l:`${t.pending}(${pending.length})`},{k:"approved",l:t.approved},{k:"rejected",l:t.rejected}].map(x=>(<button key={x.k} onClick={()=>setTab(x.k)} style={{...S.reportTab,...(tab===x.k?S.reportTabOn:{})}}>{x.l}</button>))}
-    </div>
+    <Tabs items={[{key:"pending",label:`${t.pending}(${pending.length})`},{key:"approved",label:t.approved},{key:"rejected",label:t.rejected}]} active={tab} onChange={setTab}/>
     <div style={S.card}>{current.length===0?<div style={S.empty}>{lang==="bn"?"কোনো অ্যাকাউন্ট নেই":"No accounts"}</div>:(
       <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang==="bn"?"অভিভাবক":"Parent"}</th><th style={S.th}>{lang==="bn"?"সম্পর্ক":"Relation"}</th><th style={S.th}>{lang==="bn"?"শিক্ষার্থী":"Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang==="bn"?"অবস্থা":"Status"}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead>
       <tbody>{current.map((p,i)=>{const st=dbStudents.find(s=>s.id===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{lang==="bn"?p.name:p.nameEn}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{st?.systemId}</div></td><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td><td style={S.td}><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{tab==="pending"&&<><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#f0fdf4",color:"#166534",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></>}<button onClick={()=>openEditParent(p)} style={{padding:"4px 10px",background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✏️</button><button onClick={()=>setConfirmParentDel({id:p.id,name:lang==="bn"?p.name:p.nameEn})} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>🗑️</button></div></td></tr>);})}</tbody></table></div>
