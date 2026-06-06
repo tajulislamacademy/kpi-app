@@ -1,0 +1,14 @@
+/* Global reset + base. Loaded once in main.jsx so it applies to every screen
+   (including the login page, which doesn't render the Layout shell). */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  overflow-x: hidden;
+  font-family: 'Segoe UI', 'Noto Sans Bengali', sans-serif;
+}
+
+/* Compact tables on small screens. */
+@media (max-width: 767px) {
+  table { font-size: 12px !important; }
+  th, td { padding: 6px 8px !important; }
+}

@@ -42,7 +42,6 @@ export function Layout({ t, lang, setLang, currentUser, isAdmin, isTeacher, navI
         </div>
       </aside>
       <main style={{ ...S.main, ...(isMobile ? { marginTop: 56 } : {}) }}>{children}</main>
-      <style>{`*{box-sizing:border-box}body{overflow-x:hidden}@media(max-width:767px){table{font-size:12px!important}th,td{padding:6px 8px!important}}`}</style>
     </div>
   );
 }
