@@ -2,15 +2,15 @@ import { useState } from "react";
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { YearSelector, Tabs } from "../components";
+import { YearSelector, Tabs, ErrorNote } from "../components";
 import { useDbStudents } from "../api/students";
 import { useDbStudentEntries, studentKpiHelpers } from "../api/entries";
 
 export function ReportsPage({t,lang,termConfig,currentUser,isAdmin,selectedYear,setSelectedYear}){
   const [rType,setRType]=useState("monthly");
   const [selMonth,setSelMonth]=useState(new Date().getMonth());
-  const {students}=useDbStudents(true);
-  const {entries}=useDbStudentEntries(true);
+  const {students,error:e1}=useDbStudents(true);
+  const {entries,error:e2}=useDbStudentEntries(true);
   const {monthKPI:getStudentMonthKPI,termKPI:getStudentTermKPI,yearKPI:getStudentYearKPI}=studentKpiHelpers(entries);
   const yearsSet=[...new Set(entries.map(e=>e.year))];
   if(!yearsSet.includes(selectedYear))yearsSet.push(selectedYear);
@@ -22,6 +22,7 @@ export function ReportsPage({t,lang,termConfig,currentUser,isAdmin,selectedYear,
   const mc=i=>i===0?"#0f172a":i===1?"#52525b":i===2?"#a1a1aa":"transparent";
   return(<div style={S.page}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}><h2 style={{...S.pt,margin:0}}>{t.reports}</h2><YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/></div>
+    <ErrorNote lang={lang} error={e1||e2}/>
     <Tabs items={[{key:"monthly",label:lang==="bn"?"মাসিক":"Monthly"},{key:"term1",label:t.term1},{key:"term2",label:t.term2},{key:"term3",label:t.term3},{key:"term4",label:t.term4},{key:"yearly",label:lang==="bn"?"বার্ষিক":"Yearly"}]} active={rType} onChange={setRType}/>
     {rType==="monthly"&&<div style={S.fg}><label style={S.lbl}>{t.month}</label><select style={{...S.inp,maxWidth:180}} value={selMonth} onChange={e=>setSelMonth(parseInt(e.target.value))}>{MONTHS.map((m,i)=><option key={m} value={i}>{T[lang][m]}</option>)}</select></div>}
     {!isStudent&&!isParent&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12,margin:"16px 0"}}>{ranked.slice(0,3).map((s,i)=>(<div key={s.id} style={{...S.card,textAlign:"center",border:"1px solid #e2e8f0"}}><div style={{fontSize:28}}>{i===0?"🥇":i===1?"🥈":"🥉"}</div><div style={{fontWeight:700,fontSize:14,color:"#0f172a"}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:26,fontWeight:900,color:mc(i)||"#0f172a"}}>{s.kpi}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>}

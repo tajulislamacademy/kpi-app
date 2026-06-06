@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../hooks";
 import { freqDone } from "../lib";
-import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid } from "../components";
+import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid, ErrorNote } from "../components";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
 import { useDbQuestions } from "../api/questions";
@@ -12,10 +12,10 @@ import { useDbEntriesByTarget, insertEntries, updateEntryScore, targetKpiHelpers
 
 export function TeacherKPIPage({t,lang,currentUser,showNotif,selectedYear,setSelectedYear}){
   const isMobile=useIsMobile();
-  const {teachers}=useDbTeachers(true);
-  const {questions:allQ}=useDbQuestions(true);
+  const {teachers,error:e1}=useDbTeachers(true);
+  const {questions:allQ,error:e2}=useDbQuestions(true);
   const teacherQuestions=allQ.filter(q=>q.category==="teacher");
-  const {entries:teacherEntries,reload}=useDbEntriesByTarget("teacher",true);
+  const {entries:teacherEntries,reload,error:e3}=useDbEntriesByTarget("teacher",true);
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
   const [allScores,setAllScores]=useState({});
   const [submitting,setSubmitting]=useState(false);
@@ -43,6 +43,7 @@ export function TeacherKPIPage({t,lang,currentUser,showNotif,selectedYear,setSel
       <h2 style={{...S.pt,margin:0}}>{t.tchrKpiEntry}</h2>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
+    <ErrorNote lang={lang} error={e1||e2||e3}/>
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
     <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={teachers} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.teachers} emptyMsg={t.noQForMonth}/>
     <EntryHistoryTable t={t} lang={lang} entries={teacherEntries} people={teachers} whoLabel={t.teachers} onEdit={(e)=>{setEditEntry(e);setEditScore(e.score);}}/>
@@ -50,10 +51,10 @@ export function TeacherKPIPage({t,lang,currentUser,showNotif,selectedYear,setSel
 
 export function ParentKPIPage({t,lang,currentUser,showNotif,selectedYear,setSelectedYear}){
   const isMobile=useIsMobile();
-  const {parents}=useDbParents(true);
-  const {questions:allQ}=useDbQuestions(true);
+  const {parents,error:e1}=useDbParents(true);
+  const {questions:allQ,error:e2}=useDbQuestions(true);
   const parentQuestions=allQ.filter(q=>q.category==="parent");
-  const {entries:parentEntries,reload}=useDbEntriesByTarget("parent",true);
+  const {entries:parentEntries,reload,error:e3}=useDbEntriesByTarget("parent",true);
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
   const [allScores,setAllScores]=useState({});
   const [submitting,setSubmitting]=useState(false);
@@ -82,6 +83,7 @@ export function ParentKPIPage({t,lang,currentUser,showNotif,selectedYear,setSele
       <h2 style={{...S.pt,margin:0}}>{t.parKpiEntry}</h2>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
+    <ErrorNote lang={lang} error={e1||e2||e3}/>
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
     <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={approvedParents} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.parent} emptyMsg={t.noQForMonth}/>
     <EntryHistoryTable t={t} lang={lang} entries={parentEntries} people={parents} whoLabel={t.parent} onEdit={(e)=>{setEditEntry(e);setEditScore(e.score);}}/>

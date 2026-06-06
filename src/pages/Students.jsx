@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "../theme";
 import { CLASSES } from "../constants";
 import { genId } from "../lib";
-import { ConfirmDialog, PageHeader } from "../components";
+import { ConfirmDialog, PageHeader, ErrorNote } from "../components";
 import { useDbStudents, createStudent, updateStudent, deleteStudent } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
@@ -53,7 +53,7 @@ export function StudentsPage({t,lang,showNotif}){
   return(<div style={S.page}>
     {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{const id=confirmDel.id;setConfirmDel(null);doDelete(id);}} onCancel={()=>setConfirmDel(null)}/>}
     <PageHeader title={t.students} subtitle={`${lang==="bn"?`মোট ${students.length} জন`:`Total ${students.length}`}${loading?" · …":""}`} actionLabel={`+ ${t.addStudent}`} onAction={openAdd}/>
-    {error&&<div style={{background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13}}>{(lang==="bn"?"ডেটা লোড ব্যর্থ: ":"Load failed: ")+error}</div>}
+    <ErrorNote lang={lang} error={error}/>
     {showForm&&(<div style={S.card}>
       <h3 style={S.ct}>{editId?(lang==="bn"?"শিক্ষার্থী সম্পাদনা":"Edit Student"):(lang==="bn"?"নতুন শিক্ষার্থী":"New Student")}</h3>
       <div style={S.grid2}>
