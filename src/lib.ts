@@ -1,18 +1,21 @@
 // Small pure helpers shared across the app.
 
-export const genId = (prefix, year, seq) =>
+export const genId = (prefix: string, year: number | undefined, seq: number): string =>
   `${prefix}-${year || new Date().getFullYear()}${String(seq).padStart(4, "0")}`;
 
-export const getWeekNumber = (dateStr) => {
+export const getWeekNumber = (dateStr: string): number => {
   const d = new Date(dateStr);
   const start = new Date(d.getFullYear(), 0, 1);
-  return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7);
+  return Math.ceil(((d.getTime() - start.getTime()) / 86400000 + start.getDay() + 1) / 7);
 };
+
+// Minimal shape freqDone reads off a KPI entry (callers pass richer objects).
+type FreqEntry = { targetId: string; questionId: string; date: string; year: number; month: number };
 
 // True if an entry for (targetId, questionId) already exists within the
 // question's frequency period containing dateStr. For teacher/parent KPI entries
 // keyed by `targetId` (PointEntryPage has the student variant inline).
-export const freqDone = (entries, targetId, questionId, frequency, dateStr) => {
+export const freqDone = (entries: FreqEntry[], targetId: string, questionId: string, frequency: string | undefined, dateStr: string): boolean => {
   const freq = frequency || "monthly";
   const d = new Date(dateStr), year = d.getFullYear(), month = d.getMonth(), week = getWeekNumber(dateStr);
   return entries.some((e) => {
