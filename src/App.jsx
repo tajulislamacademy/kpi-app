@@ -3,7 +3,25 @@ import { supabase } from "./supabase";
 import { useDbStudents, createStudent, updateStudent, deleteStudent } from "./api/students";
 import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "./api/teachers";
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "./api/questions";
+import { useDbStudentEntries, insertEntries, updateEntryScore } from "./api/entries";
+import { seedDemoData } from "./api/seed";
 import { systemIdToEmail } from "./api/identity";
+
+// Builds the in-app user from a profiles row, loading role-specific extras the
+// app relies on: a teacher's class/subject/guide assignments (in the teachers
+// table, not profiles) and a student's class/section/roll.
+async function loadSessionUser(prof, lang){
+  const base={id:prof.id,systemId:prof.system_id,name:lang==="bn"?prof.name:prof.name_en,nameEn:prof.name_en,role:prof.role,isRoot:prof.is_root,backend:true};
+  if(prof.role==="teacher"){
+    const {data:tc}=await supabase.from("teachers").select("class_teacher,subject_assignments,guide_students").eq("id",prof.id).maybeSingle();
+    if(tc)return{...base,classTeacher:tc.class_teacher,subjectAssignments:tc.subject_assignments||[],guideStudents:tc.guide_students||[]};
+  }
+  if(prof.role==="student"){
+    const {data:st}=await supabase.from("students").select("class,section,roll").eq("id",prof.id).maybeSingle();
+    if(st)return{...base,class:st.class,section:st.section,roll:st.roll};
+  }
+  return base;
+}
 
 function useLocalStorage(key,init){
   const [val,setVal]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
@@ -271,7 +289,7 @@ export default function App() {
             ?<StudentDashboard t={t} lang={lang} currentUser={currentUser} students={students} getStudentMonthKPI={getStudentMonthKPI} getStudentTermKPI={getStudentTermKPI} getStudentYearKPI={getStudentYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>
             :<ParentDashboard t={t} lang={lang} currentUser={currentUser} students={students} getStudentMonthKPI={getStudentMonthKPI} getStudentTermKPI={getStudentTermKPI} getStudentYearKPI={getStudentYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>
         )}
-        {activeTab==="pointEntry"&&(isAdmin||isTeacher)&&<PointEntryPage t={t} lang={lang} currentUser={currentUser} students={students} questions={questions} entries={entries} setEntries={setEntries} showNotif={showNotif} isAdmin={isAdmin} teachers={teachers}/>}
+        {activeTab==="pointEntry"&&(isAdmin||isTeacher)&&<PointEntryPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} isAdmin={isAdmin}/>}
         {activeTab==="teachers"&&isAdmin&&<TeachersPage t={t} lang={lang} showNotif={showNotif}/>}
         {activeTab==="students"&&isAdmin&&<StudentsPage t={t} lang={lang} teachers={teachers} parents={parents} showNotif={showNotif}/>}
         {activeTab==="questions"&&isAdmin&&<QuestionsPage t={t} lang={lang} showNotif={showNotif}/>}
@@ -306,7 +324,7 @@ function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
         if(!authErr&&data?.user){
           const {data:prof}=await supabase.from("profiles").select("*").eq("auth_id",data.user.id).maybeSingle();
           if(prof){
-            onLogin({id:prof.id,systemId:prof.system_id,name:lang==="bn"?prof.name:prof.name_en,nameEn:prof.name_en,role:prof.role,isRoot:prof.is_root,backend:true});
+            onLogin(await loadSessionUser(prof,lang));
             return;
           }
           // authenticated but no profile row — undo and fall through to demo auth
@@ -820,8 +838,13 @@ function QuestionsPage({t,lang,showNotif}){
     {!isStd&&<div style={S.card}>{qTable(curQs)}</div>}
   </div>);}
 
-function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntries,showNotif,isAdmin,teachers}){
+function PointEntryPage({t,lang,currentUser,showNotif,isAdmin}){
   const isMobile=useIsMobile();
+  const {students}=useDbStudents(true);
+  const {questions:allQuestions}=useDbQuestions(true);
+  const questions=allQuestions.filter(q=>q.category==="student");
+  const {teachers}=useDbTeachers(true);
+  const {entries,reload:reloadEntries}=useDbStudentEntries(true);
   const [activeRole,setActiveRole]=useState("classTeacher");
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
   const [selectedAssign,setSelectedAssign]=useState(null);
@@ -842,18 +865,33 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
   const setScore=(sid,qid,val)=>{const max=questions.find(q=>q.id===qid)?.points||0;setAllScores(p=>({...p,[sid]:{...(p[sid]||{}),[qid]:Math.min(parseInt(val)||0,max)}}));};
   const getScore=(sid,qid)=>allScores[sid]?.[qid]??"";
   const getTotal=sid=>roleQs.reduce((s,q)=>s+(parseInt(allScores[sid]?.[q.id])||0),0);
-  const handleSubmit=()=>{
-    const ne=[];curStudents.forEach(s=>{if(activeRole==="guideTeacher"&&weekDoneCheck(s.id))return;roleQs.forEach(q=>{ne.push({id:Date.now()+Math.random(),studentId:s.id,teacherId:currentUser.id,date:selectedDate,questionId:q.id,questionText:q.textBn,questionTextEn:q.textEn,maxPoints:q.points,score:parseInt(allScores[s.id]?.[q.id])||0,month:cm,year:new Date(selectedDate).getFullYear(),role:activeRole,subject:selectedAssign?.subject||"",enteredBy:"teacher",editLog:[]});});});
-    setEntries(e=>[...e,...ne]);setAllScores({});showNotif(t.entrySuccess);
+  const [submitting,setSubmitting]=useState(false);
+  const handleSubmit=async()=>{
+    const rows=[];
+    curStudents.forEach(s=>{
+      if(activeRole==="guideTeacher"&&weekDoneCheck(s.id))return;
+      roleQs.forEach(q=>{
+        if(isQFreqDone(s.id,q.id))return; // skip questions already entered for this period
+        rows.push({target_type:"student",target_id:s.id,entered_by:currentUser.id,question_id:q.id,question_text:q.textBn,question_text_en:q.textEn,max_points:q.points,score:parseInt(allScores[s.id]?.[q.id])||0,role:activeRole,subject:selectedAssign?.subject||"",month:cm,year:cy,entry_date:selectedDate,edit_log:[]});
+      });
+    });
+    if(!rows.length){showNotif(lang==="bn"?"জমা দেওয়ার মতো কিছু নেই":"Nothing to submit");return;}
+    setSubmitting(true);
+    try{await insertEntries(rows);await reloadEntries();setAllScores({});showNotif(t.entrySuccess);}
+    catch(e){showNotif((lang==="bn"?"ত্রুটি: ":"Error: ")+(e.message||e));}
+    finally{setSubmitting(false);}
   };
-  const handleEditSave=()=>{
-    const max=questions.find(q=>q.id===editEntry.questionId)?.points||0;
+  const handleEditSave=async()=>{
+    const max=questions.find(q=>q.id===editEntry.questionId)?.points||editEntry.maxPoints||0;
     const ns=Math.min(parseInt(editScore)||0,max);
-    setEntries(e=>e.map(x=>x.id===editEntry.id?{...x,score:ns,editLog:[...(x.editLog||[]),{editedBy:"admin",editedAt:new Date().toISOString().slice(0,10),oldScore:editEntry.score,newScore:ns}]}:x));
-    setEditEntry(null);showNotif(lang==="bn"?"সম্পাদনা সফল!":"Edited!");
+    try{
+      await updateEntryScore(editEntry.id,ns,editEntry.score,"admin");
+      await reloadEntries();
+      setEditEntry(null);showNotif(lang==="bn"?"সম্পাদনা সফল!":"Edited!");
+    }catch(e){showNotif((lang==="bn"?"ত্রুটি: ":"Error: ")+(e.message||e));}
   };
   const entryYears=[...new Set(entries.map(e=>e.year||2026))].sort((a,b)=>b-a);
-  const filtered=entries.filter(e=>isAdmin||e.teacherId===currentUser.id).filter(e=>fTc==="all"||e.teacherId===parseInt(fTc)).filter(e=>fSt==="all"||e.studentId===parseInt(fSt)).filter(e=>fYr==="all"||(e.year||2026)===parseInt(fYr)).filter(e=>fMo==="all"||e.month===parseInt(fMo)).filter(e=>fRo==="all"||e.role===fRo).slice().reverse();
+  const filtered=entries.filter(e=>isAdmin||e.teacherId===currentUser.id).filter(e=>fTc==="all"||e.teacherId===fTc).filter(e=>fSt==="all"||e.studentId===fSt).filter(e=>fYr==="all"||(e.year||2026)===parseInt(fYr)).filter(e=>fMo==="all"||e.month===parseInt(fMo)).filter(e=>fRo==="all"||e.role===fRo).slice().reverse();
   const tabs=[{key:"classTeacher",label:t.classTeacher,show:isAdmin||!!currentUser.classTeacher},{key:"subjectTeacher",label:t.subjectTeacher,show:isAdmin||subjectAssignments.length>0},{key:"guideTeacher",label:t.guideTeacher,show:isAdmin||guideIds.length>0}].filter(x=>x.show);
   return(<div style={S.page}>
     <h2 style={S.pt}>{t.pointEntry}</h2>
@@ -872,6 +910,8 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
     {activeRole==="guideTeacher"&&<div style={{background:"#fef3c7",border:"1px solid #fbbf24",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13,color:"#92400e"}}>⚠️{lang==="bn"?"গাইড শিক্ষক সপ্তাহে ১ বার।":"Guide teacher: once per week."}</div>}
     {activeRole==="classTeacher"&&!isAdmin&&!currentUser.classTeacher&&<div style={S.empty}>{t.noClassRole}</div>}
     {activeRole==="subjectTeacher"&&!selectedAssign&&<div style={S.empty}>{t.selectClassSubject}</div>}
+    {(activeRole!=="subjectTeacher"||selectedAssign)&&(activeRole!=="classTeacher"||isAdmin||currentUser.classTeacher)&&roleQs.length===0&&<div style={S.empty}>{lang==="bn"?"এই ভূমিকা ও মাসের জন্য কোনো প্রশ্ন নেই — প্রশ্নমালায় এই ভূমিকার প্রশ্ন যোগ করুন":"No questions for this role & month — add some in Questions first"}</div>}
+    {(activeRole!=="subjectTeacher"||selectedAssign)&&(activeRole!=="classTeacher"||isAdmin||currentUser.classTeacher)&&roleQs.length>0&&curStudents.length===0&&<div style={S.empty}>{lang==="bn"?"কোনো শিক্ষার্থী পাওয়া যায়নি — অনুমতি (RLS) বা নিয়োগ যাচাই করুন":"No students found — check permissions (RLS) or assignment"}</div>}
     {curStudents.length>0&&roleQs.length>0&&(activeRole!=="subjectTeacher"||selectedAssign)&&(isMobile?(
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
         {curStudents.map((s)=>{const wd=activeRole==="guideTeacher"&&weekDoneCheck(s.id);const maxPts=roleQs.reduce((x,q)=>x+q.points,0);return(<div key={s.id} style={{...S.card,marginBottom:0,opacity:wd?0.65:1}}>
@@ -885,7 +925,7 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
             {qd?<div style={{width:64,height:44,display:"flex",alignItems:"center",justifyContent:"center",background:"#f0fdf4",borderRadius:8,fontSize:12,color:"#166534",fontWeight:700}}>✓</div>:<input type="number" min="0" max={q.points} disabled={wd} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(s.id,q.id)} onChange={e=>setScore(s.id,q.id,e.target.value)} placeholder="0"/>}
           </div>);})}
         </div>);})}
-        <button onClick={handleSubmit} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10}}>{t.submitPoints}</button>
+        <button onClick={handleSubmit} disabled={submitting} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10,...(submitting?{opacity:0.6,cursor:"wait"}:{})}}>{submitting?(lang==="bn"?"জমা হচ্ছে…":"Submitting…"):t.submitPoints}</button>
       </div>
     ):(<div style={S.card}>
       <div style={{overflowX:"auto"}}><table style={S.table}><thead><tr>
@@ -901,7 +941,7 @@ function PointEntryPage({t,lang,currentUser,students,questions,entries,setEntrie
           {activeRole==="guideTeacher"&&<td style={S.td}>{wd?<span style={{fontSize:11,color:"#ef4444",fontWeight:600}}>⚠️{lang==="bn"?"দেওয়া":"Done"}</span>:<span style={{fontSize:11,color:"#0f172a",fontWeight:600}}>✅{lang==="bn"?"বাকি":"Pending"}</span>}</td>}
         </tr>);})}
       </tbody></table></div>
-      <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} style={S.submitBtn}>{t.submitPoints}</button></div>
+      <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} disabled={submitting} style={{...S.submitBtn,...(submitting?{opacity:0.6,cursor:"wait"}:{})}}>{submitting?(lang==="bn"?"জমা হচ্ছে…":"Submitting…"):t.submitPoints}</button></div>
     </div>))}
     <div style={S.card}>
       <h3 style={S.ct}>{lang==="bn"?"এন্ট্রি তালিকা":"Entry List"}</h3>
@@ -935,8 +975,19 @@ function ReportsPage({t,lang,students,entries,termConfig,getStudentMonthKPI,getS
   </div>);}
 function SettingsPage({t,lang,termConfig,setTermConfig,showNotif}){
   const [cfg,setCfg]=useState({...termConfig});
+  const [seeding,setSeeding]=useState(false);
   const toggle=(term,m)=>{const cur=cfg[term];setCfg({...cfg,[term]:cur.includes(m)?cur.filter(x=>x!==m):[...cur,m].sort((a,b)=>a-b)});};
+  const handleSeed=async()=>{
+    setSeeding(true);
+    try{await seedDemoData(msg=>showNotif(msg));}
+    catch(e){showNotif((lang==="bn"?"সীড ত্রুটি: ":"Seed error: ")+(e.message||e));}
+    finally{setSeeding(false);}
+  };
   return(<div style={S.page}><h2 style={S.pt}>{t.settings}</h2>
+    {import.meta.env.DEV&&<div style={S.card}><h3 style={S.ct}>🌱 {lang==="bn"?"ডেমো ডেটা (DEV)":"Demo Data (DEV)"}</h3>
+      <p style={{fontSize:13,color:"#64748b",marginBottom:12}}>{lang==="bn"?"প্রশ্ন (সব role) ও ২ জন শিক্ষক (login সহ, পাসওয়ার্ড 123456) তৈরি করে। ইতিমধ্যে থাকলে skip করে। শুধু dev mode-এ দেখায়।":"Creates questions (all roles) and 2 teachers (with login, password 123456). Skips existing. DEV-only."}</p>
+      <button onClick={handleSeed} disabled={seeding} style={{...S.saveBtn,...(seeding?{opacity:0.6,cursor:"wait"}:{})}}>{seeding?(lang==="bn"?"সীড হচ্ছে…":"Seeding…"):(lang==="bn"?"ডেমো ডেটা সীড করুন":"Seed demo data")}</button>
+    </div>}
     <div style={S.card}><h3 style={S.ct}>{t.termConfig}</h3>
       {["term1","term2","term3","term4"].map((term,ti)=>(<div key={term} style={{marginBottom:20}}><div style={{fontWeight:700,color:"#0f172a",fontSize:14,marginBottom:8}}>{ti===0?t.term1:ti===1?t.term2:ti===2?t.term3:t.term4}</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{MONTHS.map((m,mi)=>(<button key={m} onClick={()=>toggle(term,mi)} style={{...S.mBtn,...(cfg[term].includes(mi)?S.mOn:{})}}>{T[lang][m].slice(0,3)}</button>))}</div></div>))}
       <button onClick={()=>{setTermConfig(cfg);showNotif(lang==="bn"?"সেটিংস সংরক্ষণ!":"Settings saved!");}} style={S.saveBtn}>{t.save}</button>
