@@ -58,17 +58,17 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
   };
   return (
     <div style={S.loginBg}><div style={S.loginCard}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, justifyContent: "center" }}>
+        <button onClick={() => setLang("bn")} style={{ ...S.langBtn, ...(lang === "bn" ? S.langOn : {}), padding: "6px 16px" }}>বাংলা</button>
+        <button onClick={() => setLang("en")} style={{ ...S.langBtn, ...(lang === "en" ? S.langOn : {}), padding: "6px 16px" }}>English</button>
+      </div>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={S.loginLogo}>KPI</div>
         <h1 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "8px 0 4px" }}>{t.appTitle}</h1>
         <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{lang === "bn" ? "শিক্ষার্থী মূল্যায়ন ব্যবস্থাপনা" : "Student Evaluation Management"}</p>
       </div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, justifyContent: "center" }}>
-        <button onClick={() => setLang("bn")} style={{ ...S.langBtn, ...(lang === "bn" ? S.langOn : {}), padding: "6px 16px" }}>বাংলা</button>
-        <button onClick={() => setLang("en")} style={{ ...S.langBtn, ...(lang === "en" ? S.langOn : {}), padding: "6px 16px" }}>English</button>
-      </div>
       <div style={S.fg}><label style={S.lbl}>{t.username}</label>
-        <input style={S.inp} value={form.id} onChange={e => setForm({ ...form, id: e.target.value })} placeholder="admin | TCH-20260001 | STD-20260001" /></div>
+        <input style={S.inp} value={form.id} onChange={e => setForm({ ...form, id: e.target.value })} /></div>
       <div style={S.fg}><label style={S.lbl}>{t.password}</label>
         <input style={S.inp} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} onKeyDown={e => e.key === "Enter" && !busy && doLogin()} /></div>
       {error && <div style={{ color: "#ef4444", fontSize: 13, marginBottom: 8, textAlign: "center" }}>{error}</div>}
