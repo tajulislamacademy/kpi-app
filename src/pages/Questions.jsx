@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { ConfirmDialog } from "../components";
+import { ConfirmDialog, Modal } from "../components";
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/questions";
 
 export function QuestionsPage({t,lang,showNotif}){
@@ -50,7 +50,7 @@ export function QuestionsPage({t,lang,showNotif}){
   const qTable=(list)=>(<div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>#</th><th style={S.th}>{lang==="bn"?"প্রশ্ন":"Question"}</th><th style={S.th}>{t.pointsPerEntry}</th><th style={S.th}>{t.frequency}</th><th style={S.th}>{t.activeMonths}</th><th style={S.th}>{lang==="bn"?"অ্যাকশন":"Action"}</th></tr></thead><tbody>{list.map(qRow)}</tbody></table></div>);
   return(<div style={S.page}>
     {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{const id=confirmDel.id;setConfirmDel(null);doDelete(id);}} onCancel={()=>setConfirmDel(null)}/>}
-    {viewQ&&(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:520}}>
+    {viewQ&&(<Modal maxWidth={520}>
       <h3 style={S.ct}>🔍 {lang==="bn"?"প্রশ্ন বিবরণ":"Question Details"}</h3>
       <div style={{background:"#f8fafc",borderRadius:10,padding:"14px 16px",marginBottom:14}}>
         <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>{viewQ.textBn}</div>
@@ -67,7 +67,7 @@ export function QuestionsPage({t,lang,showNotif}){
         <button onClick={()=>{setViewQ(null);openEdit(viewQ);}} style={S.saveBtn}>✏️ {t.edit}</button>
         <button onClick={()=>setViewQ(null)} style={S.cancelBtn}>{t.cancel}</button>
       </div>
-    </div></div>)}
+    </Modal>)}
     <div style={S.ph}><div><h2 style={S.pt}>{t.questions}</h2><p style={S.ps}>{lang==="bn"?"মোট "+curQs.length+"টি":"Total "+curQs.length}{loading?" · …":""}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addQuestion}</button></div>
     {error&&<div style={{background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13}}>{(lang==="bn"?"ডেটা লোড ব্যর্থ: ":"Load failed: ")+error}</div>}
     <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
