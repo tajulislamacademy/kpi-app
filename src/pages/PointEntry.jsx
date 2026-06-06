@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../hooks";
 import { getWeekNumber } from "../lib";
-import { Tabs } from "../components";
+import { Tabs, ErrorNote } from "../components";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbQuestions } from "../api/questions";
@@ -12,11 +12,12 @@ import { useDbStudentEntries, insertEntries, updateEntryScore } from "../api/ent
 
 export function PointEntryPage({t,lang,currentUser,showNotif,isAdmin}){
   const isMobile=useIsMobile();
-  const {students}=useDbStudents(true);
-  const {questions:allQuestions}=useDbQuestions(true);
+  const {students,error:e1}=useDbStudents(true);
+  const {questions:allQuestions,error:e2}=useDbQuestions(true);
   const questions=allQuestions.filter(q=>q.category==="student");
-  const {teachers}=useDbTeachers(true);
-  const {entries,reload:reloadEntries}=useDbStudentEntries(true);
+  const {teachers,error:e3}=useDbTeachers(true);
+  const {entries,reload:reloadEntries,error:e4}=useDbStudentEntries(true);
+  const loadErr=e1||e2||e3||e4;
   const [activeRole,setActiveRole]=useState("classTeacher");
   const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0]);
   const [selectedAssign,setSelectedAssign]=useState(null);
@@ -67,6 +68,7 @@ export function PointEntryPage({t,lang,currentUser,showNotif,isAdmin}){
   const tabs=[{key:"classTeacher",label:t.classTeacher,show:isAdmin||!!currentUser.classTeacher},{key:"subjectTeacher",label:t.subjectTeacher,show:isAdmin||subjectAssignments.length>0},{key:"guideTeacher",label:t.guideTeacher,show:isAdmin||guideIds.length>0}].filter(x=>x.show);
   return(<div style={S.page}>
     <h2 style={S.pt}>{t.pointEntry}</h2>
+    <ErrorNote lang={lang} error={loadErr}/>
     {editEntry&&isAdmin&&(()=>{const s=students.find(x=>x.id===editEntry.studentId),q=questions.find(x=>x.id===editEntry.questionId),tc=teachers?.find(x=>x.id===editEntry.teacherId);return(
       <div style={S.modalBg}><div style={S.modalBox}>
         <h3 style={{...S.ct,marginBottom:16}}>✏️ {lang==="bn"?"পয়েন্ট সম্পাদনা":"Edit Points"}</h3>

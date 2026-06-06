@@ -1,16 +1,16 @@
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { StatCard, RankCard, BarChart, YearSelector, TermBreakdown } from "../components";
+import { StatCard, RankCard, BarChart, YearSelector, TermBreakdown, ErrorNote } from "../components";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbStudentEntries, studentKpiHelpers } from "../api/entries";
 
 export function AdminTeacherDashboard({t,lang,currentUser,isAdmin,selectedYear,setSelectedYear,pendingParents}){
   const cm=new Date().getMonth();
-  const {students}=useDbStudents(true);
-  const {teachers}=useDbTeachers(true);
-  const {entries}=useDbStudentEntries(true);
+  const {students,error:e1}=useDbStudents(true);
+  const {teachers,error:e2}=useDbTeachers(true);
+  const {entries,error:e3}=useDbStudentEntries(true);
   const {monthKPI:getStudentMonthKPI,yearKPI:getStudentYearKPI}=studentKpiHelpers(entries);
   const yearsSet=[...new Set(entries.map(e=>e.year))];
   if(!yearsSet.includes(selectedYear))yearsSet.push(selectedYear);
@@ -19,6 +19,7 @@ export function AdminTeacherDashboard({t,lang,currentUser,isAdmin,selectedYear,s
   const mRanked=[...students].map(s=>({...s,kpi:getStudentMonthKPI(s.id,cm,selectedYear)})).sort((a,b)=>b.kpi-a.kpi);
   const totalE=entries.filter(e=>e.month===cm&&e.year===selectedYear).length;
   return(<div style={S.page}>
+    <ErrorNote lang={lang} error={e1||e2||e3}/>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
       <div><h2 style={S.pt}>{t.dashboard}</h2><p style={S.ps}>{lang==="bn"?`স্বাগতম, ${currentUser.name}`:`${t.welcome}, ${currentUser.name}`}</p></div>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
@@ -37,8 +38,8 @@ export function AdminTeacherDashboard({t,lang,currentUser,isAdmin,selectedYear,s
 
 export function StudentDashboard({t,lang,currentUser,selectedYear,setSelectedYear,termConfig}){
   const sid=currentUser.id,cm=new Date().getMonth();
-  const {students}=useDbStudents(true);
-  const {entries}=useDbStudentEntries(true);
+  const {students,error:e1}=useDbStudents(true);
+  const {entries,error:e2}=useDbStudentEntries(true);
   const {monthKPI:getStudentMonthKPI,termKPI:getStudentTermKPI,yearKPI:getStudentYearKPI}=studentKpiHelpers(entries);
   const yearsSet=[...new Set(entries.map(e=>e.year))];
   if(!yearsSet.includes(selectedYear))yearsSet.push(selectedYear);
@@ -47,6 +48,7 @@ export function StudentDashboard({t,lang,currentUser,selectedYear,setSelectedYea
   const myRank=allRanked.findIndex(s=>s.id===sid)+1;
   const monthData=MONTHS.map((m,i)=>({label:T[lang][m].slice(0,3),val:getStudentMonthKPI(sid,i,selectedYear)}));
   return(<div style={S.page}>
+    <ErrorNote lang={lang} error={e1||e2}/>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
       <div><h2 style={S.pt}>{t.myKPI}</h2><p style={S.ps}>{lang==="bn"?`স্বাগতম, ${currentUser.name}`:`${t.welcome}, ${currentUser.name}`}</p><p style={{fontSize:12,color:"#94a3b8",margin:"2px 0 0"}}>{currentUser.systemId}</p></div>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
@@ -62,20 +64,21 @@ export function StudentDashboard({t,lang,currentUser,selectedYear,setSelectedYea
   </div>);}
 
 export function ParentDashboard({t,lang,currentUser,selectedYear,setSelectedYear,termConfig}){
-  const {students}=useDbStudents(true);
-  const {entries}=useDbStudentEntries(true);
+  const {students,error:e1}=useDbStudents(true);
+  const {entries,error:e2}=useDbStudentEntries(true);
   const {monthKPI:getStudentMonthKPI,termKPI:getStudentTermKPI,yearKPI:getStudentYearKPI}=studentKpiHelpers(entries);
   const yearsSet=[...new Set(entries.map(e=>e.year))];
   if(!yearsSet.includes(selectedYear))yearsSet.push(selectedYear);
   const availableYears=yearsSet.sort((a,b)=>b-a);
   const child=students.find(s=>s.id===currentUser.studentId);
-  if(!child)return<div style={S.page}><div style={S.empty}>{lang==="bn"?"শিক্ষার্থী পাওয়া যায়নি":"Student not found"}</div></div>;
+  if(!child)return<div style={S.page}><ErrorNote lang={lang} error={e1||e2}/><div style={S.empty}>{lang==="bn"?"শিক্ষার্থী পাওয়া যায়নি":"Student not found"}</div></div>;
   const sid=child.id,cm=new Date().getMonth();
   const allRanked=[...students].map(s=>({...s,kpi:getStudentYearKPI(s.id,selectedYear)})).sort((a,b)=>b.kpi-a.kpi);
   const myRank=allRanked.findIndex(s=>s.id===sid)+1;
   const monthData=MONTHS.map((m,i)=>({label:T[lang][m].slice(0,3),val:getStudentMonthKPI(sid,i,selectedYear)}));
   const relLabel=currentUser.relation==="father"?t.father:currentUser.relation==="mother"?t.mother:t.guardian;
   return(<div style={S.page}>
+    <ErrorNote lang={lang} error={e1||e2}/>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
       <div><h2 style={S.pt}>{t.childKPI}</h2><p style={S.ps}>{relLabel}: {currentUser.name}</p></div>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
