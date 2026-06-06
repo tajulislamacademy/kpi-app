@@ -12,3 +12,4 @@ export { TermBreakdown } from "./TermBreakdown";
 export { EditScoreModal } from "./EditScoreModal";
 export { EntryHistoryTable } from "./EntryHistoryTable";
 export { ScoreEntryGrid } from "./ScoreEntryGrid";
+export { ErrorBoundary } from "./ErrorBoundary";
