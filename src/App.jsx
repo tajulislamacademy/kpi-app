@@ -157,109 +157,25 @@ const freqDone=(entries,targetId,questionId,frequency,dateStr)=>{
     }
   });
 };
-const initTeachers=[
-  {id:1,systemId:"TCH-20260001",name:"মোঃ রফিকুল ইসলাম",nameEn:"Md. Rafiqul Islam",password:"1234",classTeacher:{class:"8",section:"A"},subjectAssignments:[{class:"6",section:"B",subject:"গণিত/Math"},{class:"9",section:"A",subject:"বিজ্ঞান/Science"},{class:"8",section:"A",subject:"গণিত/Math"}],guideStudents:[3,4]},
-  {id:2,systemId:"TCH-20260002",name:"সুমাইয়া বেগম",nameEn:"Sumaiya Begum",password:"1234",classTeacher:{class:"7",section:"A"},subjectAssignments:[{class:"7",section:"A",subject:"বাংলা/Bangla"},{class:"8",section:"A",subject:"বাংলা/Bangla"}],guideStudents:[1,2]},
-  {id:3,systemId:"TCH-20260003",name:"করিম স্যার",nameEn:"Karim Sir",password:"1234",classTeacher:null,subjectAssignments:[{class:"9",section:"A",subject:"গণিত/Math"}],guideStudents:[5]},
-];
-const initStudents=[
-  {id:1,systemId:"STD-20260001",name:"রাফি আহমেদ",nameEn:"Rafi Ahmed",class:"8",section:"A",roll:1,password:"1234"},
-  {id:2,systemId:"STD-20260002",name:"সাকিব হাসান",nameEn:"Sakib Hassan",class:"8",section:"A",roll:2,password:"1234"},
-  {id:3,systemId:"STD-20260003",name:"নাফিসা ইসলাম",nameEn:"Nafisa Islam",class:"8",section:"A",roll:3,password:"1234"},
-  {id:4,systemId:"STD-20260004",name:"তানভীর রহমান",nameEn:"Tanvir Rahman",class:"7",section:"A",roll:1,password:"1234"},
-  {id:5,systemId:"STD-20260005",name:"মেহেদী হাসান",nameEn:"Mehedi Hassan",class:"9",section:"A",roll:5,password:"1234"},
-  {id:6,systemId:"STD-20260006",name:"রিমা আক্তার",nameEn:"Rima Akter",class:"6",section:"B",roll:3,password:"1234"},
-];
-const initParents=[
-  {id:1,systemId:"PAR-20260001",name:"আহমেদ কবির",nameEn:"Ahmed Kabir",studentId:"STD-20260001",relation:"father",password:"1234",status:"approved"},
-  {id:2,systemId:"PAR-20260002",name:"রহিমা বেগম",nameEn:"Rahima Begum",studentId:"STD-20260001",relation:"mother",password:"1234",status:"pending"},
-  {id:3,systemId:"PAR-20260003",name:"হাসান মিয়া",nameEn:"Hasan Mia",studentId:"STD-20260002",relation:"father",password:"1234",status:"approved"},
-];
-const initQuestions=[
-  {id:1,textBn:"উপস্থিতি ও সময়মতো আসা",textEn:"Attendance & Punctuality",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
-  {id:2,textBn:"শ্রেণীকক্ষে শৃঙ্খলা",textEn:"Classroom Discipline",role:"classTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
-  {id:3,textBn:"পরিষ্কার-পরিচ্ছন্নতা",textEn:"Cleanliness",role:"classTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
-  {id:4,textBn:"সহপাঠীদের সাথে সহযোগিতা",textEn:"Cooperation with Peers",role:"classTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
-  {id:5,textBn:"পাঠে মনোযোগ",textEn:"Attention in Class",role:"subjectTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
-  {id:6,textBn:"হোমওয়ার্ক সম্পন্ন করা",textEn:"Homework Completion",role:"subjectTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
-  {id:7,textBn:"প্রশ্ন করার আগ্রহ",textEn:"Eagerness to Ask Questions",role:"subjectTeacher",points:5,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"daily"},
-  {id:8,textBn:"নৈতিক আচরণ ও মূল্যবোধ",textEn:"Moral Behavior & Values",role:"guideTeacher",points:15,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"weekly"},
-  {id:9,textBn:"ব্যক্তিগত লক্ষ্য পূরণ",textEn:"Personal Goal Achievement",role:"guideTeacher",points:15,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"weekly"},
-  {id:10,textBn:"নেতৃত্বগুণ ও দলগত কাজ",textEn:"Leadership & Teamwork",role:"guideTeacher",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"weekly"},
-];
-const initEntries=[
-  {id:1,studentId:1,teacherId:1,date:"2026-01-15",questionId:1,score:9,month:0,year:2026,role:"classTeacher",subject:"",editLog:[]},
-  {id:2,studentId:1,teacherId:1,date:"2026-01-15",questionId:2,score:8,month:0,year:2026,role:"classTeacher",subject:"",editLog:[]},
-  {id:3,studentId:2,teacherId:1,date:"2026-01-15",questionId:1,score:7,month:0,year:2026,role:"classTeacher",subject:"",editLog:[]},
-  {id:4,studentId:3,teacherId:1,date:"2026-01-15",questionId:1,score:10,month:0,year:2026,role:"classTeacher",subject:"",editLog:[]},
-  {id:5,studentId:1,teacherId:1,date:"2026-01-16",questionId:5,score:9,month:0,year:2026,role:"subjectTeacher",subject:"গণিত/Math",editLog:[]},
-  {id:6,studentId:1,teacherId:1,date:"2026-01-16",questionId:6,score:8,month:0,year:2026,role:"subjectTeacher",subject:"গণিত/Math",editLog:[]},
-  {id:7,studentId:1,teacherId:2,date:"2026-01-20",questionId:8,score:13,month:0,year:2026,role:"guideTeacher",subject:"",editLog:[]},
-  {id:8,studentId:2,teacherId:2,date:"2026-01-20",questionId:8,score:12,month:0,year:2026,role:"guideTeacher",subject:"",editLog:[]},
-  {id:9,studentId:1,teacherId:1,date:"2026-02-10",questionId:1,score:10,month:1,year:2026,role:"classTeacher",subject:"",editLog:[]},
-  {id:10,studentId:2,teacherId:1,date:"2026-02-10",questionId:1,score:8,month:1,year:2026,role:"classTeacher",subject:"",editLog:[]},
-  {id:11,studentId:3,teacherId:1,date:"2026-02-10",questionId:1,score:9,month:1,year:2026,role:"classTeacher",subject:"",editLog:[]},
-];
-const FREQ_OPTS=["daily","weekly","monthly","quarterly","annual"];
-const initTeacherQuestions=[
-  {id:1,textBn:"সময়মতো উপস্থিতি ও পাঠদান",textEn:"Punctuality & Teaching",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-  {id:2,textBn:"শ্রেণীকক্ষ পরিচালনা",textEn:"Classroom Management",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-  {id:3,textBn:"শিক্ষার্থীর উন্নতিতে মনোযোগ",textEn:"Student Progress Focus",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-  {id:4,textBn:"পেশাদারিত্ব ও আচরণ",textEn:"Professionalism & Conduct",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-  {id:5,textBn:"সহকর্মীদের সাথে সহযোগিতা",textEn:"Colleague Cooperation",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-];
-const initParentQuestions=[
-  {id:1,textBn:"অভিভাবক সভায় উপস্থিতি",textEn:"Parent Meeting Attendance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-  {id:2,textBn:"সন্তানের পড়াশোনায় সহযোগিতা",textEn:"Child Study Support",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-  {id:3,textBn:"শিক্ষকের সাথে যোগাযোগ",textEn:"Teacher Communication",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-  {id:4,textBn:"স্কুলের নিয়ম মেনে চলা",textEn:"School Rule Compliance",points:10,activeMonths:[0,1,2,3,4,5,6,7,8,9,10,11],frequency:"monthly"},
-];
+// Demo seed data removed — all data lives in Supabase now (seed via the DEV
+// "Seed demo data" button in Settings, or supabase/seed.sql).
 export default function App() {
   const [lang,setLang]=useState("bn");
   const t=T[lang];
   const [currentUser,setCurrentUser]=useLocalStorage("kpi_currentUser",null);
   const [activeTab,setActiveTab]=useState("dashboard");
-  const [teachers,setTeachers]=useLocalStorage("kpi_teachers",initTeachers);
-  const [students,setStudents]=useLocalStorage("kpi_students",initStudents);
-  const [parents,setParents]=useLocalStorage("kpi_parents",initParents);
-  const [questions,setQuestions]=useLocalStorage("kpi_questions",initQuestions);
-  const [entries,setEntries]=useLocalStorage("kpi_entries",initEntries);
-  const [admins,setAdmins]=useLocalStorage("kpi_admins",[{id:0,systemId:"ADM-20260001",name:"অ্যাডমিন",nameEn:"Admin",password:"admin",isRoot:true}]);
   const {termConfig,reload:reloadTermConfig}=useDbTermConfig(true);
   const saveTermConfig=async(cfg)=>{await updateTermConfig(cfg);await reloadTermConfig();};
-  const [teacherQuestions,setTeacherQuestions]=useLocalStorage("kpi_tchrQ",initTeacherQuestions);
-  const [teacherEntries,setTeacherEntries]=useLocalStorage("kpi_tchrE",[]);
-  const [parentQuestions,setParentQuestions]=useLocalStorage("kpi_parQ",initParentQuestions);
-  const [parentEntries,setParentEntries]=useLocalStorage("kpi_parE",[]);
   const [notif,setNotif]=useState("");
   const showNotif=(msg)=>{setNotif(msg);setTimeout(()=>setNotif(""),3500);};
   const curYear=new Date().getFullYear();
   const [selectedYear,setSelectedYear]=useState(curYear);
-  const availableYears=[...new Set(entries.map(e=>e.year||2026))].sort((a,b)=>b-a);
-  if(!availableYears.includes(curYear))availableYears.unshift(curYear);
-  const getStudentMonthKPI=(sid,month,year=selectedYear)=>entries.filter(e=>e.studentId===sid&&e.month===month&&(e.year||2026)===year).reduce((s,e)=>s+e.score,0);
-  const getStudentTermKPI=(sid,months,year=selectedYear)=>months.reduce((s,m)=>s+getStudentMonthKPI(sid,m,year),0);
-  const getStudentYearKPI=(sid,year=selectedYear)=>MONTHS.reduce((s,_,i)=>s+getStudentMonthKPI(sid,i,year),0);
-  const getTchrMonthKPI=(tid,month,year=selectedYear)=>teacherEntries.filter(e=>e.targetId===tid&&e.month===month&&(e.year||curYear)===year).reduce((s,e)=>s+e.score,0);
-  const getTchrTermKPI=(tid,months,year=selectedYear)=>months.reduce((s,m)=>s+getTchrMonthKPI(tid,m,year),0);
-  const getTchrYearKPI=(tid,year=selectedYear)=>MONTHS.reduce((s,_,i)=>s+getTchrMonthKPI(tid,i,year),0);
-  const getParMonthKPI=(pid,month,year=selectedYear)=>parentEntries.filter(e=>e.targetId===pid&&e.month===month&&(e.year||curYear)===year).reduce((s,e)=>s+e.score,0);
-  const getParTermKPI=(pid,months,year=selectedYear)=>months.reduce((s,m)=>s+getParMonthKPI(pid,m,year),0);
-  const getParYearKPI=(pid,year=selectedYear)=>MONTHS.reduce((s,_,i)=>s+getParMonthKPI(pid,i,year),0);
-  const handlePasswordChange=(userId,userType,newPassword)=>{
-    if(userType==="teacher")setTeachers(t=>t.map(x=>x.id===userId?{...x,password:newPassword}:x));
-    if(userType==="student")setStudents(s=>s.map(x=>x.id===userId?{...x,password:newPassword}:x));
-    if(userType==="parent")setParents(p=>p.map(x=>x.id===userId?{...x,password:newPassword}:x));
-    if(userType==="admin")setAdmins(a=>a.map(x=>x.id===userId?{...x,password:newPassword}:x));
-    setCurrentUser(prev=>({...prev,password:newPassword}));
-    showNotif(t.passwordChanged);
-  };
   const isMobile=useIsMobile();
   const [navOpen,setNavOpen]=useState(false);
   const goTab=k=>{setActiveTab(k);setNavOpen(false);};
   const handleLogout=async()=>{try{await supabase.auth.signOut();}catch{/* no active backend session */}setCurrentUser(null);};
   const {parents:dbParents}=useDbParents(true);
-  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} teachers={teachers} students={students} parents={parents} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
+  if(!currentUser)return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u)=>{setCurrentUser(u);setActiveTab("dashboard");}}/>;
   const isAdmin=currentUser.role==="admin",isTeacher=currentUser.role==="teacher";
   const pendingParents=dbParents.filter(p=>p.status==="pending");
   const navItems=[
@@ -317,12 +233,12 @@ export default function App() {
         )}
         {activeTab==="pointEntry"&&(isAdmin||isTeacher)&&<PointEntryPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} isAdmin={isAdmin}/>}
         {activeTab==="teachers"&&isAdmin&&<TeachersPage t={t} lang={lang} showNotif={showNotif}/>}
-        {activeTab==="students"&&isAdmin&&<StudentsPage t={t} lang={lang} teachers={teachers} parents={parents} showNotif={showNotif}/>}
+        {activeTab==="students"&&isAdmin&&<StudentsPage t={t} lang={lang} showNotif={showNotif}/>}
         {activeTab==="questions"&&isAdmin&&<QuestionsPage t={t} lang={lang} showNotif={showNotif}/>}
         {activeTab==="accounts"&&isAdmin&&<AccountsPage t={t} lang={lang} showNotif={showNotif}/>}
         {activeTab==="reports"&&<ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
         {activeTab==="settings"&&isAdmin&&<SettingsPage t={t} lang={lang} termConfig={termConfig} onSaveTermConfig={saveTermConfig} showNotif={showNotif}/>}
-        {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} onPasswordChange={handlePasswordChange} showNotif={showNotif}/>}
+        {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif}/>}
         {activeTab==="teacherKpi"&&isAdmin&&<TeacherKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
         {activeTab==="parentKpi"&&isAdmin&&<ParentKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
         {activeTab==="myTchrKpi"&&isTeacher&&<MyTeacherKPIPage t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig}/>}
@@ -335,7 +251,7 @@ export default function App() {
 function YearSelector({t,lang,selectedYear,setSelectedYear,availableYears}){return(<div style={{display:"flex",alignItems:"center",gap:8,background:"#f8fafc",borderRadius:10,padding:"8px 14px"}}><span style={{fontSize:13,fontWeight:700,color:"#334155"}}>📅 {lang==="bn"?"বছর":"Year"}:</span><select style={{border:"none",background:"transparent",fontSize:15,fontWeight:800,color:"#334155",outline:"none",cursor:"pointer"}} value={selectedYear} onChange={e=>setSelectedYear(parseInt(e.target.value))}>{availableYears.map(y=><option key={y} value={y}>{y}</option>)}</select></div>);}
 function StatCard({icon,value,label,color}){return(<div style={{...S.statCard,border:"1px solid #e2e8f0"}}><div style={{fontSize:22,marginBottom:8}}>{icon}</div><div style={{fontSize:20,fontWeight:800,color:"#0f172a",marginBottom:4}}>{value}</div><div style={{fontSize:12,color:"#64748b"}}>{label}</div></div>);}
 function RankCard({title,list,lang,t}){return(<div style={S.card}><h3 style={S.ct}>{title}</h3>{list.map((s,i)=>(<div key={s.id} style={S.rankRow}><div style={{...S.rankBadge,background:i===0?"#0f172a":i===1?"#52525b":i===2?"#a1a1aa":"#f4f4f5",color:i<3?"#fff":"#64748b"}}>{i+1}</div><div style={{flex:1,fontSize:14,fontWeight:500}}>{lang==="bn"?s.name:s.nameEn}</div><div style={{fontSize:12,color:"#94a3b8"}}>{t.class} {s.class}{s.section}</div><div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{s.kpi}</div></div>))}</div>);}
-function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
+function AuthPage({t,lang,setLang,onLogin}){
   const [form,setForm]=useState({id:"",password:""});
   const [error,setError]=useState("");
   const [busy,setBusy]=useState(false);
@@ -359,28 +275,12 @@ function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
             onLogin(u);
             return;
           }
-          // authenticated but no profile row — undo and fall through to demo auth
+          // authenticated but no matching profile row — undo
           await supabase.auth.signOut();
         }
       }
-      // 2) Fallback — localStorage demo accounts (teacher/student/parent not yet migrated)
-      doLocalLogin();
+      setError(lang==="bn"?"ভুল ID বা পাসওয়ার্ড":"Invalid ID or password");
     }finally{setBusy(false);}
-  };
-  const doLocalLogin=()=>{
-    // Admin is migrated to Supabase Auth — no localStorage admin fallback.
-    // teacher/student/parent stay on demo localStorage until their slices migrate.
-    const tc=teachers.find(x=>x.systemId===form.id&&x.password===form.password);
-    if(tc){onLogin({...tc,name:lang==="bn"?tc.name:tc.nameEn,role:tc.isAdmin?"admin":"teacher"});return;}
-    const st=students.find(x=>x.systemId===form.id&&x.password===form.password);
-    if(st){onLogin({...st,name:lang==="bn"?st.name:st.nameEn,role:st.isAdmin?"admin":"student"});return;}
-    const pr=parents.find(x=>x.systemId===form.id&&x.password===form.password);
-    if(pr){
-      if(pr.status==="pending"){setError(lang==="bn"?"অ্যাডমিনের অনুমোদন বাকি":"Awaiting admin approval");return;}
-      if(pr.status==="rejected"){setError(lang==="bn"?"অ্যাকাউন্ট বাতিল":"Account rejected");return;}
-      onLogin({...pr,name:lang==="bn"?pr.name:pr.nameEn,role:pr.isAdmin?"admin":"parent"});return;
-    }
-    setError(lang==="bn"?"ভুল ID বা পাসওয়ার্ড":"Invalid ID or password");
   };
   return(
     <div style={S.loginBg}><div style={S.loginCard}>
@@ -399,11 +299,6 @@ function AuthPage({t,lang,setLang,teachers,students,parents,onLogin}){
         <input style={S.inp} type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} onKeyDown={e=>e.key==="Enter"&&!busy&&doLogin()}/></div>
       {error&&<div style={{color:"#ef4444",fontSize:13,marginBottom:8,textAlign:"center"}}>{error}</div>}
       <button onClick={doLogin} disabled={busy} style={{...S.loginBtn,...(busy?{opacity:0.6,cursor:"wait"}:{})}}>{busy?(lang==="bn"?"প্রবেশ করা হচ্ছে…":"Signing in…"):t.loginBtn}</button>
-      <div style={{marginTop:14,background:"#f8fafc",borderRadius:8,padding:"10px 14px",fontSize:12,color:"#64748b"}}>
-        <div style={{fontWeight:700,marginBottom:4,color:"#475569"}}>{lang==="bn"?"ডেমো:":"Demo:"}</div>
-        <div>admin / admin</div><div>TCH-20260001 / 1234</div>
-        <div>STD-20260001 / 1234</div><div>PAR-20260001 / 1234</div>
-      </div>
     </div></div>
   );
 }
@@ -593,29 +488,22 @@ function AccountsPage({t,lang,showNotif}){
       <tbody>{current.map((p,i)=>{const st=dbStudents.find(s=>s.id===p.studentId);return(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><strong>{lang==="bn"?p.name:p.nameEn}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{fontSize:13}}>{lang==="bn"?st?.name:st?.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{st?.systemId}</div></td><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{p.systemId}</code></td><td style={S.td}><span style={{background:sColor(p.status),color:sText(p.status),padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:700}}>{p.status==="approved"?t.approved:p.status==="rejected"?t.rejected:t.pending}</span></td><td style={S.td}><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{tab==="pending"&&<><button onClick={()=>approve(p.id)} style={{padding:"4px 10px",background:"#f0fdf4",color:"#166534",border:"1px solid #86efac",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✅ {t.approve}</button><button onClick={()=>reject(p.id)} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>❌ {t.reject}</button></>}<button onClick={()=>openEditParent(p)} style={{padding:"4px 10px",background:"#f8fafc",color:"#0f172a",border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>✏️</button><button onClick={()=>setConfirmParentDel({id:p.id,name:lang==="bn"?p.name:p.nameEn})} style={{padding:"4px 10px",background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600}}>🗑️</button></div></td></tr>);})}</tbody></table></div>
     )}</div>
   </div>);}
-function ProfilePage({t,lang,currentUser,onPasswordChange,showNotif}){
+function ProfilePage({t,lang,currentUser,showNotif}){
   const [form,setForm]=useState({current:"",newPass:"",confirm:""});
   const [error,setError]=useState("");
   const [busy,setBusy]=useState(false);
   const handle=async()=>{
     setError("");
     if(form.newPass!==form.confirm){setError(t.passwordMismatch);return;}
+    if(form.newPass.length<6){setError(lang==="bn"?"কমপক্ষে ৬ অক্ষর":"Min 6 chars");return;}
     setBusy(true);
     try{
-      if(currentUser.backend){
-        // Supabase user: verify current password by re-auth, then update.
-        if(form.newPass.length<6){setError(lang==="bn"?"কমপক্ষে ৬ অক্ষর":"Min 6 chars");return;}
-        const {error:authErr}=await supabase.auth.signInWithPassword({email:systemIdToEmail(currentUser.systemId),password:form.current});
-        if(authErr){setError(t.wrongPassword);return;}
-        const {error:upErr}=await supabase.auth.updateUser({password:form.newPass});
-        if(upErr){setError(upErr.message);return;}
-        showNotif(t.passwordChanged);
-      }else{
-        // localStorage user (e.g. unmigrated parent)
-        if(form.current!==currentUser.password){setError(t.wrongPassword);return;}
-        if(form.newPass.length<4){setError(lang==="bn"?"কমপক্ষে ৪ অক্ষর":"Min 4 chars");return;}
-        onPasswordChange(currentUser.id,currentUser.role,form.newPass);
-      }
+      // Verify the current password by re-auth, then update via Supabase Auth.
+      const {error:authErr}=await supabase.auth.signInWithPassword({email:systemIdToEmail(currentUser.systemId),password:form.current});
+      if(authErr){setError(t.wrongPassword);return;}
+      const {error:upErr}=await supabase.auth.updateUser({password:form.newPass});
+      if(upErr){setError(upErr.message);return;}
+      showNotif(t.passwordChanged);
       setForm({current:"",newPass:"",confirm:""});
     }finally{setBusy(false);}
   };
@@ -714,10 +602,11 @@ function TeachersPage({t,lang,showNotif}){
     <tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><code style={{background:"#f8fafc",padding:"2px 6px",borderRadius:4,fontSize:11,color:"#0f172a"}}>{tc.systemId}</code></td><td style={S.td}><strong>{lang==="bn"?tc.name:tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher?`${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}`:"—"}</td><td style={S.td}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(tc.subjectAssignments||[]).map((a,j)=>(<span key={j} style={{...S.assignTag,fontSize:11}}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1]||a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents||[]).length}{lang==="bn"?"জন":"sts"}</td><td style={S.td}><div style={{display:"flex",gap:6}}><button onClick={()=>openEdit(tc)} style={aBtn("#f8fafc","#0f172a","#e2e8f0")}>✏️ {t.edit}</button><button onClick={()=>setConfirmDel({id:tc.id,name:lang==="bn"?tc.name:tc.nameEn})} style={aBtn("#fee2e2","#991b1b","#fca5a5")}>🗑️ {t.deleteAdmin}</button></div></td></tr>))}</tbody></table></div>
   </div>);}
 
-function StudentsPage({t,lang,teachers,parents,showNotif}){
-  // Self-contained Supabase data (admin session required by RLS). Dashboards/
-  // reports still read the localStorage `students` until entries are migrated.
+function StudentsPage({t,lang,showNotif}){
+  // Self-contained Supabase data (admin session required by RLS).
   const {students,loading,error,reload}=useDbStudents(true);
+  const {teachers}=useDbTeachers(true);
+  const {parents}=useDbParents(true);
   const [showForm,setShowForm]=useState(false);
   const [editId,setEditId]=useState(null);
   const blank={name:"",nameEn:"",class:"8",section:"",roll:"",password:"123456"};
@@ -1005,6 +894,7 @@ function SettingsPage({t,lang,termConfig,onSaveTermConfig,showNotif}){
   const [cfg,setCfg]=useState({...termConfig});
   const [seeding,setSeeding]=useState(false);
   const [savingTerm,setSavingTerm]=useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(()=>{setCfg({...termConfig});},[termConfig]);
   const toggle=(term,m)=>{const cur=cfg[term];setCfg({...cfg,[term]:cur.includes(m)?cur.filter(x=>x!==m):[...cur,m].sort((a,b)=>a-b)});};
   const handleSaveTerm=async()=>{setSavingTerm(true);try{await onSaveTermConfig(cfg);showNotif(lang==="bn"?"সেটিংস সংরক্ষণ!":"Settings saved!");}catch(e){showNotif((lang==="bn"?"ত্রুটি: ":"Error: ")+(e.message||e));}finally{setSavingTerm(false);}};
