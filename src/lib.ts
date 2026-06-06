@@ -13,7 +13,7 @@ export const getWeekNumber = (dateStr: string): number => {
 };
 
 // Minimal shape freqDone reads off a KPI entry (callers pass richer objects).
-type FreqEntry = { targetId: string; questionId: string; date: string; year: number; month: number };
+type FreqEntry = { targetId: string; questionId: string | null; date: string; year: number; month: number };
 
 // True if an entry for (targetId, questionId) already exists within the
 // question's frequency period containing dateStr. For teacher/parent KPI entries
