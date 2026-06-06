@@ -1,14 +1,33 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { S } from "./theme";
 import { useIsMobile } from "./hooks";
+import type { Dict, Lang, SessionUser } from "./types";
+
+export interface NavItem { key: string; icon: string; label: string; }
+
+interface Props {
+  t: Dict;
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  currentUser: SessionUser;
+  isAdmin: boolean;
+  isTeacher: boolean;
+  navItems: NavItem[];
+  activeTab: string;
+  onNav: (k: string) => void;
+  onLogout: () => void;
+  notif: string;
+  children: ReactNode;
+}
 
 // App shell: notification toast, mobile header, sidebar (logo / language /
 // nav / user / logout) and the <main> region. Pages are rendered as children.
 // Owns its own mobile-drawer state; routing/auth stay in App.
-export function Layout({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, activeTab, onNav, onLogout, notif, children }) {
+export function Layout({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, activeTab, onNav, onLogout, notif, children }: Props) {
   const isMobile = useIsMobile();
   const [navOpen, setNavOpen] = useState(false);
-  const go = (k) => { onNav(k); setNavOpen(false); };
+  const go = (k: string) => { onNav(k); setNavOpen(false); };
   const roleLabel = isAdmin ? t.admin : isTeacher ? t.teacher : currentUser.role === "student" ? t.student : t.parent;
   return (
     <div style={S.app}>

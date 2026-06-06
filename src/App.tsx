@@ -17,21 +17,22 @@ import { StudentsPage } from "./pages/Students";
 import { TeachersPage } from "./pages/Teachers";
 import { ProfilePage } from "./pages/Profile";
 import { AccountsPage } from "./pages/Accounts";
+import type { Lang, SessionUser, TermConfig } from "./types";
 
 export default function App() {
-  const [lang, setLang] = useState("bn");
+  const [lang, setLang] = useState<Lang>("bn");
   const t = T[lang];
-  const [currentUser, setCurrentUser] = useLocalStorage("kpi_currentUser", null);
+  const [currentUser, setCurrentUser] = useLocalStorage<SessionUser | null>("kpi_currentUser", null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const { termConfig, reload: reloadTermConfig } = useDbTermConfig(true);
-  const saveTermConfig = async (cfg) => { await updateTermConfig(cfg); await reloadTermConfig(); };
+  const saveTermConfig = async (cfg: TermConfig) => { await updateTermConfig(cfg); await reloadTermConfig(); };
   const [notif, setNotif] = useState("");
-  const showNotif = (msg) => { setNotif(msg); setTimeout(() => setNotif(""), 3500); };
+  const showNotif = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(""), 3500); };
   const curYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(curYear);
   const handleLogout = async () => { try { await supabase.auth.signOut(); } catch { /* no active backend session */ } setCurrentUser(null); };
   const { parents: dbParents } = useDbParents(true);
-  if (!currentUser) return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u) => { setCurrentUser(u); setActiveTab("dashboard"); }} />;
+  if (!currentUser) return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u: SessionUser) => { setCurrentUser(u); setActiveTab("dashboard"); }} />;
   const isAdmin = currentUser.role === "admin", isTeacher = currentUser.role === "teacher";
   const pendingParents = dbParents.filter(p => p.status === "pending");
   const navItems = [
