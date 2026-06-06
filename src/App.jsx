@@ -5,6 +5,7 @@ import { useDbTermConfig, updateTermConfig } from "./api/config";
 import { useLocalStorage } from "./hooks";
 import { T } from "./i18n";
 import { Layout } from "./Layout";
+import { ErrorBoundary } from "./components";
 import { AuthPage } from "./pages/Auth";
 import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards";
 import { TeacherKPIPage, ParentKPIPage, MyTeacherKPIPage, MyParentKPIPage } from "./pages/KPI";
@@ -50,6 +51,7 @@ export default function App() {
   ];
   return (
     <Layout t={t} lang={lang} setLang={setLang} currentUser={currentUser} isAdmin={isAdmin} isTeacher={isTeacher} navItems={navItems} activeTab={activeTab} onNav={setActiveTab} onLogout={handleLogout} notif={notif}>
+      <ErrorBoundary key={activeTab} lang={lang}>
       {activeTab === "dashboard" && (isAdmin || isTeacher
         ? <AdminTeacherDashboard t={t} lang={lang} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} pendingParents={pendingParents} />
         : currentUser.role === "student"
@@ -68,6 +70,7 @@ export default function App() {
       {activeTab === "parentKpi" && isAdmin && <ParentKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
       {activeTab === "myTchrKpi" && isTeacher && <MyTeacherKPIPage t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />}
       {activeTab === "myParKpi" && currentUser.role === "parent" && <MyParentKPIPage t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />}
+      </ErrorBoundary>
     </Layout>
   );
 }
