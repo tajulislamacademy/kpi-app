@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../hooks";
 import { freqDone } from "../lib";
-import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable } from "../components";
+import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid } from "../components";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
 import { useDbQuestions } from "../api/questions";
@@ -44,19 +44,7 @@ export function TeacherKPIPage({t,lang,currentUser,showNotif,selectedYear,setSel
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
-    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(isMobile?(<div style={{display:"flex",flexDirection:"column",gap:10}}>
-      {teachers.map(tc=>(<div key={tc.id} style={{...S.card,marginBottom:0}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #f8fafc"}}>
-          <div><div style={{fontWeight:700,fontSize:15,color:"#0f172a"}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{tc.systemId}</div></div>
-          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#0f172a",lineHeight:1}}>{getTotal(tc.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
-        </div>
-        {activeQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
-          <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>max {q.points}</div></div>
-          {isFreqDone(tc.id,q.id)?<div style={{width:64,height:44,display:"flex",alignItems:"center",justifyContent:"center",background:"#f0fdf4",borderRadius:8,fontSize:12,color:"#166534",fontWeight:700}}>✓</div>:<input type="number" min="0" max={q.points} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/>}
-        </div>))}
-      </div>))}
-      <button onClick={handleSubmit} disabled={submitting} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10,...(submitting?{opacity:0.6,cursor:"wait"}:{})}}>{submitting?(lang==="bn"?"জমা হচ্ছে…":"Submitting…"):t.submitPoints}</button>
-    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.teachers}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#0f172a"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{teachers.map((tc,i)=>(<tr key={tc.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?tc.name:tc.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{tc.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}>{isFreqDone(tc.id,q.id)?<span style={{fontSize:11,color:"#94a3b8",fontWeight:600}}>✓</span>:<input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(tc.id,q.id)} onChange={e=>setScore(tc.id,q.id,e.target.value)} placeholder="0"/>}</td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#0f172a",fontSize:15}}>{getTotal(tc.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} disabled={submitting} style={{...S.submitBtn,...(submitting?{opacity:0.6,cursor:"wait"}:{})}}>{submitting?(lang==="bn"?"জমা হচ্ছে…":"Submitting…"):t.submitPoints}</button></div></div>))}
+    <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={teachers} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.teachers} emptyMsg={t.noQForMonth}/>
     <EntryHistoryTable t={t} lang={lang} entries={teacherEntries} people={teachers} whoLabel={t.teachers} onEdit={(e)=>{setEditEntry(e);setEditScore(e.score);}}/>
   </div>);}
 
@@ -95,19 +83,7 @@ export function ParentKPIPage({t,lang,currentUser,showNotif,selectedYear,setSele
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
     </div>
     <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{...S.inp,maxWidth:200}} type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></div>
-    {activeQs.length===0?<div style={S.empty}>{t.noQForMonth}</div>:(isMobile?(<div style={{display:"flex",flexDirection:"column",gap:10}}>
-      {approvedParents.map(p=>(<div key={p.id} style={{...S.card,marginBottom:0}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingBottom:8,borderBottom:"2px solid #f8fafc"}}>
-          <div><div style={{fontWeight:700,fontSize:15,color:"#0f172a"}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>{p.systemId}</div></div>
-          <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}><div style={{fontSize:24,fontWeight:900,color:"#0f172a",lineHeight:1}}>{getTotal(p.id)}</div><div style={{fontSize:11,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)} pts</div></div>
-        </div>
-        {activeQs.map(q=>(<div key={q.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f1f5f9"}}>
-          <div style={{flex:1,marginRight:12}}><div style={{fontSize:13,fontWeight:500,color:"#334155"}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:11,color:"#94a3b8"}}>max {q.points}</div></div>
-          {isFreqDone(p.id,q.id)?<div style={{width:64,height:44,display:"flex",alignItems:"center",justifyContent:"center",background:"#f0fdf4",borderRadius:8,fontSize:12,color:"#166534",fontWeight:700}}>✓</div>:<input type="number" min="0" max={q.points} style={{...S.scoreInp,width:64,height:44,fontSize:18,fontWeight:700}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/>}
-        </div>))}
-      </div>))}
-      <button onClick={handleSubmit} disabled={submitting} style={{...S.submitBtn,width:"100%",padding:14,fontSize:16,marginTop:4,borderRadius:10,...(submitting?{opacity:0.6,cursor:"wait"}:{})}}>{submitting?(lang==="bn"?"জমা হচ্ছে…":"Submitting…"):t.submitPoints}</button>
-    </div>):(<div style={S.card}><div style={{overflowX:"auto"}}><table style={S.table}><thead><tr><th style={{...S.th,minWidth:140}}>{t.parent}</th>{activeQs.map(q=>(<th key={q.id} style={{...S.th,minWidth:80,textAlign:"center"}}><div style={{fontSize:11,fontWeight:600}}>{lang==="bn"?q.textBn:q.textEn}</div><div style={{fontSize:10,color:"#0f172a"}}>/{q.points}</div></th>))}<th style={{...S.th,minWidth:70,textAlign:"center"}}>{lang==="bn"?"মোট":"Total"}</th></tr></thead><tbody>{approvedParents.map((p,i)=>(<tr key={p.id} style={i%2===0?{background:"#fafafa"}:{}}><td style={S.td}><div style={{fontWeight:600,fontSize:13}}>{lang==="bn"?p.name:p.nameEn}</div><div style={{fontSize:10,color:"#94a3b8"}}>{p.systemId}</div></td>{activeQs.map(q=>(<td key={q.id} style={{...S.td,textAlign:"center"}}>{isFreqDone(p.id,q.id)?<span style={{fontSize:11,color:"#94a3b8",fontWeight:600}}>✓</span>:<input type="number" min="0" max={q.points} style={{...S.scoreInp,width:52}} value={getScore(p.id,q.id)} onChange={e=>setScore(p.id,q.id,e.target.value)} placeholder="0"/>}</td>))}<td style={{...S.td,textAlign:"center"}}><strong style={{color:"#0f172a",fontSize:15}}>{getTotal(p.id)}</strong><div style={{fontSize:10,color:"#94a3b8"}}>/{activeQs.reduce((s,q)=>s+q.points,0)}</div></td></tr>))}</tbody></table></div><div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}><button onClick={handleSubmit} disabled={submitting} style={{...S.submitBtn,...(submitting?{opacity:0.6,cursor:"wait"}:{})}}>{submitting?(lang==="bn"?"জমা হচ্ছে…":"Submitting…"):t.submitPoints}</button></div></div>))}
+    <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={approvedParents} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.parent} emptyMsg={t.noQForMonth}/>
     <EntryHistoryTable t={t} lang={lang} entries={parentEntries} people={parents} whoLabel={t.parent} onEdit={(e)=>{setEditEntry(e);setEditScore(e.score);}}/>
   </div>);}
 
