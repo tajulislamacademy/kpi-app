@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "../theme";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { genId } from "../lib";
-import { ConfirmDialog } from "../components";
+import { ConfirmDialog, PageHeader } from "../components";
 import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "../api/teachers";
 import { useDbStudents } from "../api/students";
 
@@ -54,7 +54,7 @@ export function TeachersPage({t,lang,showNotif}){
   const aBtn=(bg,cl,bc)=>({padding:"4px 10px",background:bg,color:cl,border:`1px solid ${bc}`,borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:600});
   return(<div style={S.page}>
     {confirmDel&&<ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={()=>{const id=confirmDel.id;setConfirmDel(null);doDelete(id);}} onCancel={()=>setConfirmDel(null)}/>}
-    <div style={S.ph}><div><h2 style={S.pt}>{t.teachers}</h2><p style={S.ps}>{lang==="bn"?`মোট ${teachers.length} জন`:`Total ${teachers.length}`}{loading?" · …":""}</p></div><button onClick={openAdd} style={S.addBtn}>+ {t.addTeacher}</button></div>
+    <PageHeader title={t.teachers} subtitle={`${lang==="bn"?`মোট ${teachers.length} জন`:`Total ${teachers.length}`}${loading?" · …":""}`} actionLabel={`+ ${t.addTeacher}`} onAction={openAdd}/>
     {error&&<div style={{background:"#fee2e2",color:"#991b1b",border:"1px solid #fca5a5",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:13}}>{(lang==="bn"?"ডেটা লোড ব্যর্থ: ":"Load failed: ")+error}</div>}
     {showForm&&(<div style={S.card}>
       <h3 style={S.ct}>{editId?(lang==="bn"?"শিক্ষক সম্পাদনা":"Edit Teacher"):(lang==="bn"?"নতুন শিক্ষক":"New Teacher")}</h3>
