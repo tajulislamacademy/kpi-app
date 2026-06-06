@@ -2,10 +2,11 @@
 // each of the 4 terms). Read = any authenticated user; write = admin (RLS).
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
+import type { TermConfig } from "../types";
 
-export const DEFAULT_TERMS = { term1: [0, 1, 2], term2: [3, 4, 5], term3: [6, 7, 8], term4: [9, 10, 11] };
+export const DEFAULT_TERMS: TermConfig = { term1: [0, 1, 2], term2: [3, 4, 5], term3: [6, 7, 8], term4: [9, 10, 11] };
 
-export async function getTermConfig() {
+export async function getTermConfig(): Promise<TermConfig> {
   const { data, error } = await supabase.from("term_config").select("*").eq("id", 1).maybeSingle();
   if (error) throw error;
   if (!data) return DEFAULT_TERMS;
@@ -17,7 +18,7 @@ export async function getTermConfig() {
   };
 }
 
-export async function updateTermConfig(cfg) {
+export async function updateTermConfig(cfg: TermConfig): Promise<void> {
   const { error } = await supabase
     .from("term_config")
     .update({ term1: cfg.term1, term2: cfg.term2, term3: cfg.term3, term4: cfg.term4 })
@@ -26,7 +27,7 @@ export async function updateTermConfig(cfg) {
 }
 
 export function useDbTermConfig(enabled = true) {
-  const [termConfig, setTermConfig] = useState(DEFAULT_TERMS);
+  const [termConfig, setTermConfig] = useState<TermConfig>(DEFAULT_TERMS);
   const reload = useCallback(async () => {
     if (!enabled) return;
     try {

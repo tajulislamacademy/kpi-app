@@ -5,8 +5,9 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
 import { provisionAuthUser } from "./provision";
 import { systemIdToEmail } from "./identity";
+import type { Parent, ParentInput, ParentUpdate, ParentStatus } from "../types";
 
-const toUi = (r) => ({
+const toUi = (r: any): Parent => ({
   id: r.id,
   systemId: r.profiles?.system_id,
   name: r.profiles?.name,
@@ -17,7 +18,7 @@ const toUi = (r) => ({
   status: r.status,
 });
 
-export async function listParents() {
+export async function listParents(): Promise<Parent[]> {
   const { data, error } = await supabase
     .from("parents")
     .select("id, student_id, relation, status, profiles(system_id, name, name_en, auth_id)");
@@ -25,8 +26,8 @@ export async function listParents() {
   return (data || []).map(toUi).sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
 }
 
-export async function createParent({ systemId, name, nameEn, password, studentId, relation, status }) {
-  let authId = null;
+export async function createParent({ systemId, name, nameEn, password, studentId, relation, status }: ParentInput): Promise<string> {
+  let authId: string | null = null;
   if (password) authId = await provisionAuthUser(systemIdToEmail(systemId), password);
   const { data: prof, error: e1 } = await supabase
     .from("profiles")
@@ -44,7 +45,7 @@ export async function createParent({ systemId, name, nameEn, password, studentId
   return prof.id;
 }
 
-export async function updateParent(id, { name, nameEn, relation, status, password, authId, systemId }) {
+export async function updateParent(id: string, { name, nameEn, relation, status, password, authId, systemId }: ParentUpdate): Promise<void> {
   const { error: e1 } = await supabase.from("profiles").update({ name, name_en: nameEn || name }).eq("id", id);
   if (e1) throw e1;
   const { error: e2 } = await supabase.from("parents").update({ relation, status }).eq("id", id);
@@ -53,7 +54,7 @@ export async function updateParent(id, { name, nameEn, relation, status, passwor
     if (authId) {
       const { error: e3 } = await supabase.rpc("admin_set_password", { p_profile_id: id, p_password: password });
       if (e3) throw e3;
-    } else {
+    } else if (systemId) {
       const newAuthId = await provisionAuthUser(systemIdToEmail(systemId), password);
       const { error: e4 } = await supabase.from("profiles").update({ auth_id: newAuthId }).eq("id", id);
       if (e4) throw e4;
@@ -61,20 +62,20 @@ export async function updateParent(id, { name, nameEn, relation, status, passwor
   }
 }
 
-export async function setParentStatus(id, status) {
+export async function setParentStatus(id: string, status: ParentStatus): Promise<void> {
   const { error } = await supabase.from("parents").update({ status }).eq("id", id);
   if (error) throw error;
 }
 
-export async function deleteParent(id) {
+export async function deleteParent(id: string): Promise<void> {
   const { error } = await supabase.from("profiles").delete().eq("id", id);
   if (error) throw error;
 }
 
 export function useDbParents(enabled = true) {
-  const [parents, setParents] = useState([]);
+  const [parents, setParents] = useState<Parent[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const reload = useCallback(async () => {
     if (!enabled) return;
     setLoading(true);
@@ -82,7 +83,7 @@ export function useDbParents(enabled = true) {
     try {
       setParents(await listParents());
     } catch (e) {
-      setError(e.message || String(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

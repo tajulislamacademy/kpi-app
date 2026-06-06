@@ -6,7 +6,7 @@
 // working, so it stays special-cased here.
 export const EMAIL_DOMAIN = "kpiapp.com";
 
-export function systemIdToEmail(id) {
+export function systemIdToEmail(id: string): string {
   const v = (id || "").trim();
   if (!v) return "";
   if (v.includes("@")) return v.toLowerCase();                 // already a full email

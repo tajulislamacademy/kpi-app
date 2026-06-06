@@ -5,10 +5,11 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
 import { provisionAuthUser } from "./provision";
 import { systemIdToEmail } from "./identity";
+import type { Student, StudentInput, StudentUpdate } from "../types";
 
 // Shape returned to the UI mirrors the old localStorage student object
 // ({ id, systemId, name, nameEn, class, section, roll }) so consumers barely change.
-const toUi = (r) => ({
+const toUi = (r: any): Student => ({
   id: r.id,
   systemId: r.profiles?.system_id,
   name: r.profiles?.name,
@@ -19,7 +20,7 @@ const toUi = (r) => ({
   roll: r.roll,
 });
 
-export async function listStudents() {
+export async function listStudents(): Promise<Student[]> {
   const { data, error } = await supabase
     .from("students")
     .select("id, class, section, roll, profiles(system_id, name, name_en, auth_id)");
@@ -34,8 +35,8 @@ export async function listStudents() {
 // password the student is a login-less record (auth_id stays null).
 // Two dependent inserts: profile first (returns uuid), then student detail.
 // Roll back the profile if the student insert fails, so no orphan profile remains.
-export async function createStudent({ systemId, name, nameEn, cls, section, roll, password }) {
-  let authId = null;
+export async function createStudent({ systemId, name, nameEn, cls, section, roll, password }: StudentInput): Promise<string> {
+  let authId: string | null = null;
   if (password) {
     authId = await provisionAuthUser(systemIdToEmail(systemId), password);
   }
@@ -58,7 +59,7 @@ export async function createStudent({ systemId, name, nameEn, cls, section, roll
 // `password` (optional): reset the login of a student who has one (via the
 // admin_set_password RPC), or provision a brand-new login for a login-less
 // student. authId/systemId tell us which case we're in.
-export async function updateStudent(id, { name, nameEn, cls, section, roll, password, authId, systemId }) {
+export async function updateStudent(id: string, { name, nameEn, cls, section, roll, password, authId, systemId }: StudentUpdate): Promise<void> {
   const { error: e1 } = await supabase
     .from("profiles")
     .update({ name, name_en: nameEn || name })
@@ -73,7 +74,7 @@ export async function updateStudent(id, { name, nameEn, cls, section, roll, pass
     if (authId) {
       const { error: e3 } = await supabase.rpc("admin_set_password", { p_profile_id: id, p_password: password });
       if (e3) throw e3;
-    } else {
+    } else if (systemId) {
       const newAuthId = await provisionAuthUser(systemIdToEmail(systemId), password);
       const { error: e4 } = await supabase.from("profiles").update({ auth_id: newAuthId }).eq("id", id);
       if (e4) throw e4;
@@ -82,7 +83,7 @@ export async function updateStudent(id, { name, nameEn, cls, section, roll, pass
 }
 
 // Deleting the profile cascades to the students row (FK on delete cascade).
-export async function deleteStudent(id) {
+export async function deleteStudent(id: string): Promise<void> {
   const { error } = await supabase.from("profiles").delete().eq("id", id);
   if (error) throw error;
 }
@@ -90,9 +91,9 @@ export async function deleteStudent(id) {
 // Hook: load students once, expose a reload(). `enabled` gates the fetch until
 // an admin session exists (RLS would otherwise return zero rows).
 export function useDbStudents(enabled = true) {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const reload = useCallback(async () => {
     if (!enabled) return;
     setLoading(true);
@@ -100,7 +101,7 @@ export function useDbStudents(enabled = true) {
     try {
       setStudents(await listStudents());
     } catch (e) {
-      setError(e.message || String(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

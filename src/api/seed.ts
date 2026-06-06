@@ -5,10 +5,11 @@
 import { listQuestions, createQuestion } from "./questions";
 import { listTeachers, createTeacher } from "./teachers";
 import { listStudents } from "./students";
+import type { QuestionInput } from "../types";
 
 const ALL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
-const DEMO_QUESTIONS = [
+const DEMO_QUESTIONS: QuestionInput[] = [
   { category: "student", role: "classTeacher", textBn: "উপস্থিতি ও সময়মতো আসা", textEn: "Attendance & Punctuality", points: 10, frequency: "daily", activeMonths: ALL },
   { category: "student", role: "classTeacher", textBn: "শ্রেণীকক্ষে শৃঙ্খলা", textEn: "Classroom Discipline", points: 10, frequency: "daily", activeMonths: ALL },
   { category: "student", role: "subjectTeacher", textBn: "পাঠে মনোযোগ", textEn: "Attention in Class", points: 10, frequency: "daily", activeMonths: ALL },
@@ -18,10 +19,10 @@ const DEMO_QUESTIONS = [
   { category: "parent", role: null, textBn: "অভিভাবক সভায় উপস্থিতি", textEn: "Parent Meeting Attendance", points: 10, frequency: "monthly", activeMonths: ALL },
 ];
 
-export async function seedDemoData(log = () => {}) {
+export async function seedDemoData(log: (msg: string) => void = () => {}): Promise<void> {
   // --- Questions (create only the ones missing, matched by category+role+text) ---
   const existingQ = await listQuestions();
-  const has = (q) => existingQ.some((e) => e.category === q.category && (e.role || null) === (q.role || null) && e.textBn === q.textBn);
+  const has = (q: QuestionInput) => existingQ.some((e) => e.category === q.category && (e.role || null) === (q.role || null) && e.textBn === q.textBn);
   let created = 0;
   for (const q of DEMO_QUESTIONS) {
     if (!has(q)) { await createQuestion(q); created++; }
@@ -35,10 +36,10 @@ export async function seedDemoData(log = () => {}) {
     const guide = students.slice(0, 2).map((s) => s.id);
     const yr = new Date().getFullYear();
     const maxSeq = existingT.reduce((m, tc) => {
-      const n = parseInt(String(tc.systemId || "").split("-")[1]?.slice(4)) || 0;
+      const n = parseInt(String(tc.systemId || "").split("-")[1]?.slice(4) ?? "") || 0;
       return Math.max(m, n);
     }, 0);
-    const mk = (seq) => `TCH-${yr}${String(seq).padStart(4, "0")}`;
+    const mk = (seq: number) => `TCH-${yr}${String(seq).padStart(4, "0")}`;
     await createTeacher({
       systemId: mk(maxSeq + 1), name: "রফিক স্যার", nameEn: "Rafiq Sir", password: "123456",
       classTeacher: { class: "8", section: "A" },
