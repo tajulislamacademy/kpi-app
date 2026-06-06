@@ -6,7 +6,7 @@ localStorage. No Supabase CLI required — everything runs from the dashboard.
 
 > Project: `xskjbszzuwdxiybsvlox` · Auth model: **Option B (Supabase Auth)**
 > Security: anon key is public by design; **RLS is the real guard** — already in the migration.
-
+ 
 ---
  
 ## Step 1 — Run the schema migration
