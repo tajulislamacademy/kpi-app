@@ -296,7 +296,7 @@ export default function App() {
         {activeTab==="accounts"&&isAdmin&&<AccountsPage t={t} lang={lang} parents={parents} setParents={setParents} students={students} setStudents={setStudents} teachers={teachers} setTeachers={setTeachers} admins={admins} setAdmins={setAdmins} showNotif={showNotif}/>}
         {activeTab==="reports"&&<ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear}/>}
         {activeTab==="settings"&&isAdmin&&<SettingsPage t={t} lang={lang} termConfig={termConfig} setTermConfig={setTermConfig} showNotif={showNotif}/>}
-        {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} onPasswordChange={handlePasswordChange}/>}
+        {activeTab==="profile"&&<ProfilePage t={t} lang={lang} currentUser={currentUser} onPasswordChange={handlePasswordChange} showNotif={showNotif}/>}
         {activeTab==="teacherKpi"&&isAdmin&&<TeacherKPIPage t={t} lang={lang} teachers={teachers} teacherQuestions={teacherQuestions} teacherEntries={teacherEntries} setTeacherEntries={setTeacherEntries} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
         {activeTab==="parentKpi"&&isAdmin&&<ParentKPIPage t={t} lang={lang} parents={parents} parentQuestions={parentQuestions} parentEntries={parentEntries} setParentEntries={setParentEntries} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>}
         {activeTab==="myTchrKpi"&&isTeacher&&<MyTeacherKPIPage t={t} lang={lang} currentUser={currentUser} teacherEntries={teacherEntries} getTchrMonthKPI={getTchrMonthKPI} getTchrTermKPI={getTchrTermKPI} getTchrYearKPI={getTchrYearKPI} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} termConfig={termConfig}/>}
@@ -599,16 +599,31 @@ function AccountsPage({t,lang,parents,setParents,students,setStudents,teachers,s
       </div>
     </>)}
   </div>);}
-function ProfilePage({t,lang,currentUser,onPasswordChange}){
+function ProfilePage({t,lang,currentUser,onPasswordChange,showNotif}){
   const [form,setForm]=useState({current:"",newPass:"",confirm:""});
   const [error,setError]=useState("");
-  const handle=()=>{
+  const [busy,setBusy]=useState(false);
+  const handle=async()=>{
     setError("");
-    if(form.current!==currentUser.password){setError(t.wrongPassword);return;}
     if(form.newPass!==form.confirm){setError(t.passwordMismatch);return;}
-    if(form.newPass.length<4){setError(lang==="bn"?"কমপক্ষে ৪ অক্ষর":"Min 4 chars");return;}
-    onPasswordChange(currentUser.id,currentUser.role,form.newPass);
-    setForm({current:"",newPass:"",confirm:""});
+    setBusy(true);
+    try{
+      if(currentUser.backend){
+        // Supabase user: verify current password by re-auth, then update.
+        if(form.newPass.length<6){setError(lang==="bn"?"কমপক্ষে ৬ অক্ষর":"Min 6 chars");return;}
+        const {error:authErr}=await supabase.auth.signInWithPassword({email:systemIdToEmail(currentUser.systemId),password:form.current});
+        if(authErr){setError(t.wrongPassword);return;}
+        const {error:upErr}=await supabase.auth.updateUser({password:form.newPass});
+        if(upErr){setError(upErr.message);return;}
+        showNotif(t.passwordChanged);
+      }else{
+        // localStorage user (e.g. unmigrated parent)
+        if(form.current!==currentUser.password){setError(t.wrongPassword);return;}
+        if(form.newPass.length<4){setError(lang==="bn"?"কমপক্ষে ৪ অক্ষর":"Min 4 chars");return;}
+        onPasswordChange(currentUser.id,currentUser.role,form.newPass);
+      }
+      setForm({current:"",newPass:"",confirm:""});
+    }finally{setBusy(false);}
   };
   return(<div style={S.page}><h2 style={S.pt}>{t.myProfile}</h2><div style={S.card}>
     <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20,padding:16,background:"#f8fafc",borderRadius:10}}>
@@ -621,7 +636,7 @@ function ProfilePage({t,lang,currentUser,onPasswordChange}){
       <div style={S.fg}><label style={S.lbl}>{t.newPassword}</label><input style={S.inp} type="password" value={form.newPass} onChange={e=>setForm({...form,newPass:e.target.value})}/></div>
       <div style={S.fg}><label style={S.lbl}>{t.confirmPassword}</label><input style={S.inp} type="password" value={form.confirm} onChange={e=>setForm({...form,confirm:e.target.value})}/></div>
       {error&&<div style={{color:"#ef4444",fontSize:13,marginBottom:8}}>{error}</div>}
-      <button onClick={handle} style={S.saveBtn}>{t.changePassword}</button>
+      <button onClick={handle} disabled={busy} style={{...S.saveBtn,...(busy?{opacity:0.6,cursor:"wait"}:{})}}>{busy?(lang==="bn"?"পরিবর্তন হচ্ছে…":"Changing…"):t.changePassword}</button>
     </div>
   </div></div>);}
 function TeachersPage({t,lang,showNotif}){
@@ -640,7 +655,7 @@ function TeachersPage({t,lang,showNotif}){
   const removeAssign=i=>setForm({...form,subjectAssignments:form.subjectAssignments.filter((_,idx)=>idx!==i)});
   const toggleGuide=sid=>{const gs=form.guideStudents.includes(sid)?form.guideStudents.filter(x=>x!==sid):[...form.guideStudents,sid];setForm({...form,guideStudents:gs});};
   const openAdd=()=>{setEditId(null);setForm(blank);setHasClass(false);setShowForm(true);};
-  const openEdit=tc=>{setEditId(tc.id);setForm({name:tc.name,nameEn:tc.nameEn||"",password:"",classTeacher:tc.classTeacher||null,subjectAssignments:tc.subjectAssignments||[],guideStudents:tc.guideStudents||[]});setHasClass(!!tc.classTeacher);setShowForm(true);};
+  const openEdit=tc=>{setEditId(tc.id);setForm({name:tc.name,nameEn:tc.nameEn||"",password:"",classTeacher:tc.classTeacher||null,subjectAssignments:tc.subjectAssignments||[],guideStudents:tc.guideStudents||[],_authId:tc.authId,_systemId:tc.systemId});setHasClass(!!tc.classTeacher);setShowForm(true);};
   const nextSystemId=()=>{
     const yr=new Date().getFullYear();
     const max=teachers.reduce((m,tc)=>{const n=parseInt(String(tc.systemId||"").split("-")[1]?.slice(4))||0;return Math.max(m,n);},0);
@@ -648,12 +663,12 @@ function TeachersPage({t,lang,showNotif}){
   };
   const handleSave=async()=>{
     if(!form.name){showNotif(lang==="bn"?"নাম আবশ্যক":"Name required");return;}
-    if(!editId&&form.password&&form.password.length<6){showNotif(lang==="bn"?"পাসওয়ার্ড কমপক্ষে ৬ অক্ষর":"Password must be at least 6 characters");return;}
+    if(form.password&&form.password.length<6){showNotif(lang==="bn"?"পাসওয়ার্ড কমপক্ষে ৬ অক্ষর":"Password must be at least 6 characters");return;}
     setSaving(true);
     try{
       const classTeacher=hasClass?(form.classTeacher||{class:"8",section:"A"}):null;
       if(editId){
-        await updateTeacher(editId,{name:form.name,nameEn:form.nameEn,classTeacher,subjectAssignments:form.subjectAssignments,guideStudents:form.guideStudents});
+        await updateTeacher(editId,{name:form.name,nameEn:form.nameEn,classTeacher,subjectAssignments:form.subjectAssignments,guideStudents:form.guideStudents,password:form.password||null,authId:form._authId,systemId:form._systemId});
         showNotif(lang==="bn"?"আপডেট হয়েছে!":"Updated!");
       }else{
         const systemId=nextSystemId();
@@ -679,7 +694,7 @@ function TeachersPage({t,lang,showNotif}){
       <div style={S.grid2}>
         <div style={S.fg}><label style={S.lbl}>{t.name} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
         <div style={S.fg}><label style={S.lbl}>{t.name} (English)</label><input style={S.inp} value={form.nameEn} onChange={e=>setForm({...form,nameEn:e.target.value})}/></div>
-        {!editId&&<div style={S.fg}><label style={S.lbl}>{t.defaultPass} (login)</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder={lang==="bn"?"খালি = login ছাড়া":"blank = no login"}/></div>}
+        <div style={S.fg}><label style={S.lbl}>{editId?(lang==="bn"?"পাসওয়ার্ড":"Password"):(t.defaultPass+" (login)")}</label><input style={S.inp} value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder={editId?(form._authId?(lang==="bn"?"খালি = অপরিবর্তিত":"blank = unchanged"):(lang==="bn"?"login দিতে পাসওয়ার্ড দিন":"set to give a login")):(lang==="bn"?"খালি = login ছাড়া":"blank = no login")}/></div>
       </div>
       <div style={S.sectionBox}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><input type="checkbox" checked={hasClass} onChange={e=>setHasClass(e.target.checked)} id="hc"/><label htmlFor="hc" style={{fontWeight:700,color:"#0f172a",fontSize:14}}>{t.classTeacher}?</label></div>
