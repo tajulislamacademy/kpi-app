@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../hooks";
 import { freqDone } from "../lib";
-import { StatCard, BarChart, YearSelector, TermBreakdown } from "../components";
+import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal } from "../components";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
 import { useDbQuestions } from "../api/questions";
@@ -38,13 +38,7 @@ export function TeacherKPIPage({t,lang,currentUser,showNotif,selectedYear,setSel
     finally{setSubmitting(false);}
   };
   return(<div style={S.page}>
-    {editEntry&&(<div style={S.modalBg}><div style={S.modalBox}>
-      <h3 style={{...S.ct,marginBottom:16}}>✏️ {lang==="bn"?"পয়েন্ট সম্পাদনা":"Edit Points"}</h3>
-      <div style={{fontSize:13,color:"#64748b",marginBottom:12}}>{lang==="bn"?editEntry.questionText:editEntry.questionTextEn} · max {editEntry.maxPoints}</div>
-      {(editEntry.editLog||[]).length>0&&<div style={{background:"#fef3c7",borderRadius:8,padding:"10px 12px",marginBottom:14}}><div style={{fontSize:12,fontWeight:700,color:"#92400e",marginBottom:6}}>{lang==="bn"?"ইতিহাস":"History"}</div>{editEntry.editLog.map((log,i)=>(<div key={i} style={{fontSize:12,color:"#78350f"}}>{log.editedAt}: {log.oldScore}→{log.newScore}</div>))}</div>}
-      <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"নতুন পয়েন্ট":"New Score"} (max:{editEntry.maxPoints})</label><input style={{...S.inp,maxWidth:120,fontSize:18,fontWeight:700,color:"#0f172a"}} type="number" min="0" max={editEntry.maxPoints} value={editScore} onChange={e=>setEditScore(Math.min(parseInt(e.target.value)||0,editEntry.maxPoints||0))}/></div>
-      <div style={{display:"flex",gap:8}}><button onClick={handleEditSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setEditEntry(null)} style={S.cancelBtn}>{t.cancel}</button></div>
-    </div></div>)}
+    {editEntry&&<EditScoreModal t={t} lang={lang} entry={editEntry} score={editScore} setScore={setEditScore} onSave={handleEditSave} onCancel={()=>setEditEntry(null)}/>}
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
       <h2 style={{...S.pt,margin:0}}>{t.tchrKpiEntry}</h2>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>
@@ -95,13 +89,7 @@ export function ParentKPIPage({t,lang,currentUser,showNotif,selectedYear,setSele
     finally{setSubmitting(false);}
   };
   return(<div style={S.page}>
-    {editEntry&&(<div style={S.modalBg}><div style={S.modalBox}>
-      <h3 style={{...S.ct,marginBottom:16}}>✏️ {lang==="bn"?"পয়েন্ট সম্পাদনা":"Edit Points"}</h3>
-      <div style={{fontSize:13,color:"#64748b",marginBottom:12}}>{lang==="bn"?editEntry.questionText:editEntry.questionTextEn} · max {editEntry.maxPoints}</div>
-      {(editEntry.editLog||[]).length>0&&<div style={{background:"#fef3c7",borderRadius:8,padding:"10px 12px",marginBottom:14}}><div style={{fontSize:12,fontWeight:700,color:"#92400e",marginBottom:6}}>{lang==="bn"?"ইতিহাস":"History"}</div>{editEntry.editLog.map((log,i)=>(<div key={i} style={{fontSize:12,color:"#78350f"}}>{log.editedAt}: {log.oldScore}→{log.newScore}</div>))}</div>}
-      <div style={S.fg}><label style={S.lbl}>{lang==="bn"?"নতুন পয়েন্ট":"New Score"} (max:{editEntry.maxPoints})</label><input style={{...S.inp,maxWidth:120,fontSize:18,fontWeight:700,color:"#0f172a"}} type="number" min="0" max={editEntry.maxPoints} value={editScore} onChange={e=>setEditScore(Math.min(parseInt(e.target.value)||0,editEntry.maxPoints||0))}/></div>
-      <div style={{display:"flex",gap:8}}><button onClick={handleEditSave} style={S.saveBtn}>{t.save}</button><button onClick={()=>setEditEntry(null)} style={S.cancelBtn}>{t.cancel}</button></div>
-    </div></div>)}
+    {editEntry&&<EditScoreModal t={t} lang={lang} entry={editEntry} score={editScore} setScore={setEditScore} onSave={handleEditSave} onCancel={()=>setEditEntry(null)}/>}
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
       <h2 style={{...S.pt,margin:0}}>{t.parKpiEntry}</h2>
       <YearSelector t={t} lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears}/>

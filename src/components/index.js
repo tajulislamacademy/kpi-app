@@ -9,3 +9,4 @@ export { StatCard } from "./StatCard";
 export { RankCard } from "./RankCard";
 export { BarChart } from "./BarChart";
 export { TermBreakdown } from "./TermBreakdown";
+export { EditScoreModal } from "./EditScoreModal";
