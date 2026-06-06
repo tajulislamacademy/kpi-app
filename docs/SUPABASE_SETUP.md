@@ -8,7 +8,7 @@ localStorage. No Supabase CLI required — everything runs from the dashboard.
 > Security: anon key is public by design; **RLS is the real guard** — already in the migration.
 
 ---
-
+ 
 ## Step 1 — Run the schema migration
 
 1. Supabase Dashboard → **SQL Editor** → **New query**.
