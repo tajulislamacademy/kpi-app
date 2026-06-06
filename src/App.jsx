@@ -8,6 +8,11 @@ import { useDbParents, createParent, updateParent, setParentStatus, deleteParent
 import { useDbTermConfig, updateTermConfig } from "./api/config";
 import { seedDemoData } from "./api/seed";
 import { systemIdToEmail } from "./api/identity";
+import { MONTHS, CLASSES, SECTIONS, SUBJECTS } from "./constants";
+import { genId, getWeekNumber, freqDone } from "./lib";
+import { useLocalStorage, useIsMobile } from "./hooks";
+import { T } from "./i18n";
+import { S } from "./theme";
 
 // Builds the in-app user from a profiles row, loading role-specific extras the
 // app relies on: a teacher's class/subject/guide assignments (in the teachers
@@ -29,134 +34,9 @@ async function loadSessionUser(prof, lang){
   return base;
 }
 
-function useLocalStorage(key,init){
-  const [val,setVal]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
-  const set=v=>{setVal(prev=>{const next=typeof v==="function"?v(prev):v;try{localStorage.setItem(key,JSON.stringify(next));}catch{}return next;});};
-  return[val,set];
-}
 
-function useIsMobile(){
-  const [m,setM]=useState(()=>typeof window!=="undefined"?window.innerWidth<768:false);
-  useEffect(()=>{const h=()=>setM(window.innerWidth<768);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
-  return m;
-}
 
-const T = {
-  bn: {
-    appTitle:"শিক্ষার্থী KPI সিস্টেম", dashboard:"ড্যাশবোর্ড", teachers:"শিক্ষক",
-    students:"শিক্ষার্থী", questions:"প্রশ্নমালা", reports:"রিপোর্ট",
-    pointEntry:"পয়েন্ট এন্ট্রি", settings:"সেটিংস", accounts:"অ্যাকাউন্ট",
-    admin:"অ্যাডমিন", teacher:"শিক্ষক", student:"শিক্ষার্থী", parent:"অভিভাবক",
-    logout:"লগআউট", login:"লগইন", register:"রেজিস্ট্রেশন",
-    username:"ব্যবহারকারী ID", password:"পাসওয়ার্ড", loginBtn:"প্রবেশ করুন",
-    registerBtn:"রেজিস্ট্রেশন করুন", backToLogin:"লগইনে ফিরুন",
-    totalStudents:"মোট শিক্ষার্থী", totalTeachers:"মোট শিক্ষক",
-    monthlyKPI:"মাসিক KPI এন্ট্রি", topStudents:"শীর্ষ শিক্ষার্থী",
-    classTeacher:"শ্রেণী শিক্ষক", subjectTeacher:"বিষয় শিক্ষক", guideTeacher:"গাইড শিক্ষক",
-    addTeacher:"শিক্ষক যোগ করুন", addStudent:"শিক্ষার্থী যোগ করুন", addQuestion:"প্রশ্ন যোগ করুন",
-    name:"নাম", class:"শ্রেণী", section:"শাখা", roll:"রোল", subject:"বিষয়",
-    points:"পয়েন্ট", month:"মাস", save:"সংরক্ষণ", cancel:"বাতিল",
-    rank:"র‍্যাংক", totalPoints:"মোট পয়েন্ট", selectDate:"তারিখ নির্বাচন",
-    submitPoints:"পয়েন্ট জমা দিন", role:"ভূমিকা", activeMonths:"সক্রিয় মাস",
-    pointsPerEntry:"সর্বোচ্চ পয়েন্ট", entrySuccess:"পয়েন্ট সফলভাবে জমা হয়েছে!",
-    term1:"১ম প্রান্তিক", term2:"২য় প্রান্তিক", term3:"৩য় প্রান্তিক", term4:"৪র্থ প্রান্তিক",
-    termConfig:"প্রান্তিক কনফিগারেশন", welcome:"স্বাগতম",
-    jan:"জানুয়ারি", feb:"ফেব্রুয়ারি", mar:"মার্চ", apr:"এপ্রিল",
-    may:"মে", jun:"জুন", jul:"জুলাই", aug:"আগস্ট",
-    sep:"সেপ্টেম্বর", oct:"অক্টোবর", nov:"নভেম্বর", dec:"ডিসেম্বর",
-    subjectAssignments:"বিষয় নিয়োগ", guideStudents:"গাইডি শিক্ষার্থী",
-    noClassRole:"এই ভূমিকায় কোনো নিয়োগ নেই",
-    selectClassSubject:"প্রথমে শ্রেণী ও বিষয় নির্বাচন করুন",
-    pendingApprovals:"অনুমোদন অপেক্ষমাণ", approve:"অনুমোদন", reject:"বাতিল",
-    approved:"অনুমোদিত", rejected:"বাতিল", pending:"অপেক্ষমাণ",
-    myKPI:"আমার KPI", childKPI:"সন্তানের KPI", myProfile:"আমার প্রোফাইল",
-    changePassword:"পাসওয়ার্ড পরিবর্তন", currentPassword:"বর্তমান পাসওয়ার্ড",
-    newPassword:"নতুন পাসওয়ার্ড", confirmPassword:"পাসওয়ার্ড নিশ্চিত করুন",
-    studentId:"শিক্ষার্থীর ID", parentName:"অভিভাবকের নাম",
-    relation:"সম্পর্ক", father:"বাবা", mother:"মা", guardian:"অভিভাবক",
-    autoId:"সিস্টেম ID", defaultPass:"ডিফল্ট পাসওয়ার্ড",
-    accountManagement:"অ্যাকাউন্ট ম্যানেজমেন্ট",
-    approvalNote:"অ্যাডমিনের অনুমোদনের পর লগইন করা যাবে",
-    maxParents:"এই শিক্ষার্থীর সর্বোচ্চ ২ জন অভিভাবক নিবন্ধিত",
-    invalidStudentId:"সঠিক শিক্ষার্থী ID দিন",
-    passwordMismatch:"পাসওয়ার্ড মিলছে না",
-    passwordChanged:"পাসওয়ার্ড পরিবর্তন হয়েছে!",
-    wrongPassword:"বর্তমান পাসওয়ার্ড ভুল",
-    myRank:"আমার র‍্যাংক", myMonthly:"মাসিক পয়েন্ট", myYearly:"বার্ষিক পয়েন্ট",
-    progressChart:"অগ্রগতি চার্ট",
-    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",teacherKPI:"শিক্ষক KPI",parentKPI:"অভিভাবক KPI",tchrKpiEntry:"শিক্ষক KPI এন্ট্রি",parKpiEntry:"অভিভাবক KPI এন্ট্রি",stdQuestions:"শিক্ষার্থী প্রশ্ন",tchrQuestions:"শিক্ষক প্রশ্ন",parQuestions:"অভিভাবক প্রশ্ন",entryHistory:"এন্ট্রি ইতিহাস",noQForMonth:"এই মাসে কোনো প্রশ্ন নেই",myTchrKPI:"আমার KPI",frequency:"পুনরাবৃত্তি",daily:"দৈনিক",weekly:"সাপ্তাহিক",monthly:"মাসিক",quarterly:"ত্রৈমাসিক",annual:"বার্ষিক",alreadyDone:"এই সময়ে দেওয়া হয়েছে",
-  },
-  en: {
-    appTitle:"Student KPI System", dashboard:"Dashboard", teachers:"Teachers",
-    students:"Students", questions:"Questions", reports:"Reports",
-    pointEntry:"Point Entry", settings:"Settings", accounts:"Accounts",
-    admin:"Admin", teacher:"Teacher", student:"Student", parent:"Parent",
-    logout:"Logout", login:"Login", register:"Register",
-    username:"User ID", password:"Password", loginBtn:"Sign In",
-    registerBtn:"Register", backToLogin:"Back to Login",
-    totalStudents:"Total Students", totalTeachers:"Total Teachers",
-    monthlyKPI:"Monthly KPI Entries", topStudents:"Top Students",
-    classTeacher:"Class Teacher", subjectTeacher:"Subject Teacher", guideTeacher:"Guide Teacher",
-    addTeacher:"Add Teacher", addStudent:"Add Student", addQuestion:"Add Question",
-    name:"Name", class:"Class", section:"Section", roll:"Roll", subject:"Subject",
-    points:"Points", month:"Month", save:"Save", cancel:"Cancel",
-    rank:"Rank", totalPoints:"Total Points", selectDate:"Select Date",
-    submitPoints:"Submit Points", role:"Role", activeMonths:"Active Months",
-    pointsPerEntry:"Max Points", entrySuccess:"Points submitted successfully!",
-    term1:"1st Term", term2:"2nd Term", term3:"3rd Term", term4:"4th Term",
-    termConfig:"Term Configuration", welcome:"Welcome",
-    jan:"January", feb:"February", mar:"March", apr:"April",
-    may:"May", jun:"June", jul:"July", aug:"August",
-    sep:"September", oct:"October", nov:"November", dec:"December",
-    subjectAssignments:"Subject Assignments", guideStudents:"Guide Students",
-    noClassRole:"No assignment for this role",
-    selectClassSubject:"Select class and subject first",
-    pendingApprovals:"Pending Approvals", approve:"Approve", reject:"Reject",
-    approved:"Approved", rejected:"Rejected", pending:"Pending",
-    myKPI:"My KPI", childKPI:"Child's KPI", myProfile:"My Profile",
-    changePassword:"Change Password", currentPassword:"Current Password",
-    newPassword:"New Password", confirmPassword:"Confirm Password",
-    studentId:"Student ID", parentName:"Parent Name",
-    relation:"Relation", father:"Father", mother:"Mother", guardian:"Guardian",
-    autoId:"System ID", defaultPass:"Default Password",
-    accountManagement:"Account Management",
-    approvalNote:"You can login after admin approval",
-    maxParents:"Maximum 2 parents allowed per student",
-    invalidStudentId:"Please enter a valid student ID",
-    passwordMismatch:"Passwords do not match",
-    passwordChanged:"Password changed successfully!",
-    wrongPassword:"Current password is incorrect",
-    myRank:"My Rank", myMonthly:"Monthly Points", myYearly:"Yearly Points",
-    progressChart:"Progress Chart",
-    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",teacherKPI:"Teacher KPI",parentKPI:"Parent KPI",tchrKpiEntry:"Teacher KPI Entry",parKpiEntry:"Parent KPI Entry",stdQuestions:"Student Questions",tchrQuestions:"Teacher Questions",parQuestions:"Parent Questions",entryHistory:"Entry History",noQForMonth:"No questions for this month",myTchrKPI:"My KPI",frequency:"Frequency",daily:"Daily",weekly:"Weekly",monthly:"Monthly",quarterly:"Quarterly",annual:"Annual",alreadyDone:"Already done this period",
-  }
-};
 
-const MONTHS=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
-const CLASSES=["Pre","1","2","3","4","5","6","7","8","9","10"];
-const SECTIONS=["A","B","C","D"];
-const SUBJECTS=["বাংলা/Bangla","ইংরেজি/English","গণিত/Math","বিজ্ঞান/Science","সমাজ/Social","ধর্ম/Religion","আইসিটি/ICT","চারু/Arts","শারীরিক/PE"];
-
-const genId=(prefix,year,seq)=>`${prefix}-${year||new Date().getFullYear()}${String(seq).padStart(4,"0")}`;
-const getWeekNumber=(dateStr)=>{const d=new Date(dateStr);const start=new Date(d.getFullYear(),0,1);return Math.ceil(((d-start)/86400000+start.getDay()+1)/7);};
-// True if an entry for (targetId, questionId) already exists within the
-// question's frequency period containing dateStr. For teacher/parent KPI entries
-// keyed by `targetId` (PointEntryPage has the student variant inline).
-const freqDone=(entries,targetId,questionId,frequency,dateStr)=>{
-  const freq=frequency||"monthly";
-  const d=new Date(dateStr),year=d.getFullYear(),month=d.getMonth(),week=getWeekNumber(dateStr);
-  return entries.some(e=>{
-    if(e.targetId!==targetId||e.questionId!==questionId)return false;
-    const eYear=e.year;
-    switch(freq){
-      case"daily":return e.date===dateStr;
-      case"weekly":return getWeekNumber(e.date)===week&&eYear===year;
-      case"quarterly":return Math.floor(new Date(e.date).getMonth()/3)===Math.floor(month/3)&&eYear===year;
-      case"annual":return eYear===year;
-      default:return e.month===month&&eYear===year;
-    }
-  });
-};
 // Demo seed data removed — all data lives in Supabase now (seed via the DEV
 // "Seed demo data" button in Settings, or supabase/seed.sql).
 export default function App() {
@@ -1069,66 +949,3 @@ function MyParentKPIPage({t,lang,currentUser,selectedYear,setSelectedYear,termCo
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>{["term1","term2","term3","term4"].map(term=>(<div key={term} style={{...S.card,textAlign:"center",padding:14}}><div style={{fontSize:12,color:"#64748b",marginBottom:4}}>{t[term]}</div><div style={{fontSize:22,fontWeight:800,color:"#0f172a"}}>{getParTermKPI(pid,termConfig[term],selectedYear)}</div><div style={{fontSize:11,color:"#94a3b8"}}>{lang==="bn"?"পয়েন্ট":"pts"}</div></div>))}</div>
   </div>);}
 function ConfirmDialog({lang,name,onConfirm,onCancel}){return(<div style={S.modalBg}><div style={{...S.modalBox,maxWidth:360,textAlign:"center"}}><div style={{fontSize:40,marginBottom:8}}>⚠️</div><h3 style={{...S.ct,marginBottom:8}}>{lang==="bn"?"নিশ্চিত করুন?":"Confirm Delete?"}</h3><p style={{fontSize:14,color:"#64748b",marginBottom:20}}>{lang==="bn"?(`"${name}" মুছে ফেলবেন?`):(`Delete "${name}"?`)}</p><div style={{display:"flex",gap:8,justifyContent:"center"}}><button onClick={onConfirm} style={{padding:"9px 24px",background:"#ef4444",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:700}}>{lang==="bn"?"হ্যাঁ, মুছুন":"Yes, Delete"}</button><button onClick={onCancel} style={S.cancelBtn}>{lang==="bn"?"না":"Cancel"}</button></div></div></div>);}
-const S={
-  app:{display:"flex",minHeight:"100vh",background:"#f9fafb",fontFamily:"'Segoe UI','Noto Sans Bengali',sans-serif"},
-  sidebar:{width:230,background:"#0f172a",color:"#e2e8f0",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",flexShrink:0},
-  sidebarTop:{padding:"20px 16px 10px",borderBottom:"1px solid #1e293b"},
-  logoBox:{background:"#0f172a",color:"#fff",fontWeight:900,fontSize:13,borderRadius:7,padding:"4px 8px",display:"inline-block",marginBottom:6,letterSpacing:2},
-  logoText:{fontSize:12,fontWeight:700,color:"#e2e8f0",lineHeight:1.4},
-  langRow:{display:"flex",gap:4,padding:"8px 16px"},
-  langBtn:{flex:1,padding:"4px 8px",border:"1px solid #334155",background:"transparent",color:"#94a3b8",borderRadius:6,cursor:"pointer",fontSize:12},
-  langOn:{background:"#0f172a",color:"#fff",borderColor:"#0f172a"},
-  nav:{flex:1,padding:"6px 8px",overflowY:"auto"},
-  navBtn:{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"9px 12px",background:"transparent",border:"none",color:"#94a3b8",borderRadius:8,cursor:"pointer",fontSize:13,textAlign:"left",marginBottom:2},
-  navBtnOn:{background:"#0f172a",color:"#fff"},
-  sidebarFoot:{padding:"12px 16px",borderTop:"1px solid #1e293b"},
-  userRow:{display:"flex",alignItems:"center",gap:10,marginBottom:8},
-  ava:{width:34,height:34,borderRadius:"50%",background:"#0f172a",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:15,color:"#fff",flexShrink:0},
-  uName:{fontSize:13,fontWeight:600,color:"#e2e8f0"},
-  uRole:{fontSize:11,color:"#94a3b8"},
-  logoutBtn:{width:"100%",padding:"7px",background:"transparent",border:"1px solid #334155",color:"#94a3b8",borderRadius:6,cursor:"pointer",fontSize:13},
-  main:{flex:1,overflowY:"auto",minWidth:0},
-  page:{padding:"clamp(12px,3vw,24px)",maxWidth:960,margin:"0 auto"},
-  ph:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:10},
-  pt:{fontSize:"clamp(17px,4vw,22px)",fontWeight:800,color:"#0f172a",margin:0},
-  ps:{fontSize:13,color:"#64748b",margin:"4px 0 0"},
-  grid4:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10,marginBottom:14},
-  grid2:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:12},
-  two:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:16},
-  statCard:{background:"#fff",borderRadius:12,padding:"clamp(10px,2.5vw,18px)",boxShadow:"0 1px 3px rgba(0,0,0,0.08)"},
-  card:{background:"#fff",borderRadius:12,padding:"clamp(12px,2.5vw,20px)",boxShadow:"0 1px 3px rgba(0,0,0,0.08)",marginBottom:16},
-  ct:{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:14,marginTop:0},
-  rankRow:{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #f1f5f9"},
-  rankBadge:{width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,flexShrink:0},
-  addBtn:{padding:"9px 16px",background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:600},
-  fg:{marginBottom:12},
-  lbl:{display:"block",fontSize:13,fontWeight:600,color:"#374151",marginBottom:5},
-  inp:{width:"100%",padding:"9px 12px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:14,color:"#1e293b",background:"#fff",boxSizing:"border-box",outline:"none"},
-  saveBtn:{padding:"9px 20px",background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:600},
-  cancelBtn:{padding:"9px 20px",background:"#f1f5f9",color:"#64748b",border:"none",borderRadius:8,cursor:"pointer",fontSize:14},
-  submitBtn:{padding:"11px 28px",background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:15,fontWeight:700},
-  tableWrap:{overflowX:"auto"},
-  table:{width:"100%",borderCollapse:"collapse",fontSize:14},
-  th:{padding:"10px 12px",textAlign:"left",background:"#f8fafc",color:"#475569",fontWeight:600,fontSize:13,borderBottom:"2px solid #e2e8f0"},
-  td:{padding:"9px 12px",color:"#334155",borderBottom:"1px solid #f1f5f9",verticalAlign:"middle"},
-  mBtn:{padding:"5px 10px",border:"1px solid #e2e8f0",borderRadius:6,background:"#fff",color:"#64748b",cursor:"pointer",fontSize:13},
-  mOn:{background:"#0f172a",color:"#fff",borderColor:"#0f172a"},
-  reportTab:{padding:"7px 14px",border:"1px solid #e2e8f0",borderRadius:20,background:"#fff",color:"#64748b",cursor:"pointer",fontSize:13},
-  reportTabOn:{background:"#0f172a",color:"#fff",borderColor:"#0f172a",fontWeight:700},
-  scoreInp:{padding:"5px 4px",border:"1px solid #d1d5db",borderRadius:6,fontSize:14,fontWeight:700,textAlign:"center",color:"#0f172a",outline:"none",boxSizing:"border-box"},
-  assignTag:{display:"inline-flex",alignItems:"center",gap:4,background:"#f8fafc",color:"#334155",padding:"3px 8px",borderRadius:20,fontSize:12,fontWeight:600},
-  tagX:{background:"none",border:"none",cursor:"pointer",color:"#0f172a",fontSize:14,padding:"0 2px",lineHeight:1},
-  sectionBox:{background:"#f8fafc",borderRadius:8,padding:"12px 14px",marginBottom:12},
-  empty:{textAlign:"center",padding:32,color:"#94a3b8",fontSize:14},
-  notif:{position:"fixed",top:20,right:20,color:"#fff",padding:"12px 20px",borderRadius:8,fontWeight:600,zIndex:999,boxShadow:"0 4px 12px rgba(0,0,0,0.15)",fontSize:14},
-  modalBg:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:998,padding:16},
-  modalBox:{background:"#fff",borderRadius:14,padding:"clamp(14px,4vw,24px)",width:"100%",maxWidth:440,boxShadow:"0 20px 60px rgba(0,0,0,0.25)"},
-  editInfoBox:{background:"#f8fafc",borderRadius:8,padding:"12px 14px",marginBottom:14},
-  editInfoRow:{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #f1f5f9",fontSize:13},
-  editInfoLabel:{color:"#64748b",minWidth:120,fontWeight:600},
-  editInfoVal:{color:"#1e293b",flex:1},
-  loginBg:{minHeight:"100vh",background:"linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#4f46e5 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:12},
-  loginCard:{background:"#fff",borderRadius:16,padding:"clamp(16px,5vw,32px)",width:"100%",maxWidth:400,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},
-  loginLogo:{display:"inline-block",background:"#0f172a",color:"#fff",fontWeight:900,fontSize:18,borderRadius:10,padding:"8px 16px",letterSpacing:3},
-  loginBtn:{width:"100%",padding:12,background:"#0f172a",color:"#fff",border:"none",borderRadius:8,cursor:"pointer",fontSize:16,fontWeight:700,marginTop:4},
-};
