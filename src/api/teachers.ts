@@ -6,8 +6,9 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
 import { provisionAuthUser } from "./provision";
 import { systemIdToEmail } from "./identity";
+import type { Teacher, TeacherInput, TeacherUpdate } from "../types";
 
-const toUi = (r) => ({
+const toUi = (r: any): Teacher => ({
   id: r.id,
   systemId: r.profiles?.system_id,
   name: r.profiles?.name,
@@ -18,7 +19,7 @@ const toUi = (r) => ({
   guideStudents: r.guide_students || [],
 });
 
-export async function listTeachers() {
+export async function listTeachers(): Promise<Teacher[]> {
   const { data, error } = await supabase
     .from("teachers")
     .select("id, class_teacher, subject_assignments, guide_students, profiles(system_id, name, name_en, auth_id)");
@@ -28,8 +29,8 @@ export async function listTeachers() {
     .sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
 }
 
-export async function createTeacher({ systemId, name, nameEn, password, classTeacher, subjectAssignments, guideStudents }) {
-  let authId = null;
+export async function createTeacher({ systemId, name, nameEn, password, classTeacher, subjectAssignments, guideStudents }: TeacherInput): Promise<string> {
+  let authId: string | null = null;
   if (password) authId = await provisionAuthUser(systemIdToEmail(systemId), password);
   const { data: prof, error: e1 } = await supabase
     .from("profiles")
@@ -52,7 +53,7 @@ export async function createTeacher({ systemId, name, nameEn, password, classTea
 
 // `password` (optional): reset an existing login via admin_set_password, or
 // provision a new login for a login-less teacher (authId/systemId distinguish).
-export async function updateTeacher(id, { name, nameEn, classTeacher, subjectAssignments, guideStudents, password, authId, systemId }) {
+export async function updateTeacher(id: string, { name, nameEn, classTeacher, subjectAssignments, guideStudents, password, authId, systemId }: TeacherUpdate): Promise<void> {
   const { error: e1 } = await supabase.from("profiles").update({ name, name_en: nameEn || name }).eq("id", id);
   if (e1) throw e1;
   const { error: e2 } = await supabase
@@ -68,7 +69,7 @@ export async function updateTeacher(id, { name, nameEn, classTeacher, subjectAss
     if (authId) {
       const { error: e3 } = await supabase.rpc("admin_set_password", { p_profile_id: id, p_password: password });
       if (e3) throw e3;
-    } else {
+    } else if (systemId) {
       const newAuthId = await provisionAuthUser(systemIdToEmail(systemId), password);
       const { error: e4 } = await supabase.from("profiles").update({ auth_id: newAuthId }).eq("id", id);
       if (e4) throw e4;
@@ -76,15 +77,15 @@ export async function updateTeacher(id, { name, nameEn, classTeacher, subjectAss
   }
 }
 
-export async function deleteTeacher(id) {
+export async function deleteTeacher(id: string): Promise<void> {
   const { error } = await supabase.from("profiles").delete().eq("id", id);
   if (error) throw error;
 }
 
 export function useDbTeachers(enabled = true) {
-  const [teachers, setTeachers] = useState([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const reload = useCallback(async () => {
     if (!enabled) return;
     setLoading(true);
@@ -92,7 +93,7 @@ export function useDbTeachers(enabled = true) {
     try {
       setTeachers(await listTeachers());
     } catch (e) {
-      setError(e.message || String(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

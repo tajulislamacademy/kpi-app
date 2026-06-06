@@ -10,15 +10,15 @@
 // synthetic (@kpi.local) and have no inbox, so confirmation can never arrive.
 import { createClient } from "@supabase/supabase-js";
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL as string;
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 const provisionClient = createClient(url, key, {
   auth: { persistSession: false, autoRefreshToken: false, storageKey: "kpi-provision" },
 });
 
 // Creates an auth account and returns its uuid. Throws on failure.
-export async function provisionAuthUser(email, password) {
+export async function provisionAuthUser(email: string, password: string): Promise<string> {
   const { data, error } = await provisionClient.auth.signUp({ email, password });
   // Clear the throwaway session this signUp may have created on the 2nd client.
   await provisionClient.auth.signOut().catch(() => {});

@@ -3,8 +3,9 @@
 // applies to category='student'. Read = any authenticated user; write = admin.
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
+import type { Question, QuestionInput } from "../types";
 
-const toUi = (r) => ({
+const toUi = (r: any): Question => ({
   id: r.id,
   category: r.category,
   role: r.role,
@@ -15,13 +16,13 @@ const toUi = (r) => ({
   activeMonths: r.active_months || [],
 });
 
-export async function listQuestions() {
+export async function listQuestions(): Promise<Question[]> {
   const { data, error } = await supabase.from("questions").select("*").order("created_at");
   if (error) throw error;
   return (data || []).map(toUi);
 }
 
-export async function createQuestion({ category, role, textBn, textEn, points, frequency, activeMonths }) {
+export async function createQuestion({ category, role, textBn, textEn, points, frequency, activeMonths }: QuestionInput): Promise<void> {
   const { error } = await supabase.from("questions").insert({
     category,
     role: category === "student" ? role : null,
@@ -34,7 +35,7 @@ export async function createQuestion({ category, role, textBn, textEn, points, f
   if (error) throw error;
 }
 
-export async function updateQuestion(id, { category, role, textBn, textEn, points, frequency, activeMonths }) {
+export async function updateQuestion(id: string, { category, role, textBn, textEn, points, frequency, activeMonths }: QuestionInput): Promise<void> {
   const { error } = await supabase
     .from("questions")
     .update({
@@ -49,15 +50,15 @@ export async function updateQuestion(id, { category, role, textBn, textEn, point
   if (error) throw error;
 }
 
-export async function deleteQuestion(id) {
+export async function deleteQuestion(id: string): Promise<void> {
   const { error } = await supabase.from("questions").delete().eq("id", id);
   if (error) throw error;
 }
 
 export function useDbQuestions(enabled = true) {
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const reload = useCallback(async () => {
     if (!enabled) return;
     setLoading(true);
@@ -65,7 +66,7 @@ export function useDbQuestions(enabled = true) {
     try {
       setQuestions(await listQuestions());
     } catch (e) {
-      setError(e.message || String(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
