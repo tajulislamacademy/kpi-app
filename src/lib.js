@@ -1,0 +1,29 @@
+// Small pure helpers shared across the app.
+
+export const genId = (prefix, year, seq) =>
+  `${prefix}-${year || new Date().getFullYear()}${String(seq).padStart(4, "0")}`;
+
+export const getWeekNumber = (dateStr) => {
+  const d = new Date(dateStr);
+  const start = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7);
+};
+
+// True if an entry for (targetId, questionId) already exists within the
+// question's frequency period containing dateStr. For teacher/parent KPI entries
+// keyed by `targetId` (PointEntryPage has the student variant inline).
+export const freqDone = (entries, targetId, questionId, frequency, dateStr) => {
+  const freq = frequency || "monthly";
+  const d = new Date(dateStr), year = d.getFullYear(), month = d.getMonth(), week = getWeekNumber(dateStr);
+  return entries.some((e) => {
+    if (e.targetId !== targetId || e.questionId !== questionId) return false;
+    const eYear = e.year;
+    switch (freq) {
+      case "daily": return e.date === dateStr;
+      case "weekly": return getWeekNumber(e.date) === week && eYear === year;
+      case "quarterly": return Math.floor(new Date(e.date).getMonth() / 3) === Math.floor(month / 3) && eYear === year;
+      case "annual": return eYear === year;
+      default: return e.month === month && eYear === year;
+    }
+  });
+};
