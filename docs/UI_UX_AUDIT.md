@@ -389,3 +389,85 @@ and wire the Teacher/Student pickers — fixes "not searchable"; (3) `Page`/
 `PageHeader` shell — unifies responsiveness and widths. Each ships behind the
 standard gate (typecheck + lint + build + tests) and a dev-verify, one step at a
 time, nothing breaking — same cadence as Phase 3.
+
+---
+
+## 7. Additional findings — code-level deep sweep (2026-06-07)
+
+Found by grepping the whole `src/` after the visual audit. Concrete, with
+file:line. These complement §2 (some are net-new).
+
+### Functional / correctness
+- 🟠 **`ui/sonner.tsx` ↔ theme mismatch.** `components/ui/sonner.tsx:10` imports
+  `useTheme` from **next-themes**, but the app uses a *custom* `ThemeProvider`
+  (`components/theme-provider.tsx`) — there is no next-themes provider mounted.
+  The moment we wire toasts (`<Toaster/>`), `useTheme()` returns `undefined` →
+  toasts won't follow light/dark. **Fix when wiring sonner:** patch `sonner.tsx`
+  to import our `useTheme` (from `../theme-provider`), or adopt next-themes as the
+  real provider. `next-themes` (`package.json`) is otherwise an unused dependency.
+- 🟡 **Index-as-key in a mutable list.** `PointEntry.tsx:201` `<TableRow key={i}>`
+  for the filtered entry list — entries have stable `e.id`. Index keys can
+  mis-associate rows when filters change (affects the edit button target). Use
+  `key={e.id}`. (Teachers assignment Badges `key={i}/{j}` and editLog `key={i}`
+  are append-only/stable → acceptable.)
+- 🟡 **Hardcoded year fallback.** `e.year || 2026` (`api/entries.ts`) silently
+  labels any row missing `year` as 2026 → mislabels legacy data once we're past
+  2026. Derive a default or store year on write for all rows.
+
+### Dark-mode polish (semantic boxes not theme-aware)
+- 🟠 These render a **light** background in dark mode (jarring), because they use
+  inline hex instead of dark-aware classes:
+  - `ErrorNote.tsx:9` — red load-error bar (`#fee2e2/#991b1b/#fca5a5`). Shows on
+    every data-load failure → bright red bar on dark. Convert to
+    `bg-destructive/10 text-destructive border-destructive/30` (or red `*-950`).
+  - `ErrorBoundary.tsx:25` — error `<pre>` box (`#fee2e2/#991b1b`).
+  - `EditScoreModal.tsx:23` — amber edit-history box (`#fef3c7/#92400e/#78350f`).
+  - `ScoreEntryGrid.tsx:39` — green ✓ "done" chip (`#f0fdf4/#166534`). (Note:
+    PointEntry's inline grid already got dark variants; the shared `ScoreEntryGrid`
+    used by the KPI pages did not — inconsistent.)
+  - `RankCard.tsx:13` / `Reports.tsx:43` — medal tints (acceptable, but verify).
+
+### Accessibility
+- 🟠 **Label↔input not associated.** ~37 `<Label>` across pages, only **5**
+  `htmlFor`. Most form fields rely on visual proximity only → clicking the label
+  doesn't focus, screenreaders don't announce the field. Pair `Label htmlFor` ↔
+  `Input id` (Auth/Profile already do; Accounts/Students/Teachers/Questions/KPI/
+  PointEntry/Reports don't).
+- 🟠 **7 icon-only buttons** (`size="icon"`) lack `aria-label` (edit/delete/view/
+  approve/reject across pages). Add labels.
+- 🟡 **`index.html` `lang="en"`** but the UI is Bengali-first → set `lang="bn"`
+  (or sync to the language toggle). Also add `<meta name="description">`. Title is
+  fine.
+
+### Maintainability / dead code
+- 🟡 **`PageHeader.tsx` is dead** — no importers after Phase 3 (pages inline their
+  headers). Delete, or rebuild as the standard `PageHeader` from §5 and reuse.
+- 🟡 **`nextSystemId` duplicated verbatim** in `Accounts.tsx:37`, `Students.tsx:32`,
+  `Teachers.tsx:37`. Extract `nextSystemId(prefix, rows)` to `lib.ts`.
+- 🟡 **12 components still import `theme.ts` `S`** (Tabs, MonthsPicker, StatCard,
+  RankCard, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid,
+  ConfirmDialog, ErrorBoundary, Modal, PageHeader). They're tokenized (work in
+  dark), but full Tailwind conversion lets us **delete `theme.ts`** and add the
+  global `body { @apply bg-background text-foreground }` base layer. (P2)
+- 🟡 **`Tabs` + `MonthsPicker`** are custom S-based controls. `Tabs` (used on
+  Reports/Accounts/Questions/PointEntry) is visually inconsistent with shadcn —
+  promote to a shadcn-style segmented control. `MonthsPicker` is fine; just
+  Tailwind-ize.
+- 🟡 **8× `eslint-disable react-hooks/set-state-in-effect`** in `api/*` data hooks
+  + `Settings.tsx:25`. Legitimate (syncing fetched/prop data) but undocumented;
+  add a one-line "why" or refactor the config hook to derive instead of effect.
+
+### Verified clean ✅
+- No `console.log` (only `ErrorBoundary` `console.error` — intended).
+- No `TODO/FIXME/HACK`, no `@ts-ignore`/`@ts-expect-error`.
+- No `<img>` without `alt` (no raster images).
+- No `SelectItem value=""` (would crash radix).
+- `.env` gitignored; no secrets in `src`.
+
+### Updated priority deltas
+Fold into the §3 plan:
+- Add to **P1**: ErrorNote/ErrorBoundary/EditScoreModal/ScoreEntryGrid dark-aware
+  fix; `sonner.tsx` theme patch (do alongside toast wiring); Label/`htmlFor`
+  pairing; `index.html` `lang="bn"`.
+- Add to **P2**: delete `PageHeader`; extract `nextSystemId` to `lib`; `key={e.id}`
+  in PointEntry; Tabs→segmented; finish `theme.ts` removal + base layer.
