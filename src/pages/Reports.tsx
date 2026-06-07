@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
@@ -22,21 +22,21 @@ export function ReportsPage({ t, lang, termConfig, currentUser, isAdmin, selecte
   const [selMonth, setSelMonth] = useState(new Date().getMonth());
   const { students, error: e1 } = useDbStudents(true);
   const { entries, error: e2 } = useDbStudentEntries(true);
-  const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = studentKpiHelpers(entries);
-  const yearsSet = [...new Set(entries.map(e => e.year))];
-  if (!yearsSet.includes(selectedYear)) yearsSet.push(selectedYear);
-  const availableYears = yearsSet.sort((a, b) => b - a);
+  const helpers = useMemo(() => studentKpiHelpers(entries), [entries]);
+  const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = helpers;
+  const availableYears = useMemo(() => { const ys = [...new Set(entries.map(e => e.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [entries, selectedYear]);
   const isStudent = currentUser.role === "student", isParent = currentUser.role === "parent";
-  let vis = students;
-  if (!isAdmin) {
+  const vis = useMemo(() => {
+    if (isAdmin) return students;
     const ct = currentUser.classTeacher;
     const guide = currentUser.guideStudents || [];
-    if (ct) vis = students.filter(s => s.class === ct.class && s.section === ct.section);
-    else if (isStudent) vis = students.filter(s => s.id === currentUser.id);
-    else if (isParent) vis = students.filter(s => s.id === currentUser.studentId);
-    else if (guide.length > 0) vis = students.filter(s => guide.includes(s.id));
-  }
-  const ranked = [...vis].map(s => ({ ...s, kpi: rType === "monthly" ? getStudentMonthKPI(s.id, selMonth, selectedYear) : rType === "term1" ? getStudentTermKPI(s.id, termConfig.term1, selectedYear) : rType === "term2" ? getStudentTermKPI(s.id, termConfig.term2, selectedYear) : rType === "term3" ? getStudentTermKPI(s.id, termConfig.term3, selectedYear) : rType === "term4" ? getStudentTermKPI(s.id, termConfig.term4, selectedYear) : getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi);
+    if (ct) return students.filter(s => s.class === ct.class && s.section === ct.section);
+    if (isStudent) return students.filter(s => s.id === currentUser.id);
+    if (isParent) return students.filter(s => s.id === currentUser.studentId);
+    if (guide.length > 0) return students.filter(s => guide.includes(s.id));
+    return students;
+  }, [students, isAdmin, isStudent, isParent, currentUser]);
+  const ranked = useMemo(() => [...vis].map(s => ({ ...s, kpi: rType === "monthly" ? getStudentMonthKPI(s.id, selMonth, selectedYear) : rType === "term1" ? getStudentTermKPI(s.id, termConfig.term1, selectedYear) : rType === "term2" ? getStudentTermKPI(s.id, termConfig.term2, selectedYear) : rType === "term3" ? getStudentTermKPI(s.id, termConfig.term3, selectedYear) : rType === "term4" ? getStudentTermKPI(s.id, termConfig.term4, selectedYear) : getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [vis, rType, selMonth, selectedYear, termConfig, getStudentMonthKPI, getStudentTermKPI, getStudentYearKPI]);
   const mc = (i: number) => i === 0 ? "#0f172a" : i === 1 ? "#52525b" : i === 2 ? "#a1a1aa" : "transparent";
   return (<div style={S.page}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}><h2 style={{ ...S.pt, margin: 0 }}>{t.reports}</h2><YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} /></div>
