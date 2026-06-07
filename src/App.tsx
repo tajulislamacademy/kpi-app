@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "./supabase";
 import { useDbParents } from "./api/parents";
 import { useDbTermConfig, updateTermConfig } from "./api/config";
@@ -26,8 +27,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { termConfig, reload: reloadTermConfig } = useDbTermConfig(true);
   const saveTermConfig = async (cfg: TermConfig) => { await updateTermConfig(cfg); await reloadTermConfig(); };
-  const [notif, setNotif] = useState("");
-  const showNotif = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(""), 3500); };
+  const showNotif = (msg: string) => { if (/ত্রুটি|error|ব্যর্থ|❌|ভুল/i.test(msg)) toast.error(msg); else toast.success(msg); };
   const curYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(curYear);
   const handleLogout = async () => { try { await supabase.auth.signOut(); } catch { /* no active backend session */ } setCurrentUser(null); };
@@ -51,7 +51,7 @@ export default function App() {
     { key: "profile", icon: KeyRound, label: t.myProfile },
   ];
   return (
-    <Layout t={t} lang={lang} setLang={setLang} currentUser={currentUser} isAdmin={isAdmin} isTeacher={isTeacher} navItems={navItems} activeTab={activeTab} onNav={setActiveTab} onLogout={handleLogout} notif={notif}>
+    <Layout t={t} lang={lang} setLang={setLang} currentUser={currentUser} isAdmin={isAdmin} isTeacher={isTeacher} navItems={navItems} activeTab={activeTab} onNav={setActiveTab} onLogout={handleLogout}>
       <ErrorBoundary key={activeTab} lang={lang}>
       {activeTab === "dashboard" && (isAdmin || isTeacher
         ? <AdminTeacherDashboard t={t} lang={lang} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} pendingParents={pendingParents} />

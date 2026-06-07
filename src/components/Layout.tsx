@@ -23,11 +23,10 @@ interface Props {
   activeTab: string;
   onNav: (k: string) => void;
   onLogout: () => void;
-  notif: string;
   children: ReactNode;
 }
 
-type SidebarProps = Omit<Props, "notif" | "children">;
+type SidebarProps = Omit<Props, "children">;
 
 // Dark sidebar body, shared between the desktop rail and the mobile drawer.
 function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, activeTab, onNav, onLogout }: SidebarProps) {
@@ -100,14 +99,11 @@ function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, 
 
 // App shell: desktop sidebar rail + mobile top bar (drawer) + <main>.
 export function Layout(props: Props) {
-  const { t, notif, children } = props;
+  const { t, children } = props;
   const [open, setOpen] = useState(false);
   const sidebarProps: SidebarProps = { ...props, onNav: (k) => { props.onNav(k); setOpen(false); } };
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {notif && (
-        <div className="fixed right-3 top-3 z-50 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg md:right-4 md:top-4">{notif}</div>
-      )}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 md:block">
         <Sidebar {...sidebarProps} />
       </aside>
