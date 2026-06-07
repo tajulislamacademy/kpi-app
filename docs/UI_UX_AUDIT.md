@@ -471,3 +471,29 @@ Fold into the §3 plan:
   pairing; `index.html` `lang="bn"`.
 - Add to **P2**: delete `PageHeader`; extract `nextSystemId` to `lib`; `key={e.id}`
   in PointEntry; Tabs→segmented; finish `theme.ts` removal + base layer.
+
+---
+
+## 8. Implementation status (2026-06-07)
+
+**Done ✅**
+- P0: table density + flush-in-card (primitive + every page); searchable
+  Combobox/MultiCombobox (teacher/student/guide/student-id pickers); unified
+  `Page`/`PageHeader` shell (max-w/padding/rhythm).
+- P1: sonner toasts (themed via our provider) replacing the custom notif;
+  system-style token-based dark-aware scrollbars; lucide icons across stat cards
+  / status / alerts / actions; `ConfirmDialog`→AlertDialog, `EditScoreModal`→
+  Dialog, custom `Modal` deleted; EmptyState + Skeleton (loading) wired; all
+  icon-only buttons `aria-label`ed; `index.html` `lang="bn"` + meta description.
+- P2: every shared component migrated off inline `S` to Tailwind (dark-aware) —
+  `theme.ts` deleted, global base layer added; Tabs/MonthsPicker restyled;
+  `nextSystemId` extracted to `lib`; PointEntry row key fixed; `next-themes`
+  dependency removed; dead `PageHeader` removed.
+
+**Remaining (optional, lower ROI) ⏳**
+- Exhaustive `<Label htmlFor>` ↔ `id` pairing on every form field (inputs are
+  visually adjacent; click-to-focus/SR niceties only).
+- Mobile sticky first column / card-layout for the widest data tables (they
+  currently horizontal-scroll, which is acceptable).
+- Micro-polish: theme-toggle transition, light-mode sidebar seam, a few dark
+  semantic-tint contrast checks.
