@@ -142,6 +142,33 @@ Dialog, AlertDialog, Badge, Combobox, EmptyState) so it's mostly assembly.
 
 ---
 
+## 5b. Removed feature to reinstate: promote/demote to admin
+
+History (git):
+- `b5aa1a8` (3 Jun) added "admin management: create admins, **promote/demote
+  users**" — any teacher/student/parent could be flagged admin. It was
+  **localStorage-based**, used a per-user `isAdmin` flag, and listed accounts with
+  **plaintext passwords**.
+- `f934c7d` (6 Jun, "Wire parents slice") **removed** it during the Supabase
+  migration — message: *"Removed the localStorage admin-management tab and the
+  plaintext-password account tables (insecure relic; a proper admin slice
+  later)."* (Not removed by the UI/polish work — that only restyled what was
+  already parent-only.)
+
+So promotion was dropped **deliberately for the migration** (insecure localStorage
+relic), with the intent to rebuild on Supabase — which never happened.
+
+**Reinstating on Supabase (fold into Option C):**
+- Schema: add `profiles.is_admin boolean default false` (a teacher/student/parent
+  can be admin *in addition to* their role). One small migration — user applies.
+- RLS + login: admin checks become `role = 'admin' OR is_admin = true`. The login
+  flow (`loadSessionUser`) should set `isAdmin`/`isRoot` from it; `App` already
+  branches on `isAdmin`.
+- API: `setAdmin(profileId, value)` = `profiles.update({ is_admin: value })`
+  (admin-only RLS). Guard against demoting the **root admin** (`is_root`).
+- UI: a "Make admin / Remove admin" row action + an "Admin" badge in the
+  Account Management table (Option C). No plaintext passwords anywhere.
+
 ## 6. Open questions for you
 
 1. Should **revoke login** (disable) be in scope now, or just reset-password +
@@ -152,5 +179,7 @@ Dialog, AlertDialog, Badge, Combobox, EmptyState) so it's mostly assembly.
    approval workflow can be simplified.
 3. Keep teacher/student **account creation** in their domain pages (recommended),
    or centralize here (Option B)?
+4. Promote/demote to admin (§5b): confirm the `profiles.is_admin` column approach
+   (you apply the migration), and whether non-root admins may promote others.
 
-Tell me 1–3 and I'll implement (A first, then C).
+Tell me 1–4 and I'll implement (A first, then C incl. admin promotion).
