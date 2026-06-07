@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../composables";
 import { freqDone, errMsg } from "../lib";
 import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid, ErrorNote } from "../components";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
 import { useDbQuestions } from "../api/questions";
@@ -14,6 +16,20 @@ import type { Dict, Lang, SessionUser, TermConfig, TargetEntry } from "../types"
 type Scores = Record<string, Record<string, number>>;
 interface EntryProps { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; selectedYear: number; setSelectedYear: (y: number) => void; }
 interface SelfProps { t: Dict; lang: Lang; currentUser: SessionUser; selectedYear: number; setSelectedYear: (y: number) => void; termConfig: TermConfig; }
+
+const PAGE = "mx-auto max-w-5xl space-y-4 p-4 sm:p-6";
+const HEAD = "flex flex-wrap items-start justify-between gap-3";
+const TITLE = "text-xl font-extrabold text-foreground sm:text-2xl";
+const GRID4 = "grid grid-cols-2 gap-3 sm:grid-cols-4";
+
+function ChartCard({ title, data, cm }: { title: string; data: { label: string; val: number }[]; cm: number }) {
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">{title}</CardTitle></CardHeader>
+      <CardContent><BarChart data={data} cm={cm} /></CardContent>
+    </Card>
+  );
+}
 
 export function TeacherKPIPage({ t, lang, currentUser, showNotif, selectedYear, setSelectedYear }: EntryProps) {
   const isMobile = useIsMobile();
@@ -42,17 +58,19 @@ export function TeacherKPIPage({ t, lang, currentUser, showNotif, selectedYear, 
     catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); }
     finally { setSubmitting(false); }
   };
-  return (<div style={S.page}>
-    {editEntry && <EditScoreModal t={t} lang={lang} entry={editEntry} score={editScore} setScore={setEditScore} onSave={handleEditSave} onCancel={() => setEditEntry(null)} />}
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-      <h2 style={{ ...S.pt, margin: 0 }}>{t.tchrKpiEntry}</h2>
-      <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
+  return (
+    <div className={PAGE}>
+      {editEntry && <EditScoreModal t={t} lang={lang} entry={editEntry} score={editScore} setScore={setEditScore} onSave={handleEditSave} onCancel={() => setEditEntry(null)} />}
+      <div className={HEAD}>
+        <h2 className={TITLE}>{t.tchrKpiEntry}</h2>
+        <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
+      </div>
+      <ErrorNote lang={lang} error={e1 || e2 || e3} />
+      <div className="space-y-1.5"><Label>{t.selectDate}</Label><Input type="date" className="w-50" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></div>
+      <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={teachers} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.teachers} emptyMsg={t.noQForMonth} />
+      <EntryHistoryTable t={t} lang={lang} entries={teacherEntries} people={teachers} whoLabel={t.teachers} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
     </div>
-    <ErrorNote lang={lang} error={e1 || e2 || e3} />
-    <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{ ...S.inp, maxWidth: 200 }} type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></div>
-    <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={teachers} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.teachers} emptyMsg={t.noQForMonth} />
-    <EntryHistoryTable t={t} lang={lang} entries={teacherEntries} people={teachers} whoLabel={t.teachers} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
-  </div>);
+  );
 }
 
 export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, setSelectedYear }: EntryProps) {
@@ -83,17 +101,19 @@ export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, s
     catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); }
     finally { setSubmitting(false); }
   };
-  return (<div style={S.page}>
-    {editEntry && <EditScoreModal t={t} lang={lang} entry={editEntry} score={editScore} setScore={setEditScore} onSave={handleEditSave} onCancel={() => setEditEntry(null)} />}
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-      <h2 style={{ ...S.pt, margin: 0 }}>{t.parKpiEntry}</h2>
-      <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
+  return (
+    <div className={PAGE}>
+      {editEntry && <EditScoreModal t={t} lang={lang} entry={editEntry} score={editScore} setScore={setEditScore} onSave={handleEditSave} onCancel={() => setEditEntry(null)} />}
+      <div className={HEAD}>
+        <h2 className={TITLE}>{t.parKpiEntry}</h2>
+        <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
+      </div>
+      <ErrorNote lang={lang} error={e1 || e2 || e3} />
+      <div className="space-y-1.5"><Label>{t.selectDate}</Label><Input type="date" className="w-50" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></div>
+      <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={approvedParents} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.parent} emptyMsg={t.noQForMonth} />
+      <EntryHistoryTable t={t} lang={lang} entries={parentEntries} people={parents} whoLabel={t.parent} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
     </div>
-    <ErrorNote lang={lang} error={e1 || e2 || e3} />
-    <div style={S.fg}><label style={S.lbl}>{t.selectDate}</label><input style={{ ...S.inp, maxWidth: 200 }} type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></div>
-    <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={approvedParents} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.parent} emptyMsg={t.noQForMonth} />
-    <EntryHistoryTable t={t} lang={lang} entries={parentEntries} people={parents} whoLabel={t.parent} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
-  </div>);
+  );
 }
 
 export function MyTeacherKPIPage({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
@@ -102,20 +122,22 @@ export function MyTeacherKPIPage({ t, lang, currentUser, selectedYear, setSelect
   const { monthKPI: getTchrMonthKPI, termKPI: getTchrTermKPI, yearKPI: getTchrYearKPI } = targetKpiHelpers(teacherEntries);
   const monthData = MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getTchrMonthKPI(tid, i, selectedYear) }));
   const tchrYears = [...new Set([...teacherEntries.filter(e => e.targetId === tid).map(e => e.year), selectedYear])].sort((a, b) => b - a);
-  return (<div style={S.page}>
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-      <div><h2 style={S.pt}>{t.myTchrKPI}</h2><p style={S.ps}>{lang === "bn" ? currentUser.name : (currentUser.nameEn || currentUser.name)}</p></div>
-      <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={tchrYears.length > 0 ? tchrYears : [selectedYear]} />
+  return (
+    <div className={PAGE}>
+      <div className={HEAD}>
+        <div><h2 className={TITLE}>{t.myTchrKPI}</h2><p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? currentUser.name : (currentUser.nameEn || currentUser.name)}</p></div>
+        <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={tchrYears.length > 0 ? tchrYears : [selectedYear]} />
+      </div>
+      <div className={GRID4}>
+        <StatCard icon="📅" value={getTchrMonthKPI(tid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
+        <StatCard icon="📊" value={getTchrYearKPI(tid, selectedYear)} label={selectedYear + " " + t.myYearly} />
+        <StatCard icon="🏆" value={getTchrTermKPI(tid, termConfig.term1, selectedYear)} label={t.term1} />
+        <StatCard icon="🎯" value={getTchrTermKPI(tid, termConfig.term2, selectedYear)} label={t.term2} />
+      </div>
+      <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
+      <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getTchrTermKPI} id={tid} />
     </div>
-    <div style={S.grid4}>
-      <StatCard icon="📅" value={getTchrMonthKPI(tid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
-      <StatCard icon="📊" value={getTchrYearKPI(tid, selectedYear)} label={selectedYear + " " + t.myYearly} />
-      <StatCard icon="🏆" value={getTchrTermKPI(tid, termConfig.term1, selectedYear)} label={t.term1} />
-      <StatCard icon="🎯" value={getTchrTermKPI(tid, termConfig.term2, selectedYear)} label={t.term2} />
-    </div>
-    <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm} /></div>
-    <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getTchrTermKPI} id={tid} />
-  </div>);
+  );
 }
 
 export function MyParentKPIPage({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
@@ -124,18 +146,20 @@ export function MyParentKPIPage({ t, lang, currentUser, selectedYear, setSelecte
   const { monthKPI: getParMonthKPI, termKPI: getParTermKPI, yearKPI: getParYearKPI } = targetKpiHelpers(parentEntries);
   const monthData = MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getParMonthKPI(pid, i, selectedYear) }));
   const parYears = [...new Set([...parentEntries.filter(e => e.targetId === pid).map(e => e.year), selectedYear])].sort((a, b) => b - a);
-  return (<div style={S.page}>
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-      <div><h2 style={S.pt}>{t.myKPI}</h2><p style={S.ps}>{lang === "bn" ? currentUser.name : (currentUser.nameEn || currentUser.name)}</p></div>
-      <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={parYears.length > 0 ? parYears : [selectedYear]} />
+  return (
+    <div className={PAGE}>
+      <div className={HEAD}>
+        <div><h2 className={TITLE}>{t.myKPI}</h2><p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? currentUser.name : (currentUser.nameEn || currentUser.name)}</p></div>
+        <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={parYears.length > 0 ? parYears : [selectedYear]} />
+      </div>
+      <div className={GRID4}>
+        <StatCard icon="📅" value={getParMonthKPI(pid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
+        <StatCard icon="📊" value={getParYearKPI(pid, selectedYear)} label={selectedYear + " " + t.myYearly} />
+        <StatCard icon="🏆" value={getParTermKPI(pid, termConfig.term1, selectedYear)} label={t.term1} />
+        <StatCard icon="🎯" value={getParTermKPI(pid, termConfig.term2, selectedYear)} label={t.term2} />
+      </div>
+      <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
+      <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getParTermKPI} id={pid} />
     </div>
-    <div style={S.grid4}>
-      <StatCard icon="📅" value={getParMonthKPI(pid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
-      <StatCard icon="📊" value={getParYearKPI(pid, selectedYear)} label={selectedYear + " " + t.myYearly} />
-      <StatCard icon="🏆" value={getParTermKPI(pid, termConfig.term1, selectedYear)} label={t.term1} />
-      <StatCard icon="🎯" value={getParTermKPI(pid, termConfig.term2, selectedYear)} label={t.term2} />
-    </div>
-    <div style={S.card}><h3 style={S.ct}>📈 {t.progressChart} — {selectedYear}</h3><BarChart data={monthData} cm={cm} /></div>
-    <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getParTermKPI} id={pid} />
-  </div>);
+  );
 }
