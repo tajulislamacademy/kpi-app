@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { YearSelector, Tabs, ErrorNote } from "../components";
+import { YearSelector, Tabs, ErrorNote , Page } from "../components";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -42,7 +42,7 @@ export function ReportsPage({ t, lang, termConfig, currentUser, isAdmin, selecte
   const ranked = useMemo(() => [...vis].map(s => ({ ...s, kpi: rType === "monthly" ? getStudentMonthKPI(s.id, selMonth, selectedYear) : rType === "term1" ? getStudentTermKPI(s.id, termConfig.term1, selectedYear) : rType === "term2" ? getStudentTermKPI(s.id, termConfig.term2, selectedYear) : rType === "term3" ? getStudentTermKPI(s.id, termConfig.term3, selectedYear) : rType === "term4" ? getStudentTermKPI(s.id, termConfig.term4, selectedYear) : getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [vis, rType, selMonth, selectedYear, termConfig, getStudentMonthKPI, getStudentTermKPI, getStudentYearKPI]);
   const medalBg = (i: number) => (i === 0 ? "#fef3c7" : i === 1 ? "#f1f5f9" : i === 2 ? "#fff7ed" : "transparent");
   return (
-    <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
+    <Page>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.reports}</h2>
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
@@ -110,6 +110,6 @@ export function ReportsPage({ t, lang, termConfig, currentUser, isAdmin, selecte
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </Page>
   );
 }

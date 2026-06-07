@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { CLASSES } from "../constants";
 import { genId, errMsg } from "../lib";
-import { ConfirmDialog, ErrorNote, PasswordInput } from "../components";
+import { ConfirmDialog, ErrorNote, PasswordInput , Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,7 +59,7 @@ export function StudentsPage({ t, lang, showNotif }: Props) {
   };
   const pwPlaceholder = editId ? (form._authId ? (lang === "bn" ? "খালি = অপরিবর্তিত" : "blank = unchanged") : (lang === "bn" ? "login দিতে পাসওয়ার্ড দিন" : "set to give a login")) : (lang === "bn" ? "খালি = login ছাড়া" : "blank = no login");
   return (
-    <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+    <Page>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.students}</h2>
@@ -133,6 +133,6 @@ export function StudentsPage({ t, lang, showNotif }: Props) {
       </Card>
 
       {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); doDelete(id); }} onCancel={() => setConfirmDel(null)} />}
-    </div>
+    </Page>
   );
 }

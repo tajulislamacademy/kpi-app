@@ -3,7 +3,7 @@ import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { cn } from "../lib";
-import { ConfirmDialog, Tabs, MonthsPicker, ErrorNote } from "../components";
+import { ConfirmDialog, Tabs, MonthsPicker, ErrorNote , Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,7 +98,7 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
     </Table>
   );
   return (
-    <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
+    <Page>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.questions}</h2>
@@ -155,6 +155,6 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
       </Dialog>
 
       {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); doDelete(id); }} onCancel={() => setConfirmDel(null)} />}
-    </div>
+    </Page>
   );
 }

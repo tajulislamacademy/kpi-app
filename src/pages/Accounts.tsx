@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { genId, errMsg, cn } from "../lib";
-import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox } from "../components";
+import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox , Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,7 +74,7 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
   const statusLabel = (s: string) => s === "approved" ? t.approved : s === "rejected" ? t.rejected : t.pending;
   const relationOptions = (<><SelectItem value="father">{t.father}</SelectItem><SelectItem value="mother">{t.mother}</SelectItem><SelectItem value="guardian">{t.guardian}</SelectItem></>);
   return (
-    <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
+    <Page>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.accountManagement}</h2>
         <Button onClick={() => setShowForm(v => !v)}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>
@@ -173,6 +173,6 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
       </Dialog>
 
       {confirmParentDel && <ConfirmDialog lang={lang} name={confirmParentDel.name} onConfirm={() => { const id = confirmParentDel.id; setConfirmParentDel(null); doDelete(id); }} onCancel={() => setConfirmParentDel(null)} />}
-    </div>
+    </Page>
   );
 }

@@ -4,7 +4,7 @@ import { systemIdToEmail } from "../api/identity";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { PasswordInput } from "../components";
+import { PasswordInput, Page, PageHeader } from "../components";
 import type { Dict, Lang, SessionUser } from "../types";
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
@@ -29,8 +29,8 @@ export function ProfilePage({ t, lang, currentUser, showNotif }: Props) {
     } finally { setBusy(false); }
   };
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-6">
-      <h2 className="mb-4 text-xl font-extrabold text-foreground sm:text-2xl">{t.myProfile}</h2>
+    <Page width="form">
+      <PageHeader title={t.myProfile} />
       <Card>
         <CardContent className="space-y-6 pt-6">
           <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
@@ -52,6 +52,6 @@ export function ProfilePage({ t, lang, currentUser, showNotif }: Props) {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </Page>
   );
 }
