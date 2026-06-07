@@ -40,7 +40,7 @@ export default tseslint.config([
   {
     // shadcn-generated primitives export a component + its variants from one
     // file by design; that's not a fast-refresh concern for vendored UI.
-    files: ['src/components/ui/**/*.{ts,tsx}'],
+    files: ['src/components/ui/**/*.{ts,tsx}', 'src/components/theme-provider.tsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },
