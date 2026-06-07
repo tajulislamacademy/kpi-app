@@ -26,9 +26,9 @@ export function ProfilePage({ t, lang, currentUser, showNotif }: Props) {
     } finally { setBusy(false); }
   };
   return (<div style={S.page}><h2 style={S.pt}>{t.myProfile}</h2><div style={S.card}>
-    <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, padding: 16, background: "#f8fafc", borderRadius: 10 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, padding: 16, background: "var(--muted)", borderRadius: 10 }}>
       <div style={{ ...S.ava, width: 56, height: 56, fontSize: 24 }}>{(currentUser.name || "A")[0]}</div>
-      <div><div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>{currentUser.name}</div><div style={{ fontSize: 13, color: "#0f172a" }}>{currentUser.systemId || "admin"}</div></div>
+      <div><div style={{ fontSize: 18, fontWeight: 800, color: "var(--foreground)" }}>{currentUser.name}</div><div style={{ fontSize: 13, color: "var(--foreground)" }}>{currentUser.systemId || "admin"}</div></div>
     </div>
     <h3 style={S.ct}>{t.changePassword}</h3>
     <div style={{ maxWidth: 360 }}>

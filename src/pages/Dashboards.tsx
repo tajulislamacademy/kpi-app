@@ -52,7 +52,7 @@ export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelect
   return (<div style={S.page}>
     <ErrorNote lang={lang} error={e1 || e2} />
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-      <div><h2 style={S.pt}>{t.myKPI}</h2><p style={S.ps}>{lang === "bn" ? `স্বাগতম, ${currentUser.name}` : `${t.welcome}, ${currentUser.name}`}</p><p style={{ fontSize: 12, color: "#94a3b8", margin: "2px 0 0" }}>{currentUser.systemId}</p></div>
+      <div><h2 style={S.pt}>{t.myKPI}</h2><p style={S.ps}>{lang === "bn" ? `স্বাগতম, ${currentUser.name}` : `${t.welcome}, ${currentUser.name}`}</p><p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: "2px 0 0" }}>{currentUser.systemId}</p></div>
       <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
     </div>
     <div style={S.grid4}>
@@ -88,7 +88,7 @@ export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelecte
     <div style={{ ...S.card, background: "linear-gradient(135deg,#f8fafc,#f0fdf4)", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ ...S.ava, width: 50, height: 50, fontSize: 22 }}>{(lang === "bn" ? child.name : child.nameEn)?.[0]}</div>
-        <div><div style={{ fontSize: 17, fontWeight: 800, color: "#0f172a" }}>{lang === "bn" ? child.name : child.nameEn}</div><div style={{ fontSize: 13, color: "#0f172a" }}>{child.systemId}</div><div style={{ fontSize: 12, color: "#64748b" }}>{t.class} {child.class}{child.section} | {t.roll}: {child.roll}</div></div>
+        <div><div style={{ fontSize: 17, fontWeight: 800, color: "var(--foreground)" }}>{lang === "bn" ? child.name : child.nameEn}</div><div style={{ fontSize: 13, color: "var(--foreground)" }}>{child.systemId}</div><div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{t.class} {child.class}{child.section} | {t.roll}: {child.roll}</div></div>
       </div>
     </div>
     <div style={S.grid4}>

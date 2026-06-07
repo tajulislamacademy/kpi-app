@@ -58,12 +58,12 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
   };
   return (
     <div style={S.loginBg}>
-      <button onClick={() => setLang(lang === "bn" ? "en" : "bn")} style={{ position: "fixed", top: 16, right: 16, padding: "6px 14px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#0f172a", cursor: "pointer", fontSize: 13, fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", zIndex: 10 }}>{lang === "bn" ? "English" : "বাংলা"}</button>
+      <button onClick={() => setLang(lang === "bn" ? "en" : "bn")} style={{ position: "fixed", top: 16, right: 16, padding: "6px 14px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "var(--foreground)", cursor: "pointer", fontSize: 13, fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", zIndex: 10 }}>{lang === "bn" ? "English" : "বাংলা"}</button>
       <div style={S.loginCard}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={S.loginLogo}>KPI</div>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "8px 0 4px" }}>{t.appTitle}</h1>
-        <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{lang === "bn" ? "শিক্ষার্থী মূল্যায়ন ব্যবস্থাপনা" : "Student Evaluation Management"}</p>
+        <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)", margin: "8px 0 4px" }}>{t.appTitle}</h1>
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>{lang === "bn" ? "শিক্ষার্থী মূল্যায়ন ব্যবস্থাপনা" : "Student Evaluation Management"}</p>
       </div>
       <div style={S.fg}><label style={S.lbl}>{t.username}</label>
         <input style={S.inp} value={form.id} onChange={e => setForm({ ...form, id: e.target.value })} /></div>
