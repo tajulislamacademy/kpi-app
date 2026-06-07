@@ -4,6 +4,7 @@ import { useDbParents } from "./api/parents";
 import { useDbTermConfig, updateTermConfig } from "./api/config";
 import { useLocalStorage } from "./composables";
 import { T } from "./i18n";
+import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCog, BarChart3, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
 import { ErrorBoundary, Layout } from "./components";
 import { AuthPage } from "./pages/Auth";
 import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards";
@@ -35,19 +36,19 @@ export default function App() {
   const isAdmin = currentUser.role === "admin", isTeacher = currentUser.role === "teacher";
   const pendingParents = dbParents.filter(p => p.status === "pending");
   const navItems = [
-    { key: "dashboard", icon: "⬛", label: t.dashboard },
-    ...(isAdmin || isTeacher ? [{ key: "pointEntry", icon: "✏️", label: t.pointEntry }] : []),
+    { key: "dashboard", icon: LayoutDashboard, label: t.dashboard },
+    ...(isAdmin || isTeacher ? [{ key: "pointEntry", icon: ClipboardPen, label: t.pointEntry }] : []),
     ...(isAdmin ? [
-      { key: "teachers", icon: "👨‍🏫", label: t.teachers },
-      { key: "students", icon: "🎓", label: t.students },
-      { key: "questions", icon: "📋", label: t.questions },
-      { key: "accounts", icon: "👤", label: `${t.accounts}${pendingParents.length > 0 ? ` (${pendingParents.length})` : ""}` },
+      { key: "teachers", icon: Users, label: t.teachers },
+      { key: "students", icon: GraduationCap, label: t.students },
+      { key: "questions", icon: ListChecks, label: t.questions },
+      { key: "accounts", icon: UserCog, label: `${t.accounts}${pendingParents.length > 0 ? ` (${pendingParents.length})` : ""}` },
     ] : []),
-    { key: "reports", icon: "📊", label: t.reports },
-    ...(isAdmin ? [{ key: "teacherKpi", icon: "📊", label: t.teacherKPI }, { key: "parentKpi", icon: "👥", label: t.parentKPI }, { key: "settings", icon: "⚙️", label: t.settings }] : []),
-    ...(isTeacher ? [{ key: "myTchrKpi", icon: "📈", label: t.myTchrKPI }] : []),
-    ...(currentUser.role === "parent" ? [{ key: "myParKpi", icon: "📈", label: t.myKPI }] : []),
-    { key: "profile", icon: "🔑", label: t.myProfile },
+    { key: "reports", icon: BarChart3, label: t.reports },
+    ...(isAdmin ? [{ key: "teacherKpi", icon: Award, label: t.teacherKPI }, { key: "parentKpi", icon: UsersRound, label: t.parentKPI }, { key: "settings", icon: Settings, label: t.settings }] : []),
+    ...(isTeacher ? [{ key: "myTchrKpi", icon: TrendingUp, label: t.myTchrKPI }] : []),
+    ...(currentUser.role === "parent" ? [{ key: "myParKpi", icon: TrendingUp, label: t.myKPI }] : []),
+    { key: "profile", icon: KeyRound, label: t.myProfile },
   ];
   return (
     <Layout t={t} lang={lang} setLang={setLang} currentUser={currentUser} isAdmin={isAdmin} isTeacher={isTeacher} navItems={navItems} activeTab={activeTab} onNav={setActiveTab} onLogout={handleLogout} notif={notif}>
