@@ -1,4 +1,4 @@
-import { S } from "../theme";
+import { Card, CardContent } from "./ui/card";
 import type { Dict, Lang, TermConfig } from "../types";
 
 interface Props {
@@ -14,13 +14,15 @@ interface Props {
 export function TermBreakdown({ t, lang, termConfig, selectedYear, getTermKPI, id }: Props) {
   const terms: (keyof TermConfig)[] = ["term1", "term2", "term3", "term4"];
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 12 }}>
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {terms.map((term) => (
-        <div key={term} style={{ ...S.card, textAlign: "center", padding: 14 }}>
-          <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 4 }}>{t[term]}</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)" }}>{getTermKPI(id, termConfig[term], selectedYear)}</div>
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{lang === "bn" ? "পয়েন্ট" : "pts"}</div>
-        </div>
+        <Card key={term} className="py-0 text-center">
+          <CardContent className="p-4">
+            <div className="text-xs text-muted-foreground">{t[term]}</div>
+            <div className="mt-1 text-2xl font-extrabold tabular-nums text-foreground">{getTermKPI(id, termConfig[term], selectedYear)}</div>
+            <div className="text-xs text-muted-foreground">{lang === "bn" ? "পয়েন্ট" : "pts"}</div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
