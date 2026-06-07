@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { genId, errMsg, cn } from "../lib";
-import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput } from "../components";
+import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +88,13 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>{t.studentId}</Label>
-                <Input value={form.studentId} onChange={e => setForm({ ...form, studentId: e.target.value })} placeholder="STD-20260001" />
+                <Combobox
+                  options={dbStudents.map(s => ({ value: s.systemId || "", label: `${lang === "bn" ? s.name : s.nameEn} · ${s.systemId}` }))}
+                  value={form.studentId}
+                  onChange={v => setForm({ ...form, studentId: v })}
+                  placeholder={lang === "bn" ? "শিক্ষার্থী নির্বাচন" : "Select student"}
+                  searchPlaceholder={lang === "bn" ? "নাম/ID খুঁজুন…" : "Search name/ID…"}
+                />
                 {form.studentId && (() => { const st = dbStudents.find(s => s.systemId === form.studentId); return st ? <div className="text-xs text-green-600 dark:text-green-400">✅ {lang === "bn" ? st.name : st.nameEn}</div> : <div className="text-xs text-destructive">❌</div>; })()}
               </div>
               <div className="space-y-1.5">
