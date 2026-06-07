@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { S } from "../theme";
-import { genId, errMsg } from "../lib";
-import { ConfirmDialog, StatCard, Modal, PageHeader, Tabs, ErrorNote } from "../components";
+import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { genId, errMsg, cn } from "../lib";
+import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput } from "../components";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useDbParents, createParent, updateParent, setParentStatus, deleteParent } from "../api/parents";
 import { useDbStudents } from "../api/students";
 import type { Dict, Lang, Parent, ParentStatus } from "../types";
@@ -10,9 +18,12 @@ interface Props { t: Dict; lang: Lang; showNotif: (msg: string) => void; }
 interface AddForm { studentId: string; name: string; nameEn: string; relation: string; password: string; }
 interface EditForm { name: string; nameEn: string; password: string; relation: string; status: ParentStatus; _authId?: string | null; _systemId?: string; }
 
+const statusBadge = (s: string) =>
+  s === "approved" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
+    : s === "rejected" ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+      : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300";
+
 export function AccountsPage({ t, lang, showNotif }: Props) {
-  // Parent accounts on Supabase. (Admin-management/promote was a localStorage
-  // relic showing plaintext passwords — removed; a proper admin slice comes later.)
   const { parents, reload, error: e1 } = useDbParents(true);
   const { students: dbStudents, error: e2 } = useDbStudents(true);
   const [tab, setTab] = useState("pending");
@@ -60,37 +71,102 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
   const pending = parents.filter(p => p.status === "pending"), approved = parents.filter(p => p.status === "approved"), rejected = parents.filter(p => p.status === "rejected");
   const current = tab === "pending" ? pending : tab === "approved" ? approved : rejected;
   const relLabel = (r: string) => r === "father" ? t.father : r === "mother" ? t.mother : t.guardian;
-  const sColor = (s: string) => s === "approved" ? "#f0fdf4" : s === "rejected" ? "#fee2e2" : "#fef3c7";
-  const sText = (s: string) => s === "approved" ? "#166534" : s === "rejected" ? "#991b1b" : "#92400e";
-  return (<div style={S.page}>
-    {editParent && (<Modal><h3 style={S.ct}>{lang === "bn" ? "অভিভাবক সম্পাদনা" : "Edit Parent"}</h3><div style={S.grid2}><div style={S.fg}><label style={S.lbl}>{t.parentName} (বাংলা)</label><input style={S.inp} value={parentForm.name} onChange={e => setParentForm({ ...parentForm, name: e.target.value })} /></div><div style={S.fg}><label style={S.lbl}>{t.parentName} (English)</label><input style={S.inp} value={parentForm.nameEn} onChange={e => setParentForm({ ...parentForm, nameEn: e.target.value })} /></div><div style={S.fg}><label style={S.lbl}>{t.defaultPass}</label><input style={S.inp} value={parentForm.password} onChange={e => setParentForm({ ...parentForm, password: e.target.value })} /></div><div style={S.fg}><label style={S.lbl}>{t.relation}</label><select style={S.inp} value={parentForm.relation} onChange={e => setParentForm({ ...parentForm, relation: e.target.value })}><option value="father">{t.father}</option><option value="mother">{t.mother}</option><option value="guardian">{t.guardian}</option></select></div><div style={S.fg}><label style={S.lbl}>{lang === "bn" ? "অবস্থা" : "Status"}</label><select style={S.inp} value={parentForm.status} onChange={e => setParentForm({ ...parentForm, status: e.target.value as ParentStatus })}><option value="approved">{t.approved}</option><option value="pending">{t.pending}</option><option value="rejected">{t.rejected}</option></select></div></div><div style={{ display: "flex", gap: 8, marginTop: 12 }}><button onClick={handleSaveParent} disabled={saving} style={{ ...S.saveBtn, ...(saving ? { opacity: 0.6, cursor: "wait" } : {}) }}>{t.save}</button><button onClick={() => setEditParent(null)} style={S.cancelBtn}>{t.cancel}</button></div></Modal>)}
-    {confirmParentDel && <ConfirmDialog lang={lang} name={confirmParentDel.name} onConfirm={() => { const id = confirmParentDel.id; setConfirmParentDel(null); doDelete(id); }} onCancel={() => setConfirmParentDel(null)} />}
-    <PageHeader title={t.accountManagement} actionLabel={`+ ${lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}`} onAction={() => setShowForm(!showForm)} />
-    <ErrorNote lang={lang} error={e1 || e2} />
-    {showForm && (<div style={S.card}>
-      <h3 style={S.ct}>{lang === "bn" ? "নতুন অভিভাবক" : "New Parent"}</h3>
-      <div style={S.grid2}>
-        <div style={S.fg}><label style={S.lbl}>{t.studentId}</label><input style={S.inp} value={form.studentId} onChange={e => setForm({ ...form, studentId: e.target.value })} placeholder="STD-20260001" />
-          {form.studentId && (() => { const st = dbStudents.find(s => s.systemId === form.studentId); return st ? <div style={{ fontSize: 12, color: "var(--foreground)", marginTop: 4 }}>✅ {lang === "bn" ? st.name : st.nameEn}</div> : <div style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>❌</div>; })()}
-        </div>
-        <div style={S.fg}><label style={S.lbl}>{t.relation}</label><select style={S.inp} value={form.relation} onChange={e => setForm({ ...form, relation: e.target.value })}><option value="father">{t.father}</option><option value="mother">{t.mother}</option><option value="guardian">{t.guardian}</option></select></div>
-        <div style={S.fg}><label style={S.lbl}>{t.parentName} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
-        <div style={S.fg}><label style={S.lbl}>{t.parentName} (English)</label><input style={S.inp} value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} /></div>
-        <div style={S.fg}><label style={S.lbl}>{t.defaultPass} (login)</label><input style={S.inp} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder={lang === "bn" ? "খালি = login ছাড়া" : "blank = no login"} /></div>
+  const statusLabel = (s: string) => s === "approved" ? t.approved : s === "rejected" ? t.rejected : t.pending;
+  const relationOptions = (<><SelectItem value="father">{t.father}</SelectItem><SelectItem value="mother">{t.mother}</SelectItem><SelectItem value="guardian">{t.guardian}</SelectItem></>);
+  return (
+    <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.accountManagement}</h2>
+        <Button onClick={() => setShowForm(v => !v)}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>
       </div>
-      {formErr && <div style={{ color: "#ef4444", fontSize: 13, marginBottom: 8 }}>{formErr}</div>}
-      <div style={{ display: "flex", gap: 8 }}><button onClick={handleAddParent} disabled={saving} style={{ ...S.saveBtn, ...(saving ? { opacity: 0.6, cursor: "wait" } : {}) }}>{t.save}</button><button onClick={() => setShowForm(false)} style={S.cancelBtn}>{t.cancel}</button></div>
-    </div>)}
-    <div style={S.grid4}>
-      <StatCard icon="⏳" value={pending.length} label={t.pending} />
-      <StatCard icon="✅" value={approved.length} label={t.approved} />
-      <StatCard icon="❌" value={rejected.length} label={t.rejected} />
-      <StatCard icon="👥" value={parents.length} label={lang === "bn" ? "মোট অভিভাবক" : "Total Parents"} />
+      <ErrorNote lang={lang} error={e1 || e2} />
+
+      {showForm && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">{lang === "bn" ? "নতুন অভিভাবক" : "New Parent"}</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>{t.studentId}</Label>
+                <Input value={form.studentId} onChange={e => setForm({ ...form, studentId: e.target.value })} placeholder="STD-20260001" />
+                {form.studentId && (() => { const st = dbStudents.find(s => s.systemId === form.studentId); return st ? <div className="text-xs text-green-600 dark:text-green-400">✅ {lang === "bn" ? st.name : st.nameEn}</div> : <div className="text-xs text-destructive">❌</div>; })()}
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t.relation}</Label>
+                <Select value={form.relation} onValueChange={v => setForm({ ...form, relation: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{relationOptions}</SelectContent></Select>
+              </div>
+              <div className="space-y-1.5"><Label>{t.parentName} (বাংলা)</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label>{t.parentName} (English)</Label><Input value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label>{t.defaultPass} (login)</Label><PasswordInput value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder={lang === "bn" ? "খালি = login ছাড়া" : "blank = no login"} /></div>
+            </div>
+            {formErr && <p className="text-sm text-destructive">{formErr}</p>}
+            <div className="flex gap-2"><Button onClick={handleAddParent} disabled={saving}>{t.save}</Button><Button variant="outline" onClick={() => setShowForm(false)}>{t.cancel}</Button></div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard icon="⏳" value={pending.length} label={t.pending} />
+        <StatCard icon="✅" value={approved.length} label={t.approved} />
+        <StatCard icon="❌" value={rejected.length} label={t.rejected} />
+        <StatCard icon="👥" value={parents.length} label={lang === "bn" ? "মোট অভিভাবক" : "Total Parents"} />
+      </div>
+
+      <Tabs items={[{ key: "pending", label: `${t.pending}(${pending.length})` }, { key: "approved", label: t.approved }, { key: "rejected", label: t.rejected }]} active={tab} onChange={setTab} />
+
+      <Card>
+        <CardContent className="pt-6">
+          {current.length === 0 ? <div className="py-8 text-center text-muted-foreground">{lang === "bn" ? "কোনো অ্যাকাউন্ট নেই" : "No accounts"}</div> : (
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>{lang === "bn" ? "অভিভাবক" : "Parent"}</TableHead>
+                <TableHead>{lang === "bn" ? "সম্পর্ক" : "Relation"}</TableHead>
+                <TableHead>{lang === "bn" ? "শিক্ষার্থী" : "Student"}</TableHead>
+                <TableHead>{t.autoId}</TableHead>
+                <TableHead>{lang === "bn" ? "অবস্থা" : "Status"}</TableHead>
+                <TableHead>{lang === "bn" ? "অ্যাকশন" : "Action"}</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {current.map((p) => { const st = dbStudents.find(s => s.id === p.studentId); return (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-semibold">{lang === "bn" ? p.name : p.nameEn}</TableCell>
+                    <TableCell>{relLabel(p.relation)}</TableCell>
+                    <TableCell><div className="text-sm">{lang === "bn" ? st?.name : st?.nameEn}</div><div className="text-xs text-muted-foreground">{st?.systemId}</div></TableCell>
+                    <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{p.systemId}</code></TableCell>
+                    <TableCell><Badge className={cn("border-transparent font-semibold", statusBadge(p.status))}>{statusLabel(p.status)}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1.5">
+                        {tab === "pending" && <>
+                          <Button size="sm" variant="outline" className="h-8 gap-1 text-green-700 dark:text-green-400" onClick={() => approve(p.id)}><Check className="h-3.5 w-3.5" />{t.approve}</Button>
+                          <Button size="sm" variant="outline" className="h-8 gap-1 text-destructive" onClick={() => reject(p.id)}><X className="h-3.5 w-3.5" />{t.reject}</Button>
+                        </>}
+                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEditParent(p)}><Pencil className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="outline" className="h-8 w-8 text-destructive" onClick={() => setConfirmParentDel({ id: p.id, name: (lang === "bn" ? p.name : p.nameEn) || "" })}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ); })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!editParent} onOpenChange={(o) => { if (!o) setEditParent(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{lang === "bn" ? "অভিভাবক সম্পাদনা" : "Edit Parent"}</DialogTitle></DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5"><Label>{t.parentName} (বাংলা)</Label><Input value={parentForm.name} onChange={e => setParentForm({ ...parentForm, name: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>{t.parentName} (English)</Label><Input value={parentForm.nameEn} onChange={e => setParentForm({ ...parentForm, nameEn: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>{t.defaultPass}</Label><PasswordInput value={parentForm.password} onChange={e => setParentForm({ ...parentForm, password: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>{t.relation}</Label><Select value={parentForm.relation} onValueChange={v => setParentForm({ ...parentForm, relation: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{relationOptions}</SelectContent></Select></div>
+            <div className="space-y-1.5"><Label>{lang === "bn" ? "অবস্থা" : "Status"}</Label><Select value={parentForm.status} onValueChange={v => setParentForm({ ...parentForm, status: v as ParentStatus })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="approved">{t.approved}</SelectItem><SelectItem value="pending">{t.pending}</SelectItem><SelectItem value="rejected">{t.rejected}</SelectItem></SelectContent></Select></div>
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setEditParent(null)}>{t.cancel}</Button><Button onClick={handleSaveParent} disabled={saving}>{t.save}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {confirmParentDel && <ConfirmDialog lang={lang} name={confirmParentDel.name} onConfirm={() => { const id = confirmParentDel.id; setConfirmParentDel(null); doDelete(id); }} onCancel={() => setConfirmParentDel(null)} />}
     </div>
-    <Tabs items={[{ key: "pending", label: `${t.pending}(${pending.length})` }, { key: "approved", label: t.approved }, { key: "rejected", label: t.rejected }]} active={tab} onChange={setTab} />
-    <div style={S.card}>{current.length === 0 ? <div style={S.empty}>{lang === "bn" ? "কোনো অ্যাকাউন্ট নেই" : "No accounts"}</div> : (
-      <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{lang === "bn" ? "অভিভাবক" : "Parent"}</th><th style={S.th}>{lang === "bn" ? "সম্পর্ক" : "Relation"}</th><th style={S.th}>{lang === "bn" ? "শিক্ষার্থী" : "Student"}</th><th style={S.th}>{t.autoId}</th><th style={S.th}>{lang === "bn" ? "অবস্থা" : "Status"}</th><th style={S.th}>{lang === "bn" ? "অ্যাকশন" : "Action"}</th></tr></thead>
-      <tbody>{current.map((p, i) => { const st = dbStudents.find(s => s.id === p.studentId); return (<tr key={p.id} style={i % 2 === 0 ? { background: "var(--muted)" } : {}}><td style={S.td}><strong>{lang === "bn" ? p.name : p.nameEn}</strong></td><td style={S.td}>{relLabel(p.relation)}</td><td style={S.td}><div style={{ fontSize: 13 }}>{lang === "bn" ? st?.name : st?.nameEn}</div><div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{st?.systemId}</div></td><td style={S.td}><code style={{ background: "var(--muted)", padding: "2px 6px", borderRadius: 4, fontSize: 11, color: "var(--foreground)" }}>{p.systemId}</code></td><td style={S.td}><span style={{ background: sColor(p.status), color: sText(p.status), padding: "3px 8px", borderRadius: 20, fontSize: 12, fontWeight: 700 }}>{p.status === "approved" ? t.approved : p.status === "rejected" ? t.rejected : t.pending}</span></td><td style={S.td}><div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{tab === "pending" && <><button onClick={() => approve(p.id)} style={{ padding: "4px 10px", background: "#f0fdf4", color: "#166534", border: "1px solid #86efac", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>✅ {t.approve}</button><button onClick={() => reject(p.id)} style={{ padding: "4px 10px", background: "#fee2e2", color: "#991b1b", border: "1px solid #fca5a5", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>❌ {t.reject}</button></>}<button onClick={() => openEditParent(p)} style={{ padding: "4px 10px", background: "var(--muted)", color: "var(--foreground)", border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>✏️</button><button onClick={() => setConfirmParentDel({ id: p.id, name: (lang === "bn" ? p.name : p.nameEn) || "" })} style={{ padding: "4px 10px", background: "#fee2e2", color: "#991b1b", border: "1px solid #fca5a5", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>🗑️</button></div></td></tr>); })}</tbody></table></div>
-    )}</div>
-  </div>);
+  );
 }
