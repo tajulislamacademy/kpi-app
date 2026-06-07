@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/questions";
 import type { Dict, Lang, Question, QuestionInput, QuestionCategory, Frequency } from "../types";
@@ -126,7 +127,9 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
         </Card>
       )}
 
-      {isStd ? ["classTeacher", "subjectTeacher", "guideTeacher"].map(role => (
+      {loading && allQ.length === 0 ? (
+        <Card className="overflow-hidden py-0"><div className="space-y-2 p-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div></Card>
+      ) : isStd ? ["classTeacher", "subjectTeacher", "guideTeacher"].map(role => (
         <Card key={role} className="overflow-hidden">
           <CardHeader><CardTitle><Badge className={cn("border-transparent text-sm font-bold", roleBadge(role))}>{rLabel(role)}</Badge></CardTitle></CardHeader>
           <CardContent className="px-0 pt-0">{qTable(curQs.filter(q => q.role === role))}</CardContent>

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useDbStudents, createStudent, updateStudent, deleteStudent } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
@@ -83,6 +84,9 @@ export function StudentsPage({ t, lang, showNotif }: Props) {
 
       <Card className="overflow-hidden py-0">
         <CardContent className="p-0">
+          {loading && students.length === 0 ? (
+            <div className="space-y-2 p-4">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
+          ) : (
           <Table>
             <TableHeader><TableRow>
               <TableHead>{t.autoId}</TableHead>
@@ -124,6 +128,7 @@ export function StudentsPage({ t, lang, showNotif }: Props) {
               })}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 

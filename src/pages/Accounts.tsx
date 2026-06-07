@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X, Clock, CheckCircle2, XCircle, UsersRound } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Clock, CheckCircle2, XCircle, UsersRound, Inbox } from "lucide-react";
 import { errMsg, cn, nextSystemId } from "../lib";
-import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox , Page } from "../components";
+import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox, EmptyState, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -121,7 +121,7 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
 
       <Card className="overflow-hidden py-0">
         <CardContent className="p-0">
-          {current.length === 0 ? <div className="py-10 text-center text-muted-foreground">{lang === "bn" ? "কোনো অ্যাকাউন্ট নেই" : "No accounts"}</div> : (
+          {current.length === 0 ? <EmptyState icon={Inbox} title={lang === "bn" ? "কোনো অ্যাকাউন্ট নেই" : "No accounts"} /> : (
             <Table>
               <TableHeader><TableRow>
                 <TableHead>{lang === "bn" ? "অভিভাবক" : "Parent"}</TableHead>
