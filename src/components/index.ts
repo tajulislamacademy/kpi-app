@@ -1,5 +1,4 @@
 // Barrel: re-export every shared component so callers can `import { X } from "../components"`.
-export { Modal } from "./Modal";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { Page, PageHeader } from "./Page";
 export { Tabs } from "./Tabs";
