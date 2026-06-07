@@ -17,26 +17,31 @@ export interface Account {
   hasLogin: boolean;
   isAdmin: boolean;
   isRoot: boolean;
-  parentStatus: string | null; // parents only
+  parentStatus: string | null;   // parents only
+  parentRelation: string | null; // parents only
 }
 
 export async function listAccounts(): Promise<Account[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, system_id, name, name_en, role, auth_id, is_admin, is_root, parents(status)");
+    .select("id, system_id, name, name_en, role, auth_id, is_admin, is_root, parents(relation, status)");
   if (error) throw error;
   return (data || [])
-    .map((r: any): Account => ({
-      id: r.id,
-      systemId: r.system_id,
-      name: r.name,
-      nameEn: r.name_en,
-      role: r.role,
-      hasLogin: !!r.auth_id,
-      isAdmin: !!r.is_admin,
-      isRoot: !!r.is_root,
-      parentStatus: Array.isArray(r.parents) ? (r.parents[0]?.status ?? null) : (r.parents?.status ?? null),
-    }))
+    .map((r: any): Account => {
+      const par = Array.isArray(r.parents) ? r.parents[0] : r.parents;
+      return {
+        id: r.id,
+        systemId: r.system_id,
+        name: r.name,
+        nameEn: r.name_en,
+        role: r.role,
+        hasLogin: !!r.auth_id,
+        isAdmin: !!r.is_admin,
+        isRoot: !!r.is_root,
+        parentStatus: par?.status ?? null,
+        parentRelation: par?.relation ?? null,
+      };
+    })
     .sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
 }
 
