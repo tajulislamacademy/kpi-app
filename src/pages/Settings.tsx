@@ -41,7 +41,7 @@ export function SettingsPage({ t, lang, termConfig, onSaveTermConfig, showNotif 
       <button onClick={handleSaveTerm} disabled={savingTerm} style={{ ...S.saveBtn, ...(savingTerm ? { opacity: 0.6, cursor: "wait" } : {}) }}>{savingTerm ? (lang === "bn" ? "সংরক্ষণ…" : "Saving…") : t.save}</button>
     </div>
     <div style={S.card}><h3 style={S.ct}>{lang === "bn" ? "বর্তমান কনফিগারেশন" : "Current Configuration"}</h3>
-      {TERMS.map((term, ti) => (<div key={term} style={{ padding: "8px 0", borderBottom: "1px solid #f1f5f9", fontSize: 14, color: "var(--foreground)" }}><strong>{ti === 0 ? t.term1 : ti === 1 ? t.term2 : ti === 2 ? t.term3 : t.term4}:</strong><span style={{ marginLeft: 8 }}>{termConfig[term].map(m => T[lang][MONTHS[m]]).join(", ") || "—"}</span></div>))}
+      {TERMS.map((term, ti) => (<div key={term} style={{ padding: "8px 0", borderBottom: "1px solid var(--border)", fontSize: 14, color: "var(--foreground)" }}><strong>{ti === 0 ? t.term1 : ti === 1 ? t.term2 : ti === 2 ? t.term3 : t.term4}:</strong><span style={{ marginLeft: 8 }}>{termConfig[term].map(m => T[lang][MONTHS[m]]).join(", ") || "—"}</span></div>))}
     </div>
   </div>);
 }

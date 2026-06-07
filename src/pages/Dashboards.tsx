@@ -85,7 +85,7 @@ export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelecte
       <div><h2 style={S.pt}>{t.childKPI}</h2><p style={S.ps}>{relLabel}: {currentUser.name}</p></div>
       <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
     </div>
-    <div style={{ ...S.card, background: "linear-gradient(135deg,#f8fafc,#f0fdf4)", marginBottom: 16 }}>
+    <div style={{ ...S.card, background: "var(--muted)", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ ...S.ava, width: 50, height: 50, fontSize: 22 }}>{(lang === "bn" ? child.name : child.nameEn)?.[0]}</div>
         <div><div style={{ fontSize: 17, fontWeight: 800, color: "var(--foreground)" }}>{lang === "bn" ? child.name : child.nameEn}</div><div style={{ fontSize: 13, color: "var(--foreground)" }}>{child.systemId}</div><div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{t.class} {child.class}{child.section} | {t.roll}: {child.roll}</div></div>

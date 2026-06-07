@@ -58,7 +58,7 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
   };
   return (
     <div style={S.loginBg}>
-      <button onClick={() => setLang(lang === "bn" ? "en" : "bn")} style={{ position: "fixed", top: 16, right: 16, padding: "6px 14px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "var(--foreground)", cursor: "pointer", fontSize: 13, fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", zIndex: 10 }}>{lang === "bn" ? "English" : "বাংলা"}</button>
+      <button onClick={() => setLang(lang === "bn" ? "en" : "bn")} style={{ position: "fixed", top: 16, right: 16, padding: "6px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "#fff", color: "var(--foreground)", cursor: "pointer", fontSize: 13, fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", zIndex: 10 }}>{lang === "bn" ? "English" : "বাংলা"}</button>
       <div style={S.loginCard}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={S.loginLogo}>KPI</div>
