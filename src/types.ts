@@ -93,6 +93,7 @@ export interface TermConfig { term1: number[]; term2: number[]; term3: number[];
 export interface SessionUser extends Person {
   role: Role;
   isRoot?: boolean;
+  isAdmin?: boolean;
   backend?: boolean;
   classTeacher?: ClassTeacher | null;
   subjectAssignments?: SubjectAssignment[];
