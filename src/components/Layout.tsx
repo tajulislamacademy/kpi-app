@@ -1,11 +1,14 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Sun, Moon, Monitor } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "../lib";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "./ui/sheet";
+import { useTheme, type Theme } from "./theme-provider";
 import type { Dict, Lang, SessionUser } from "../types";
+
+const THEME_OPTIONS: [Theme, LucideIcon][] = [["light", Sun], ["system", Monitor], ["dark", Moon]];
 
 export interface NavItem { key: string; icon: LucideIcon; label: string; }
 
@@ -28,6 +31,7 @@ type SidebarProps = Omit<Props, "notif" | "children">;
 
 // Dark sidebar body, shared between the desktop rail and the mobile drawer.
 function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, activeTab, onNav, onLogout }: SidebarProps) {
+  const { theme, setTheme } = useTheme();
   const roleLabel = isAdmin ? t.admin : isTeacher ? t.teacher : currentUser.role === "student" ? t.student : t.parent;
   return (
     <div className="flex h-full flex-col bg-slate-900 text-slate-200">
@@ -35,13 +39,28 @@ function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, 
         <div className="grid h-9 w-9 place-items-center rounded-lg bg-white text-sm font-extrabold text-slate-900">KPI</div>
         <div className="truncate text-sm font-bold text-slate-100">{t.appTitle}</div>
       </div>
-      <div className="px-4 py-3">
+      <div className="space-y-2 px-4 py-3">
         <button
           onClick={() => setLang(lang === "bn" ? "en" : "bn")}
           className="w-full rounded-md border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-700"
         >
           {lang === "bn" ? "English" : "বাংলা"}
         </button>
+        <div className="flex gap-1 rounded-md border border-slate-700 bg-slate-800/60 p-1">
+          {THEME_OPTIONS.map(([val, Icon]) => (
+            <button
+              key={val}
+              onClick={() => setTheme(val)}
+              title={val}
+              className={cn(
+                "flex flex-1 items-center justify-center rounded py-1.5 transition-colors",
+                theme === val ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white",
+              )}
+            >
+              <Icon className="h-4 w-4" />
+            </button>
+          ))}
+        </div>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-1">
         {navItems.map((item) => {
@@ -85,7 +104,7 @@ export function Layout(props: Props) {
   const [open, setOpen] = useState(false);
   const sidebarProps: SidebarProps = { ...props, onNav: (k) => { props.onNav(k); setOpen(false); } };
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-background text-foreground">
       {notif && (
         <div className="fixed right-3 top-3 z-50 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg md:right-4 md:top-4">{notif}</div>
       )}

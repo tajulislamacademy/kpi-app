@@ -114,6 +114,26 @@ approve `Check`, reject `X`, logout `LogOut`, menu `Menu`, reset `RotateCcw`.
 
 ---
 
+## Phase 2.5 — Theming: light / dark / system
+
+Goal: a theme switch with **Light**, **Dark**, and **System** (follows OS), persisted.
+
+- **Provider:** `src/components/theme-provider.tsx` — a small context (`theme: "light" | "dark"
+  | "system"`, `setTheme`) that toggles the `dark` class on `<html>`. System mode reads
+  `matchMedia("(prefers-color-scheme: dark)")` and live-updates on OS change. Persisted in
+  `localStorage` (`kpi-theme`). Wrapped around `<App/>` in `main.tsx`.
+- **Toggle UI:** a 3-way control (lucide `Sun` / `Monitor` / `Moon`) in the sidebar.
+- **Tokens already in place:** `index.css` has `:root` (light) + `.dark` values. shadcn
+  components are token-based, so they flip automatically.
+- **Sidebar stays dark in both modes** (intentional — approved look). Dark mode applies to
+  the main content area + shadcn components.
+
+> **Dependency on Phase 3:** Dark mode only *looks* right where components use token classes
+> (`bg-background`, `text-foreground`, `bg-card`, `text-muted-foreground`, `border`, …). So
+> infra ships now (Phase 2.5), and each page becomes dark-aware as it migrates in Phase 3 —
+> i.e. during page migration, use **token classes, not hardcoded colors**. Final dark-mode
+> verification happens in Phase 4.
+
 ## Phase 3 — Pages, one at a time (S inline → Tailwind + shadcn)
 
 Order (simple → complex), each: migrate, gate, user `dev`-verifies, commit.
@@ -141,6 +161,9 @@ page in both Bengali and English and on mobile width.
 - [ ] Remove now-unused entries from `src/theme.ts`; delete `theme.ts` once `S` is fully gone.
 - [ ] Remove leftover `index.css` rules superseded by Tailwind (keep Bengali font setup).
 - [ ] Final full gate + a complete role-by-role smoke test on `dev`.
+- [ ] Verify Light / Dark / System across every page (contrast, Bengali readability).
+- [ ] Optionally add the global base layer (`body { bg-background text-foreground }`) once no
+      inline light colors remain.
 - [ ] Update `MEMORY.md` / progress notes.
 
 ---
