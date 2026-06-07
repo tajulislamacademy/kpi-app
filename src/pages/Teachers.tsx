@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "../api/teachers";
 import { useDbStudents } from "../api/students";
 import type { Dict, Lang, Teacher, ClassTeacher, SubjectAssignment } from "../types";
@@ -127,6 +128,9 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
 
       <Card className="overflow-hidden py-0">
         <CardContent className="p-0">
+          {loading && teachers.length === 0 ? (
+            <div className="space-y-2 p-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
+          ) : (
           <Table>
             <TableHeader><TableRow>
               <TableHead>{t.autoId}</TableHead>
@@ -154,6 +158,7 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 
