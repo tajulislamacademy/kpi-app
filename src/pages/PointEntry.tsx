@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../composables";
 import { getWeekNumber, errMsg, cn } from "../lib";
-import { Tabs, ErrorNote } from "../components";
+import { Tabs, ErrorNote, Combobox } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,11 +91,11 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const editInfoTc = editEntry ? teachers.find(x => x.id === editEntry.teacherId) : undefined;
   const editInfoSt = editEntry ? students.find(x => x.id === editEntry.studentId) : undefined;
   const filterDefs = [
-    { l: lang === "bn" ? "বছর" : "Year", v: fYr, set: setFYr, opts: [{ v: "all", l: lang === "bn" ? "সব" : "All" }, ...entryYears.map(y => ({ v: String(y), l: String(y) }))] },
-    { l: lang === "bn" ? "শিক্ষক" : "Teacher", v: fTc, set: setFTc, opts: [{ v: "all", l: lang === "bn" ? "সবাই" : "All" }, ...teachers.map(tc => ({ v: tc.id, l: (lang === "bn" ? tc.name : tc.nameEn) || "" }))] },
-    { l: lang === "bn" ? "শিক্ষার্থী" : "Student", v: fSt, set: setFSt, opts: [{ v: "all", l: lang === "bn" ? "সবাই" : "All" }, ...students.map(s => ({ v: s.id, l: `${lang === "bn" ? s.name : s.nameEn}` }))] },
-    { l: lang === "bn" ? "মাস" : "Month", v: fMo, set: setFMo, opts: [{ v: "all", l: lang === "bn" ? "সব" : "All" }, ...MONTHS.map((m, i) => ({ v: String(i), l: T[lang][m] }))] },
-    { l: lang === "bn" ? "ভূমিকা" : "Role", v: fRo, set: setFRo, opts: [{ v: "all", l: lang === "bn" ? "সব" : "All" }, { v: "classTeacher", l: t.classTeacher }, { v: "subjectTeacher", l: t.subjectTeacher }, { v: "guideTeacher", l: t.guideTeacher }] },
+    { l: lang === "bn" ? "বছর" : "Year", v: fYr, set: setFYr, searchable: false, opts: [{ v: "all", l: lang === "bn" ? "সব" : "All" }, ...entryYears.map(y => ({ v: String(y), l: String(y) }))] },
+    { l: lang === "bn" ? "শিক্ষক" : "Teacher", v: fTc, set: setFTc, searchable: true, opts: [{ v: "all", l: lang === "bn" ? "সবাই" : "All" }, ...teachers.map(tc => ({ v: tc.id, l: (lang === "bn" ? tc.name : tc.nameEn) || "" }))] },
+    { l: lang === "bn" ? "শিক্ষার্থী" : "Student", v: fSt, set: setFSt, searchable: true, opts: [{ v: "all", l: lang === "bn" ? "সবাই" : "All" }, ...students.map(s => ({ v: s.id, l: `${lang === "bn" ? s.name : s.nameEn}` }))] },
+    { l: lang === "bn" ? "মাস" : "Month", v: fMo, set: setFMo, searchable: false, opts: [{ v: "all", l: lang === "bn" ? "সব" : "All" }, ...MONTHS.map((m, i) => ({ v: String(i), l: T[lang][m] }))] },
+    { l: lang === "bn" ? "ভূমিকা" : "Role", v: fRo, set: setFRo, searchable: false, opts: [{ v: "all", l: lang === "bn" ? "সব" : "All" }, { v: "classTeacher", l: t.classTeacher }, { v: "subjectTeacher", l: t.subjectTeacher }, { v: "guideTeacher", l: t.guideTeacher }] },
   ];
   const maxPts = roleQs.reduce((acc, q) => acc + q.points, 0);
   const showGrid = curStudents.length > 0 && roleQs.length > 0 && (activeRole !== "subjectTeacher" || selectedAssign);
@@ -176,8 +176,12 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
         <CardContent className="space-y-3">
           {isAdmin && (
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted p-4 sm:grid-cols-3 lg:grid-cols-6">
-              {filterDefs.map(({ l, v, set, opts }) => (
-                <div key={l} className="space-y-1"><Label className="text-xs">{l}</Label><Select value={v} onValueChange={set}><SelectTrigger className="h-9"><SelectValue /></SelectTrigger><SelectContent>{opts.map(o => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}</SelectContent></Select></div>
+              {filterDefs.map(({ l, v, set, opts, searchable }) => (
+                <div key={l} className="space-y-1"><Label className="text-xs">{l}</Label>
+                  {searchable
+                    ? <Combobox options={opts.map(o => ({ value: o.v, label: o.l }))} value={v} onChange={set} placeholder={l} searchPlaceholder={lang === "bn" ? "খুঁজুন…" : "Search…"} className="h-9" />
+                    : <Select value={v} onValueChange={set}><SelectTrigger className="h-9"><SelectValue /></SelectTrigger><SelectContent>{opts.map(o => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}</SelectContent></Select>}
+                </div>
               ))}
               <div className="flex items-end"><Button variant="outline" className="w-full gap-1" onClick={() => { setFTc("all"); setFSt("all"); setFYr("all"); setFMo("all"); setFRo("all"); }}><RotateCcw className="h-4 w-4" />{lang === "bn" ? "রিসেট" : "Reset"}</Button></div>
             </div>

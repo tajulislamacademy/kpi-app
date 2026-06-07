@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, X, Pencil, Trash2 } from "lucide-react";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { genId, errMsg } from "../lib";
-import { ConfirmDialog, ErrorNote, PasswordInput } from "../components";
+import { ConfirmDialog, ErrorNote, PasswordInput, MultiCombobox } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +31,6 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
   const [saving, setSaving] = useState(false);
   const addAssign = () => { if (form.subjectAssignments.find(a => a.class === newAssign.class && a.section === newAssign.section && a.subject === newAssign.subject)) return; setForm({ ...form, subjectAssignments: [...form.subjectAssignments, { ...newAssign }] }); };
   const removeAssign = (i: number) => setForm({ ...form, subjectAssignments: form.subjectAssignments.filter((_, idx) => idx !== i) });
-  const toggleGuide = (sid: string) => { const gs = form.guideStudents.includes(sid) ? form.guideStudents.filter(x => x !== sid) : [...form.guideStudents, sid]; setForm({ ...form, guideStudents: gs }); };
   const openAdd = () => { setEditId(null); setForm(blank); setHasClass(false); setShowForm(true); };
   const openEdit = (tc: Teacher) => { setEditId(tc.id); setForm({ name: tc.name || "", nameEn: tc.nameEn || "", password: "", classTeacher: tc.classTeacher || null, subjectAssignments: tc.subjectAssignments || [], guideStudents: tc.guideStudents || [], _authId: tc.authId, _systemId: tc.systemId }); setHasClass(!!tc.classTeacher); setShowForm(true); };
   const nextSystemId = () => {
@@ -116,14 +115,14 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
 
             <div className="rounded-lg border border-border bg-muted/40 p-4">
               <div className="mb-3 text-sm font-bold text-foreground">{t.guideStudents}</div>
-              <div className="flex max-h-48 flex-wrap gap-x-4 gap-y-2 overflow-y-auto">
-                {dbStudents.map(s => (
-                  <label key={s.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                    <Checkbox checked={form.guideStudents.includes(s.id)} onCheckedChange={() => toggleGuide(s.id)} />
-                    {lang === "bn" ? s.name : s.nameEn} ({t.class}{s.class}{s.section})
-                  </label>
-                ))}
-              </div>
+              <MultiCombobox
+                options={dbStudents.map(s => ({ value: s.id, label: `${lang === "bn" ? s.name : s.nameEn} (${t.class}${s.class}${s.section})` }))}
+                values={form.guideStudents}
+                onChange={gs => setForm({ ...form, guideStudents: gs })}
+                placeholder={lang === "bn" ? "শিক্ষার্থী নির্বাচন" : "Select students"}
+                searchPlaceholder={lang === "bn" ? "নাম খুঁজুন…" : "Search name…"}
+              />
+              {form.guideStudents.length > 0 && <div className="mt-1.5 text-xs text-muted-foreground">{form.guideStudents.length} {lang === "bn" ? "জন নির্বাচিত" : "selected"}</div>}
             </div>
 
             <div className="flex gap-2"><Button onClick={handleSave} disabled={saving}>{saving ? (lang === "bn" ? "সংরক্ষণ…" : "Saving…") : t.save}</Button><Button variant="outline" onClick={() => { setShowForm(false); setEditId(null); }}>{t.cancel}</Button></div>
