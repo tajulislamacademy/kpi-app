@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { S } from "../theme";
 import { supabase } from "../supabase";
 import { systemIdToEmail } from "../api/identity";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { PasswordInput } from "../components";
 import type { Dict, Lang, SessionUser } from "../types";
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
@@ -25,18 +28,30 @@ export function ProfilePage({ t, lang, currentUser, showNotif }: Props) {
       setForm({ current: "", newPass: "", confirm: "" });
     } finally { setBusy(false); }
   };
-  return (<div style={S.page}><h2 style={S.pt}>{t.myProfile}</h2><div style={S.card}>
-    <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, padding: 16, background: "var(--muted)", borderRadius: 10 }}>
-      <div style={{ ...S.ava, width: 56, height: 56, fontSize: 24 }}>{(currentUser.name || "A")[0]}</div>
-      <div><div style={{ fontSize: 18, fontWeight: 800, color: "var(--foreground)" }}>{currentUser.name}</div><div style={{ fontSize: 13, color: "var(--foreground)" }}>{currentUser.systemId || "admin"}</div></div>
+  return (
+    <div className="mx-auto max-w-2xl p-4 sm:p-6">
+      <h2 className="mb-4 text-xl font-extrabold text-foreground sm:text-2xl">{t.myProfile}</h2>
+      <Card>
+        <CardContent className="space-y-6 pt-6">
+          <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">{(currentUser.name || "A")[0]}</div>
+            <div>
+              <div className="text-lg font-extrabold text-foreground">{currentUser.name}</div>
+              <div className="text-sm text-muted-foreground">{currentUser.systemId || "admin"}</div>
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-3 text-base font-bold text-foreground">{t.changePassword}</h3>
+            <div className="max-w-sm space-y-4">
+              <div className="space-y-1.5"><Label htmlFor="pf-cur">{t.currentPassword}</Label><PasswordInput id="pf-cur" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label htmlFor="pf-new">{t.newPassword}</Label><PasswordInput id="pf-new" value={form.newPass} onChange={(e) => setForm({ ...form, newPass: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label htmlFor="pf-cf">{t.confirmPassword}</Label><PasswordInput id="pf-cf" value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} /></div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button onClick={handle} disabled={busy}>{busy ? (lang === "bn" ? "পরিবর্তন হচ্ছে…" : "Changing…") : t.changePassword}</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-    <h3 style={S.ct}>{t.changePassword}</h3>
-    <div style={{ maxWidth: 360 }}>
-      <div style={S.fg}><label style={S.lbl}>{t.currentPassword}</label><input style={S.inp} type="password" value={form.current} onChange={e => setForm({ ...form, current: e.target.value })} /></div>
-      <div style={S.fg}><label style={S.lbl}>{t.newPassword}</label><input style={S.inp} type="password" value={form.newPass} onChange={e => setForm({ ...form, newPass: e.target.value })} /></div>
-      <div style={S.fg}><label style={S.lbl}>{t.confirmPassword}</label><input style={S.inp} type="password" value={form.confirm} onChange={e => setForm({ ...form, confirm: e.target.value })} /></div>
-      {error && <div style={{ color: "#ef4444", fontSize: 13, marginBottom: 8 }}>{error}</div>}
-      <button onClick={handle} disabled={busy} style={{ ...S.saveBtn, ...(busy ? { opacity: 0.6, cursor: "wait" } : {}) }}>{busy ? (lang === "bn" ? "পরিবর্তন হচ্ছে…" : "Changing…") : t.changePassword}</button>
-    </div>
-  </div></div>);
+  );
 }

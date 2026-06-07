@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../supabase";
 import { systemIdToEmail } from "../api/identity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { PasswordInput } from "../components";
 import type { Dict, Lang, SessionUser } from "../types";
 
 // Builds the in-app user from a profiles row, loading role-specific extras the
@@ -34,7 +34,6 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
   const [form, setForm] = useState({ id: "", password: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [showPw, setShowPw] = useState(false);
   const doLogin = async () => {
     setError("");
     setBusy(true);
@@ -81,12 +80,7 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="kpi-pw">{t.password}</Label>
-            <div className="relative">
-              <Input id="kpi-pw" type={showPw ? "text" : "password"} className="pr-10" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} onKeyDown={(e) => e.key === "Enter" && !busy && doLogin()} />
-              <button type="button" onClick={() => setShowPw((v) => !v)} aria-label={showPw ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground">
-                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
+            <PasswordInput id="kpi-pw" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} onKeyDown={(e) => e.key === "Enter" && !busy && doLogin()} />
           </div>
           {error && <p className="text-center text-sm text-destructive">{error}</p>}
           <Button onClick={doLogin} disabled={busy} className="w-full">
