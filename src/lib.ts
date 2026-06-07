@@ -1,4 +1,12 @@
 // Small pure helpers shared across the app.
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+// Tailwind class merge helper (shadcn convention). Combines clsx conditionals
+// with tailwind-merge so later utility classes win over earlier conflicting ones.
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
+}
 
 // Safe message from an unknown catch value (strict mode types catch vars unknown).
 export const errMsg = (e: unknown): string => (e instanceof Error ? e.message : String(e));
