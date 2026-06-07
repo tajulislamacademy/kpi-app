@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { useIsMobile } from "../hooks";
+import { useIsMobile } from "../composables";
 import { freqDone, errMsg } from "../lib";
 import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid, ErrorNote } from "../components";
 import { useDbTeachers } from "../api/teachers";

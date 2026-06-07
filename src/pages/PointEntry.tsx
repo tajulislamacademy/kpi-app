@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "../theme";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
-import { useIsMobile } from "../hooks";
+import { useIsMobile } from "../composables";
 import { getWeekNumber, errMsg } from "../lib";
 import { Tabs, ErrorNote } from "../components";
 import { useDbStudents } from "../api/students";
