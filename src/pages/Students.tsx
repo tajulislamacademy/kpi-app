@@ -72,7 +72,7 @@ export function StudentsPage({ t, lang, showNotif }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5"><Label>{t.name} (বাংলা)</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
               <div className="space-y-1.5"><Label>{t.name} (English)</Label><Input value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} /></div>
-              <div className="space-y-1.5"><Label>{t.class}</Label><Select value={form.class} onValueChange={v => setForm({ ...form, class: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+              <div className="space-y-1.5"><Label>{t.class}</Label><Select value={form.class} onValueChange={v => setForm({ ...form, class: v })}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
               <div className="space-y-1.5"><Label>{t.section}</Label><Input value={form.section} onChange={e => setForm({ ...form, section: e.target.value })} placeholder="A, B..." /></div>
               <div className="space-y-1.5"><Label>{t.roll}</Label><Input type="number" value={form.roll} onChange={e => setForm({ ...form, roll: e.target.value })} /></div>
               <div className="space-y-1.5"><Label>{editId ? (lang === "bn" ? "পাসওয়ার্ড" : "Password") : (t.defaultPass + " (login)")}</Label><PasswordInput value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder={pwPlaceholder} /></div>

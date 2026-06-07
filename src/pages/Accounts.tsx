@@ -98,7 +98,7 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
               </div>
               <div className="space-y-1.5">
                 <Label>{t.relation}</Label>
-                <Select value={form.relation} onValueChange={v => setForm({ ...form, relation: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{relationOptions}</SelectContent></Select>
+                <Select value={form.relation} onValueChange={v => setForm({ ...form, relation: v })}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{relationOptions}</SelectContent></Select>
               </div>
               <div className="space-y-1.5"><Label>{t.parentName} (বাংলা)</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
               <div className="space-y-1.5"><Label>{t.parentName} (English)</Label><Input value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} /></div>
@@ -164,8 +164,8 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
             <div className="space-y-1.5"><Label>{t.parentName} (বাংলা)</Label><Input value={parentForm.name} onChange={e => setParentForm({ ...parentForm, name: e.target.value })} /></div>
             <div className="space-y-1.5"><Label>{t.parentName} (English)</Label><Input value={parentForm.nameEn} onChange={e => setParentForm({ ...parentForm, nameEn: e.target.value })} /></div>
             <div className="space-y-1.5"><Label>{t.defaultPass}</Label><PasswordInput value={parentForm.password} onChange={e => setParentForm({ ...parentForm, password: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label>{t.relation}</Label><Select value={parentForm.relation} onValueChange={v => setParentForm({ ...parentForm, relation: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{relationOptions}</SelectContent></Select></div>
-            <div className="space-y-1.5"><Label>{lang === "bn" ? "অবস্থা" : "Status"}</Label><Select value={parentForm.status} onValueChange={v => setParentForm({ ...parentForm, status: v as ParentStatus })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="approved">{t.approved}</SelectItem><SelectItem value="pending">{t.pending}</SelectItem><SelectItem value="rejected">{t.rejected}</SelectItem></SelectContent></Select></div>
+            <div className="space-y-1.5"><Label>{t.relation}</Label><Select value={parentForm.relation} onValueChange={v => setParentForm({ ...parentForm, relation: v })}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{relationOptions}</SelectContent></Select></div>
+            <div className="space-y-1.5"><Label>{lang === "bn" ? "অবস্থা" : "Status"}</Label><Select value={parentForm.status} onValueChange={v => setParentForm({ ...parentForm, status: v as ParentStatus })}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="approved">{t.approved}</SelectItem><SelectItem value="pending">{t.pending}</SelectItem><SelectItem value="rejected">{t.rejected}</SelectItem></SelectContent></Select></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setEditParent(null)}>{t.cancel}</Button><Button onClick={handleSaveParent} disabled={saving}>{t.save}</Button></DialogFooter>
         </DialogContent>
