@@ -131,8 +131,8 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
         </Card>
       )}
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="overflow-hidden py-0">
+        <CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
               <TableHead>{t.autoId}</TableHead>

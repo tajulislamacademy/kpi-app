@@ -73,9 +73,9 @@ export function ReportsPage({ t, lang, termConfig, currentUser, isAdmin, selecte
           ))}
         </div>
       )}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader><CardTitle className="text-base">{lang === "bn" ? "র‍্যাংকিং" : "Rankings"}</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="px-0">
           <Table>
             <TableHeader>
               <TableRow>

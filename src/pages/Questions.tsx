@@ -127,11 +127,11 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
       )}
 
       {isStd ? ["classTeacher", "subjectTeacher", "guideTeacher"].map(role => (
-        <Card key={role}>
+        <Card key={role} className="overflow-hidden">
           <CardHeader><CardTitle><Badge className={cn("border-transparent text-sm font-bold", roleBadge(role))}>{rLabel(role)}</Badge></CardTitle></CardHeader>
-          <CardContent className="pt-0">{qTable(curQs.filter(q => q.role === role))}</CardContent>
+          <CardContent className="px-0 pt-0">{qTable(curQs.filter(q => q.role === role))}</CardContent>
         </Card>
-      )) : <Card><CardContent className="pt-6">{qTable(curQs)}</CardContent></Card>}
+      )) : <Card className="overflow-hidden py-0"><CardContent className="p-0">{qTable(curQs)}</CardContent></Card>}
 
       <Dialog open={!!viewQ} onOpenChange={(o) => { if (!o) setViewQ(null); }}>
         <DialogContent className="sm:max-w-lg">
