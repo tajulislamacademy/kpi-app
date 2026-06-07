@@ -1,9 +1,16 @@
 import { useState } from "react";
-import type { CSSProperties } from "react";
-import { S } from "../theme";
+import { Plus, X, Pencil, Trash2 } from "lucide-react";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { genId, errMsg } from "../lib";
-import { ConfirmDialog, PageHeader, ErrorNote } from "../components";
+import { ConfirmDialog, ErrorNote, PasswordInput } from "../components";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "../api/teachers";
 import { useDbStudents } from "../api/students";
 import type { Dict, Lang, Teacher, ClassTeacher, SubjectAssignment } from "../types";
@@ -12,7 +19,6 @@ interface Props { t: Dict; lang: Lang; showNotif: (msg: string) => void; }
 interface TForm { name: string; nameEn: string; password: string; classTeacher: ClassTeacher | null; subjectAssignments: SubjectAssignment[]; guideStudents: string[]; _authId?: string | null; _systemId?: string; }
 
 export function TeachersPage({ t, lang, showNotif }: Props) {
-  // Self-contained Supabase data; guide-student picker reads DB students for uuids.
   const { teachers, loading, error, reload } = useDbTeachers(true);
   const { students: dbStudents } = useDbStudents(true);
   const [showForm, setShowForm] = useState(false);
@@ -56,39 +62,108 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
     try { await deleteTeacher(id); await reload(); showNotif(lang === "bn" ? "মুছা হয়েছে!" : "Deleted!"); }
     catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); }
   };
-  const aBtn = (bg: string, cl: string, bc: string): CSSProperties => ({ padding: "4px 10px", background: bg, color: cl, border: `1px solid ${bc}`, borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 });
-  return (<div style={S.page}>
-    {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); doDelete(id); }} onCancel={() => setConfirmDel(null)} />}
-    <PageHeader title={t.teachers} subtitle={`${lang === "bn" ? `মোট ${teachers.length} জন` : `Total ${teachers.length}`}${loading ? " · …" : ""}`} actionLabel={`+ ${t.addTeacher}`} onAction={openAdd} />
-    <ErrorNote lang={lang} error={error} />
-    {showForm && (<div style={S.card}>
-      <h3 style={S.ct}>{editId ? (lang === "bn" ? "শিক্ষক সম্পাদনা" : "Edit Teacher") : (lang === "bn" ? "নতুন শিক্ষক" : "New Teacher")}</h3>
-      <div style={S.grid2}>
-        <div style={S.fg}><label style={S.lbl}>{t.name} (বাংলা)</label><input style={S.inp} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
-        <div style={S.fg}><label style={S.lbl}>{t.name} (English)</label><input style={S.inp} value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} /></div>
-        <div style={S.fg}><label style={S.lbl}>{editId ? (lang === "bn" ? "পাসওয়ার্ড" : "Password") : (t.defaultPass + " (login)")}</label><input style={S.inp} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder={editId ? (form._authId ? (lang === "bn" ? "খালি = অপরিবর্তিত" : "blank = unchanged") : (lang === "bn" ? "login দিতে পাসওয়ার্ড দিন" : "set to give a login")) : (lang === "bn" ? "খালি = login ছাড়া" : "blank = no login")} /></div>
-      </div>
-      <div style={S.sectionBox}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}><input type="checkbox" checked={hasClass} onChange={e => setHasClass(e.target.checked)} id="hc" /><label htmlFor="hc" style={{ fontWeight: 700, color: "var(--foreground)", fontSize: 14 }}>{t.classTeacher}?</label></div>
-        {hasClass && <div style={{ display: "flex", gap: 8 }}><select style={{ ...S.inp, width: 100 }} value={form.classTeacher?.class || "8"} onChange={e => setForm({ ...form, classTeacher: { class: e.target.value, section: form.classTeacher?.section || "A" } })}>{CLASSES.map(c => <option key={c}>{c}</option>)}</select><select style={{ ...S.inp, width: 80 }} value={form.classTeacher?.section || "A"} onChange={e => setForm({ ...form, classTeacher: { class: form.classTeacher?.class || "8", section: e.target.value } })}>{SECTIONS.map(s => <option key={s}>{s}</option>)}</select></div>}
-      </div>
-      <div style={S.sectionBox}>
-        <div style={{ fontWeight: 700, color: "var(--foreground)", fontSize: 14, marginBottom: 10 }}>{t.subjectAssignments}</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-          <select style={{ ...S.inp, width: 80 }} value={newAssign.class} onChange={e => setNewAssign({ ...newAssign, class: e.target.value })}>{CLASSES.map(c => <option key={c}>{c}</option>)}</select>
-          <select style={{ ...S.inp, width: 70 }} value={newAssign.section} onChange={e => setNewAssign({ ...newAssign, section: e.target.value })}>{SECTIONS.map(s => <option key={s}>{s}</option>)}</select>
-          <select style={{ ...S.inp, flex: 1, minWidth: 140 }} value={newAssign.subject} onChange={e => setNewAssign({ ...newAssign, subject: e.target.value })}>{SUBJECTS.map(s => <option key={s}>{s}</option>)}</select>
-          <button onClick={addAssign} style={{ ...S.saveBtn, padding: "8px 14px" }}>+</button>
+  const pwPlaceholder = editId ? (form._authId ? (lang === "bn" ? "খালি = অপরিবর্তিত" : "blank = unchanged") : (lang === "bn" ? "login দিতে পাসওয়ার্ড দিন" : "set to give a login")) : (lang === "bn" ? "খালি = login ছাড়া" : "blank = no login");
+  return (
+    <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.teachers}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${teachers.length} জন` : `Total ${teachers.length}`}{loading ? " · …" : ""}</p>
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{form.subjectAssignments.map((a, i) => (<span key={i} style={S.assignTag}>{t.class}{a.class}{a.section}—{a.subject.split("/")[1] || a.subject}<button onClick={() => removeAssign(i)} style={S.tagX}>×</button></span>))}</div>
+        <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addTeacher}</Button>
       </div>
-      <div style={S.sectionBox}>
-        <div style={{ fontWeight: 700, color: "var(--foreground)", fontSize: 14, marginBottom: 10 }}>{t.guideStudents}</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{dbStudents.map(s => (<label key={s.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer" }}><input type="checkbox" checked={form.guideStudents.includes(s.id)} onChange={() => toggleGuide(s.id)} />{lang === "bn" ? s.name : s.nameEn}({t.class}{s.class}{s.section})</label>))}</div>
-      </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}><button onClick={handleSave} disabled={saving} style={{ ...S.saveBtn, ...(saving ? { opacity: 0.6, cursor: "wait" } : {}) }}>{saving ? (lang === "bn" ? "সংরক্ষণ…" : "Saving…") : t.save}</button><button onClick={() => { setShowForm(false); setEditId(null); }} style={S.cancelBtn}>{t.cancel}</button></div>
-    </div>)}
-    <div style={S.tableWrap}><table style={S.table}><thead><tr><th style={S.th}>{t.autoId}</th><th style={S.th}>{t.name}</th><th style={S.th}>{t.classTeacher}</th><th style={S.th}>{t.subjectAssignments}</th><th style={S.th}>{t.guideStudents}</th><th style={S.th}>{lang === "bn" ? "অ্যাকশন" : "Action"}</th></tr></thead>
-    <tbody>{teachers.map((tc, i) => (<tr key={tc.id} style={i % 2 === 0 ? { background: "var(--muted)" } : {}}><td style={S.td}><code style={{ background: "var(--muted)", padding: "2px 6px", borderRadius: 4, fontSize: 11, color: "var(--foreground)" }}>{tc.systemId}</code></td><td style={S.td}><strong>{lang === "bn" ? tc.name : tc.nameEn}</strong></td><td style={S.td}>{tc.classTeacher ? `${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}` : "—"}</td><td style={S.td}><div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>{(tc.subjectAssignments || []).map((a, j) => (<span key={j} style={{ ...S.assignTag, fontSize: 11 }}>{t.class}{a.class}{a.section}/{a.subject.split("/")[1] || a.subject}</span>))}</div></td><td style={S.td}>{(tc.guideStudents || []).length}{lang === "bn" ? "জন" : "sts"}</td><td style={S.td}><div style={{ display: "flex", gap: 6 }}><button onClick={() => openEdit(tc)} style={aBtn("var(--muted)", "var(--foreground)", "var(--border)")}>✏️ {t.edit}</button><button onClick={() => setConfirmDel({ id: tc.id, name: (lang === "bn" ? tc.name : tc.nameEn) || "" })} style={aBtn("#fee2e2", "#991b1b", "#fca5a5")}>🗑️ {t.deleteAdmin}</button></div></td></tr>))}</tbody></table></div>
-  </div>);
+      <ErrorNote lang={lang} error={error} />
+
+      {showForm && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">{editId ? (lang === "bn" ? "শিক্ষক সম্পাদনা" : "Edit Teacher") : (lang === "bn" ? "নতুন শিক্ষক" : "New Teacher")}</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5"><Label>{t.name} (বাংলা)</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label>{t.name} (English)</Label><Input value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label>{editId ? (lang === "bn" ? "পাসওয়ার্ড" : "Password") : (t.defaultPass + " (login)")}</Label><PasswordInput value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder={pwPlaceholder} /></div>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/40 p-4">
+              <label className="flex items-center gap-2 text-sm font-bold text-foreground">
+                <Checkbox checked={hasClass} onCheckedChange={(c) => setHasClass(c === true)} />{t.classTeacher}?
+              </label>
+              {hasClass && (
+                <div className="mt-3 flex gap-2">
+                  <Select value={form.classTeacher?.class || "8"} onValueChange={v => setForm({ ...form, classTeacher: { class: v, section: form.classTeacher?.section || "A" } })}><SelectTrigger className="w-28"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
+                  <Select value={form.classTeacher?.section || "A"} onValueChange={v => setForm({ ...form, classTeacher: { class: form.classTeacher?.class || "8", section: v } })}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/40 p-4">
+              <div className="mb-3 text-sm font-bold text-foreground">{t.subjectAssignments}</div>
+              <div className="mb-3 flex flex-wrap items-end gap-2">
+                <Select value={newAssign.class} onValueChange={v => setNewAssign({ ...newAssign, class: v })}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
+                <Select value={newAssign.section} onValueChange={v => setNewAssign({ ...newAssign, section: v })}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
+                <Select value={newAssign.subject} onValueChange={v => setNewAssign({ ...newAssign, subject: v })}><SelectTrigger className="min-w-36 flex-1"><SelectValue /></SelectTrigger><SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
+                <Button size="icon" onClick={addAssign}><Plus className="h-4 w-4" /></Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {form.subjectAssignments.map((a, i) => (
+                  <Badge key={i} variant="secondary" className="gap-1">
+                    {t.class}{a.class}{a.section}—{a.subject.split("/")[1] || a.subject}
+                    <button onClick={() => removeAssign(i)} className="ml-0.5 rounded-full hover:text-destructive"><X className="h-3 w-3" /></button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/40 p-4">
+              <div className="mb-3 text-sm font-bold text-foreground">{t.guideStudents}</div>
+              <div className="flex max-h-48 flex-wrap gap-x-4 gap-y-2 overflow-y-auto">
+                {dbStudents.map(s => (
+                  <label key={s.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                    <Checkbox checked={form.guideStudents.includes(s.id)} onCheckedChange={() => toggleGuide(s.id)} />
+                    {lang === "bn" ? s.name : s.nameEn} ({t.class}{s.class}{s.section})
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2"><Button onClick={handleSave} disabled={saving}>{saving ? (lang === "bn" ? "সংরক্ষণ…" : "Saving…") : t.save}</Button><Button variant="outline" onClick={() => { setShowForm(false); setEditId(null); }}>{t.cancel}</Button></div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="pt-6">
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>{t.autoId}</TableHead>
+              <TableHead>{t.name}</TableHead>
+              <TableHead>{t.classTeacher}</TableHead>
+              <TableHead>{t.subjectAssignments}</TableHead>
+              <TableHead>{t.guideStudents}</TableHead>
+              <TableHead>{lang === "bn" ? "অ্যাকশন" : "Action"}</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {teachers.map((tc) => (
+                <TableRow key={tc.id}>
+                  <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{tc.systemId}</code></TableCell>
+                  <TableCell className="font-semibold">{lang === "bn" ? tc.name : tc.nameEn}</TableCell>
+                  <TableCell>{tc.classTeacher ? `${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}` : "—"}</TableCell>
+                  <TableCell><div className="flex flex-wrap gap-1">{(tc.subjectAssignments || []).map((a, j) => (<Badge key={j} variant="secondary" className="text-xs">{t.class}{a.class}{a.section}/{a.subject.split("/")[1] || a.subject}</Badge>))}</div></TableCell>
+                  <TableCell>{(tc.guideStudents || []).length}{lang === "bn" ? "জন" : "sts"}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1.5">
+                      <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" />{t.edit}</Button>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-destructive" onClick={() => setConfirmDel({ id: tc.id, name: (lang === "bn" ? tc.name : tc.nameEn) || "" })}><Trash2 className="h-3.5 w-3.5" />{t.deleteAdmin}</Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); doDelete(id); }} onCancel={() => setConfirmDel(null)} />}
+    </div>
+  );
 }
