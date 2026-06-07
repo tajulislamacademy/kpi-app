@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { S } from "./theme";
-import { useIsMobile } from "./composables";
-import type { Dict, Lang, SessionUser } from "./types";
+import { S } from "../theme";
+import { useIsMobile } from "../composables";
+import type { Dict, Lang, SessionUser } from "../types";
 
 export interface NavItem { key: string; icon: string; label: string; }
 
