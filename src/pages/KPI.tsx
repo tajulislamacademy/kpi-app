@@ -17,7 +17,7 @@ type Scores = Record<string, Record<string, number>>;
 interface EntryProps { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; selectedYear: number; setSelectedYear: (y: number) => void; }
 interface SelfProps { t: Dict; lang: Lang; currentUser: SessionUser; selectedYear: number; setSelectedYear: (y: number) => void; termConfig: TermConfig; }
 
-const PAGE = "mx-auto max-w-5xl space-y-4 p-4 sm:p-6";
+const PAGE = "mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6";
 const HEAD = "flex flex-wrap items-start justify-between gap-3";
 const TITLE = "text-xl font-extrabold text-foreground sm:text-2xl";
 const GRID4 = "grid grid-cols-2 gap-3 sm:grid-cols-4";

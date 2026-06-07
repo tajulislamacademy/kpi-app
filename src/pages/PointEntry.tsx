@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../composables";
 import { getWeekNumber, errMsg, cn } from "../lib";
-import { Tabs, ErrorNote, Combobox } from "../components";
+import { Tabs, ErrorNote, Combobox , Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,7 +100,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const maxPts = roleQs.reduce((acc, q) => acc + q.points, 0);
   const showGrid = curStudents.length > 0 && roleQs.length > 0 && (activeRole !== "subjectTeacher" || selectedAssign);
   return (
-    <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+    <Page>
       <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.pointEntry}</h2>
       <ErrorNote lang={lang} error={loadErr} />
 
@@ -237,6 +237,6 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
           </>}
         </DialogContent>
       </Dialog>
-    </div>
+    </Page>
   );
 }

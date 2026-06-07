@@ -3,7 +3,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { errMsg } from "../lib";
 import { seedDemoData } from "../api/seed";
-import { MonthsPicker } from "../components";
+import { MonthsPicker, Page, PageHeader } from "../components";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Dict, Lang, TermConfig } from "../types";
@@ -34,8 +34,8 @@ export function SettingsPage({ t, lang, termConfig, onSaveTermConfig, showNotif 
     finally { setSeeding(false); }
   };
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
-      <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.settings}</h2>
+    <Page width="form">
+      <PageHeader title={t.settings} />
 
       {import.meta.env.DEV && (
         <Card>
@@ -71,6 +71,6 @@ export function SettingsPage({ t, lang, termConfig, onSaveTermConfig, showNotif 
           ))}
         </CardContent>
       </Card>
-    </div>
+    </Page>
   );
 }
