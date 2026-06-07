@@ -17,9 +17,9 @@ export function TermBreakdown({ t, lang, termConfig, selectedYear, getTermKPI, i
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 12 }}>
       {terms.map((term) => (
         <div key={term} style={{ ...S.card, textAlign: "center", padding: 14 }}>
-          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>{t[term]}</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{getTermKPI(id, termConfig[term], selectedYear)}</div>
-          <div style={{ fontSize: 11, color: "#94a3b8" }}>{lang === "bn" ? "পয়েন্ট" : "pts"}</div>
+          <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 4 }}>{t[term]}</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)" }}>{getTermKPI(id, termConfig[term], selectedYear)}</div>
+          <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{lang === "bn" ? "পয়েন্ট" : "pts"}</div>
         </div>
       ))}
     </div>
