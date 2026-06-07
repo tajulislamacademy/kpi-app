@@ -148,8 +148,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
           <Button onClick={handleSubmit} disabled={submitting} size="lg" className="w-full">{submitting ? (lang === "bn" ? "জমা হচ্ছে…" : "Submitting…") : t.submitPoints}</Button>
         </div>
       ) : (
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="overflow-hidden py-0">
             <Table>
               <TableHeader><TableRow>
                 <TableHead className="min-w-30">{lang === "bn" ? "শিক্ষার্থী" : "Student"}</TableHead>
@@ -168,12 +167,11 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
                 ); })}
               </TableBody>
             </Table>
-            <div className="mt-4 flex justify-end"><Button onClick={handleSubmit} disabled={submitting}>{submitting ? (lang === "bn" ? "জমা হচ্ছে…" : "Submitting…") : t.submitPoints}</Button></div>
-          </CardContent>
+            <div className="flex justify-end p-4"><Button onClick={handleSubmit} disabled={submitting}>{submitting ? (lang === "bn" ? "জমা হচ্ছে…" : "Submitting…") : t.submitPoints}</Button></div>
         </Card>
       ))}
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader><CardTitle className="text-base">{lang === "bn" ? "এন্ট্রি তালিকা" : "Entry List"}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {isAdmin && (
@@ -185,6 +183,8 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
             </div>
           )}
           <div className="text-xs text-muted-foreground">{lang === "bn" ? `${filtered.length}টি এন্ট্রি` : `${filtered.length} entries`}</div>
+        </CardContent>
+        <div className="border-t border-border">
           <Table>
             <TableHeader><TableRow>
               <TableHead>{lang === "bn" ? "তারিখ" : "Date"}</TableHead>
@@ -196,9 +196,9 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
               {isAdmin && <TableHead>✏️</TableHead>}
             </TableRow></TableHeader>
             <TableBody>
-              {filtered.map((e, i) => { const s = students.find(x => x.id === e.studentId), q = questions.find(x => x.id === e.questionId), tc = teachers.find(x => x.id === e.teacherId), edited = (e.editLog || []).length > 0; const rL = e.role === "classTeacher" ? t.classTeacher : e.role === "subjectTeacher" ? t.subjectTeacher : t.guideTeacher;
+              {filtered.map((e) => { const s = students.find(x => x.id === e.studentId), q = questions.find(x => x.id === e.questionId), tc = teachers.find(x => x.id === e.teacherId), edited = (e.editLog || []).length > 0; const rL = e.role === "classTeacher" ? t.classTeacher : e.role === "subjectTeacher" ? t.subjectTeacher : t.guideTeacher;
                 return (
-                  <TableRow key={i}>
+                  <TableRow key={e.id}>
                     <TableCell>{e.date}</TableCell>
                     <TableCell><div className="text-sm">{lang === "bn" ? tc?.name : tc?.nameEn}</div>{edited && <Badge variant="secondary" className="text-[10px]">✏️{lang === "bn" ? "সম্পাদিত" : "Edited"}</Badge>}</TableCell>
                     <TableCell>{lang === "bn" ? s?.name : s?.nameEn}</TableCell>
@@ -210,7 +210,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
                 ); })}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
       </Card>
 
       <Dialog open={!!editEntry && isAdmin} onOpenChange={(o) => { if (!o) setEditEntry(null); }}>
