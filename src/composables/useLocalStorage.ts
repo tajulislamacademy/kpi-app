@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function useLocalStorage<T>(key: string, init: T): [T, (v: T | ((prev: T) => T)) => void] {
   const [val, setVal] = useState<T>(() => {
@@ -12,14 +12,4 @@ export function useLocalStorage<T>(key: string, init: T): [T, (v: T | ((prev: T)
     });
   };
   return [val, set];
-}
-
-export function useIsMobile(): boolean {
-  const [m, setM] = useState<boolean>(() => (typeof window !== "undefined" ? window.innerWidth < 768 : false));
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < 768);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, []);
-  return m;
 }

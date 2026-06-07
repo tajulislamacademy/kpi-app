@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "./supabase";
 import { useDbParents } from "./api/parents";
 import { useDbTermConfig, updateTermConfig } from "./api/config";
-import { useLocalStorage } from "./hooks";
+import { useLocalStorage } from "./composables";
 import { T } from "./i18n";
 import { Layout } from "./Layout";
 import { ErrorBoundary } from "./components";
