@@ -87,9 +87,9 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
             </TableCell>
             <TableCell>
               <div className="flex gap-1">
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setViewQ(q)}><Eye className="h-3.5 w-3.5" /></Button>
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEdit(q)}><Pencil className="h-3.5 w-3.5" /></Button>
-                <Button size="icon" variant="outline" className="h-8 w-8 text-destructive" onClick={() => setConfirmDel({ id: q.id, name: lang === "bn" ? q.textBn : q.textEn })}><Trash2 className="h-3.5 w-3.5" /></Button>
+                <Button size="icon" variant="outline" aria-label={lang === "bn" ? "দেখুন" : "View"} className="h-8 w-8" onClick={() => setViewQ(q)}><Eye className="h-3.5 w-3.5" /></Button>
+                <Button size="icon" variant="outline" aria-label={t.edit} className="h-8 w-8" onClick={() => openEdit(q)}><Pencil className="h-3.5 w-3.5" /></Button>
+                <Button size="icon" variant="outline" aria-label={t.deleteAdmin} className="h-8 w-8 text-destructive" onClick={() => setConfirmDel({ id: q.id, name: lang === "bn" ? q.textBn : q.textEn })}><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
             </TableCell>
           </TableRow>

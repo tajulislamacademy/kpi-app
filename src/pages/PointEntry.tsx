@@ -209,7 +209,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
                     <TableCell><Badge className={cn("border-transparent text-xs font-semibold", roleBadge(e.role))}>{rL}</Badge></TableCell>
                     <TableCell><div className="max-w-30 truncate text-sm">{lang === "bn" ? (q?.textBn || e.questionText) : (q?.textEn || e.questionTextEn)}</div></TableCell>
                     <TableCell>{edited ? <span><span className="mr-1 text-xs text-muted-foreground line-through">{e.editLog[0].oldScore}</span><strong className="text-foreground">{e.score}</strong></span> : <strong className="text-foreground">{e.score}</strong>}</TableCell>
-                    {isAdmin && <TableCell><Button size="icon" variant="outline" className="h-8 w-8" onClick={() => { setEditEntry(e); setEditScore(e.score); }}><Pencil className="h-3.5 w-3.5" /></Button></TableCell>}
+                    {isAdmin && <TableCell><Button size="icon" variant="outline" aria-label={t.edit} className="h-8 w-8" onClick={() => { setEditEntry(e); setEditScore(e.score); }}><Pencil className="h-3.5 w-3.5" /></Button></TableCell>}
                   </TableRow>
                 ); })}
             </TableBody>

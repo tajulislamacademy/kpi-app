@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, X, Pencil, Trash2 } from "lucide-react";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
-import { genId, errMsg } from "../lib";
+import { errMsg, nextSystemId } from "../lib";
 import { ConfirmDialog, ErrorNote, PasswordInput, MultiCombobox , Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,11 +33,6 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
   const removeAssign = (i: number) => setForm({ ...form, subjectAssignments: form.subjectAssignments.filter((_, idx) => idx !== i) });
   const openAdd = () => { setEditId(null); setForm(blank); setHasClass(false); setShowForm(true); };
   const openEdit = (tc: Teacher) => { setEditId(tc.id); setForm({ name: tc.name || "", nameEn: tc.nameEn || "", password: "", classTeacher: tc.classTeacher || null, subjectAssignments: tc.subjectAssignments || [], guideStudents: tc.guideStudents || [], _authId: tc.authId, _systemId: tc.systemId }); setHasClass(!!tc.classTeacher); setShowForm(true); };
-  const nextSystemId = () => {
-    const yr = new Date().getFullYear();
-    const max = teachers.reduce((m, tc) => { const n = parseInt(String(tc.systemId || "").split("-")[1]?.slice(4) ?? "") || 0; return Math.max(m, n); }, 0);
-    return genId("TCH", yr, max + 1);
-  };
   const handleSave = async () => {
     if (!form.name) { showNotif(lang === "bn" ? "নাম আবশ্যক" : "Name required"); return; }
     if (form.password && form.password.length < 6) { showNotif(lang === "bn" ? "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর" : "Password must be at least 6 characters"); return; }
@@ -48,7 +43,7 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
         await updateTeacher(editId, { name: form.name, nameEn: form.nameEn, classTeacher, subjectAssignments: form.subjectAssignments, guideStudents: form.guideStudents, password: form.password || null, authId: form._authId, systemId: form._systemId });
         showNotif(lang === "bn" ? "আপডেট হয়েছে!" : "Updated!");
       } else {
-        const systemId = nextSystemId();
+        const systemId = nextSystemId("TCH", teachers);
         await createTeacher({ systemId, name: form.name, nameEn: form.nameEn, password: form.password, classTeacher, subjectAssignments: form.subjectAssignments, guideStudents: form.guideStudents });
         showNotif(lang === "bn" ? `শিক্ষক যোগ! ID: ${systemId}` : `Teacher added! ID: ${systemId}`);
       }
@@ -101,7 +96,7 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
                 <Select value={newAssign.class} onValueChange={v => setNewAssign({ ...newAssign, class: v })}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
                 <Select value={newAssign.section} onValueChange={v => setNewAssign({ ...newAssign, section: v })}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
                 <Select value={newAssign.subject} onValueChange={v => setNewAssign({ ...newAssign, subject: v })}><SelectTrigger className="min-w-36 flex-1"><SelectValue /></SelectTrigger><SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
-                <Button size="icon" onClick={addAssign}><Plus className="h-4 w-4" /></Button>
+                <Button size="icon" aria-label={lang === "bn" ? "যোগ করুন" : "Add"} onClick={addAssign}><Plus className="h-4 w-4" /></Button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {form.subjectAssignments.map((a, i) => (
