@@ -14,3 +14,5 @@ export { EntryHistoryTable } from "./EntryHistoryTable";
 export { ScoreEntryGrid } from "./ScoreEntryGrid";
 export { ErrorBoundary } from "./ErrorBoundary";
 export { ErrorNote } from "./ErrorNote";
+export { Layout } from "./Layout";
+export type { NavItem } from "./Layout";
