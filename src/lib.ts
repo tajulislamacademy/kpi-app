@@ -14,6 +14,13 @@ export const errMsg = (e: unknown): string => (e instanceof Error ? e.message : 
 export const genId = (prefix: string, year: number | undefined, seq: number): string =>
   `${prefix}-${year || new Date().getFullYear()}${String(seq).padStart(4, "0")}`;
 
+// Next sequential system id for a list, derived from the MAX existing suffix
+// (not array length) so it survives deletions. e.g. nextSystemId("STD", students).
+export const nextSystemId = (prefix: string, rows: { systemId?: string | null }[]): string => {
+  const max = rows.reduce((m, r) => { const n = parseInt(String(r.systemId || "").split("-")[1]?.slice(4) ?? "") || 0; return Math.max(m, n); }, 0);
+  return genId(prefix, new Date().getFullYear(), max + 1);
+};
+
 export const getWeekNumber = (dateStr: string): number => {
   const d = new Date(dateStr);
   const start = new Date(d.getFullYear(), 0, 1);

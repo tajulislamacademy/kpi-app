@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X, Clock, CheckCircle2, XCircle, UsersRound } from "lucide-react";
-import { genId, errMsg, cn } from "../lib";
+import { errMsg, cn, nextSystemId } from "../lib";
 import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox , Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,6 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
   const [editParent, setEditParent] = useState<Parent | null>(null);
   const [parentForm, setParentForm] = useState<EditForm>({ name: "", nameEn: "", password: "", relation: "father", status: "approved" });
   const [confirmParentDel, setConfirmParentDel] = useState<{ id: string; name: string } | null>(null);
-  const nextSystemId = () => { const yr = new Date().getFullYear(); const max = parents.reduce((m, p) => { const n = parseInt(String(p.systemId || "").split("-")[1]?.slice(4) ?? "") || 0; return Math.max(m, n); }, 0); return genId("PAR", yr, max + 1); };
   const openEditParent = (p: Parent) => { setEditParent(p); setParentForm({ name: p.name || "", nameEn: p.nameEn || "", password: "", relation: p.relation, status: p.status, _authId: p.authId, _systemId: p.systemId }); };
   const handleSaveParent = async () => {
     if (!editParent) return;
@@ -57,7 +56,7 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
     if (ex.find(p => p.relation === form.relation)) { setFormErr(lang === "bn" ? "ইতিমধ্যে আছে" : "Already exists"); return; }
     setSaving(true);
     try {
-      const systemId = nextSystemId();
+      const systemId = nextSystemId("PAR", parents);
       await createParent({ systemId, name: form.name, nameEn: form.nameEn, password: form.password, studentId: st.id, relation: form.relation, status: "approved" });
       await reload(); setShowForm(false);
       setForm({ studentId: "", name: "", nameEn: "", relation: "father", password: "123456" });
@@ -146,8 +145,8 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
                           <Button size="sm" variant="outline" className="h-8 gap-1 text-green-700 dark:text-green-400" onClick={() => approve(p.id)}><Check className="h-3.5 w-3.5" />{t.approve}</Button>
                           <Button size="sm" variant="outline" className="h-8 gap-1 text-destructive" onClick={() => reject(p.id)}><X className="h-3.5 w-3.5" />{t.reject}</Button>
                         </>}
-                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEditParent(p)}><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button size="icon" variant="outline" className="h-8 w-8 text-destructive" onClick={() => setConfirmParentDel({ id: p.id, name: (lang === "bn" ? p.name : p.nameEn) || "" })}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="outline" aria-label={t.edit} className="h-8 w-8" onClick={() => openEditParent(p)}><Pencil className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="outline" aria-label={t.deleteAdmin} className="h-8 w-8 text-destructive" onClick={() => setConfirmParentDel({ id: p.id, name: (lang === "bn" ? p.name : p.nameEn) || "" })}><Trash2 className="h-3.5 w-3.5" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>

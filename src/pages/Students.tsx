@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { CLASSES } from "../constants";
-import { genId, errMsg } from "../lib";
+import { errMsg, nextSystemId } from "../lib";
 import { ConfirmDialog, ErrorNote, PasswordInput , Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,11 +29,6 @@ export function StudentsPage({ t, lang, showNotif }: Props) {
   const [saving, setSaving] = useState(false);
   const openAdd = () => { setEditId(null); setForm(blank); setShowForm(true); };
   const openEdit = (s: Student) => { setEditId(s.id); setForm({ name: s.name || "", nameEn: s.nameEn || "", class: s.class || "8", section: s.section || "", roll: s.roll || "", password: "", _authId: s.authId, _systemId: s.systemId }); setShowForm(true); };
-  const nextSystemId = () => {
-    const yr = new Date().getFullYear();
-    const max = students.reduce((m, s) => { const n = parseInt(String(s.systemId || "").split("-")[1]?.slice(4) ?? "") || 0; return Math.max(m, n); }, 0);
-    return genId("STD", yr, max + 1);
-  };
   const handleSave = async () => {
     if (!form.name) { showNotif(lang === "bn" ? "নাম আবশ্যক" : "Name required"); return; }
     if (form.password && form.password.length < 6) { showNotif(lang === "bn" ? "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর" : "Password must be at least 6 characters"); return; }
@@ -44,7 +39,7 @@ export function StudentsPage({ t, lang, showNotif }: Props) {
         await updateStudent(editId, { name: form.name, nameEn: form.nameEn, cls: form.class, section: form.section, roll, password: form.password || null, authId: form._authId, systemId: form._systemId });
         showNotif(lang === "bn" ? "আপডেট হয়েছে!" : "Updated!");
       } else {
-        const systemId = nextSystemId();
+        const systemId = nextSystemId("STD", students);
         await createStudent({ systemId, name: form.name, nameEn: form.nameEn, cls: form.class, section: form.section, roll, password: form.password });
         showNotif(lang === "bn" ? `শিক্ষার্থী যোগ! ID: ${systemId}` : `Student added! ID: ${systemId}`);
       }
