@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CalendarDays, BarChart3, Trophy, Target } from "lucide-react";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../composables";
@@ -129,10 +130,10 @@ export function MyTeacherKPIPage({ t, lang, currentUser, selectedYear, setSelect
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={tchrYears.length > 0 ? tchrYears : [selectedYear]} />
       </div>
       <div className={GRID4}>
-        <StatCard icon="📅" value={getTchrMonthKPI(tid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
-        <StatCard icon="📊" value={getTchrYearKPI(tid, selectedYear)} label={selectedYear + " " + t.myYearly} />
-        <StatCard icon="🏆" value={getTchrTermKPI(tid, termConfig.term1, selectedYear)} label={t.term1} />
-        <StatCard icon="🎯" value={getTchrTermKPI(tid, termConfig.term2, selectedYear)} label={t.term2} />
+        <StatCard icon={<CalendarDays />} value={getTchrMonthKPI(tid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
+        <StatCard icon={<BarChart3 />} value={getTchrYearKPI(tid, selectedYear)} label={selectedYear + " " + t.myYearly} />
+        <StatCard icon={<Trophy />} value={getTchrTermKPI(tid, termConfig.term1, selectedYear)} label={t.term1} />
+        <StatCard icon={<Target />} value={getTchrTermKPI(tid, termConfig.term2, selectedYear)} label={t.term2} />
       </div>
       <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
       <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getTchrTermKPI} id={tid} />
@@ -153,10 +154,10 @@ export function MyParentKPIPage({ t, lang, currentUser, selectedYear, setSelecte
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={parYears.length > 0 ? parYears : [selectedYear]} />
       </div>
       <div className={GRID4}>
-        <StatCard icon="📅" value={getParMonthKPI(pid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
-        <StatCard icon="📊" value={getParYearKPI(pid, selectedYear)} label={selectedYear + " " + t.myYearly} />
-        <StatCard icon="🏆" value={getParTermKPI(pid, termConfig.term1, selectedYear)} label={t.term1} />
-        <StatCard icon="🎯" value={getParTermKPI(pid, termConfig.term2, selectedYear)} label={t.term2} />
+        <StatCard icon={<CalendarDays />} value={getParMonthKPI(pid, cm, selectedYear)} label={T[lang][MONTHS[cm]] + " " + t.myMonthly} />
+        <StatCard icon={<BarChart3 />} value={getParYearKPI(pid, selectedYear)} label={selectedYear + " " + t.myYearly} />
+        <StatCard icon={<Trophy />} value={getParTermKPI(pid, termConfig.term1, selectedYear)} label={t.term1} />
+        <StatCard icon={<Target />} value={getParTermKPI(pid, termConfig.term2, selectedYear)} label={t.term2} />
       </div>
       <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
       <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getParTermKPI} id={pid} />

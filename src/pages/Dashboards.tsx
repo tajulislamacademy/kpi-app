@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { GraduationCap, Users, ClipboardPen, Trophy, Clock, CalendarDays, BarChart3, UsersRound } from "lucide-react";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { StatCard, RankCard, BarChart, YearSelector, TermBreakdown, ErrorNote } from "../components";
@@ -45,10 +46,10 @@ export function AdminTeacherDashboard({ t, lang, currentUser, isAdmin, selectedY
       </div>
       {isAdmin && (
         <div className={GRID4}>
-          <StatCard icon="🎓" value={students.length} label={t.totalStudents} />
-          <StatCard icon="👨‍🏫" value={teachers.length} label={t.totalTeachers} />
-          <StatCard icon="✏️" value={totalE} label={t.monthlyKPI} />
-          <StatCard icon={pendingParents.length > 0 ? "⏳" : "🏆"} value={pendingParents.length > 0 ? pendingParents.length : (lang === "bn" ? ranked[0]?.name : ranked[0]?.nameEn || "-")} label={pendingParents.length > 0 ? (lang === "bn" ? "অনুমোদন বাকি" : "Pending") : (lang === "bn" ? "শীর্ষ শিক্ষার্থী" : "Top Student")} />
+          <StatCard icon={<GraduationCap />} value={students.length} label={t.totalStudents} />
+          <StatCard icon={<Users />} value={teachers.length} label={t.totalTeachers} />
+          <StatCard icon={<ClipboardPen />} value={totalE} label={t.monthlyKPI} />
+          <StatCard icon={pendingParents.length > 0 ? <Clock /> : <Trophy />} value={pendingParents.length > 0 ? pendingParents.length : (lang === "bn" ? ranked[0]?.name : ranked[0]?.nameEn || "-")} label={pendingParents.length > 0 ? (lang === "bn" ? "অনুমোদন বাকি" : "Pending") : (lang === "bn" ? "শীর্ষ শিক্ষার্থী" : "Top Student")} />
         </div>
       )}
       <div className="grid gap-4 md:grid-cols-2">
@@ -76,10 +77,10 @@ export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelect
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <div className={GRID4}>
-        <StatCard icon="🏆" value={`#${myRank}`} label={t.myRank} />
-        <StatCard icon="📅" value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
-        <StatCard icon="📊" value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
-        <StatCard icon="🎓" value={`${currentUser.class}${currentUser.section || ""}`} label={t.class} />
+        <StatCard icon={<Trophy />} value={`#${myRank}`} label={t.myRank} />
+        <StatCard icon={<CalendarDays />} value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
+        <StatCard icon={<BarChart3 />} value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
+        <StatCard icon={<GraduationCap />} value={`${currentUser.class}${currentUser.section || ""}`} label={t.class} />
       </div>
       <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
       <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getStudentTermKPI} id={sid} />
@@ -118,10 +119,10 @@ export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelecte
         </CardContent>
       </Card>
       <div className={GRID4}>
-        <StatCard icon="🏆" value={`#${myRank}`} label={t.myRank} />
-        <StatCard icon="📅" value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
-        <StatCard icon="📊" value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
-        <StatCard icon="👥" value={students.length} label={lang === "bn" ? "মোট শিক্ষার্থী" : "Total Students"} />
+        <StatCard icon={<Trophy />} value={`#${myRank}`} label={t.myRank} />
+        <StatCard icon={<CalendarDays />} value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
+        <StatCard icon={<BarChart3 />} value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
+        <StatCard icon={<UsersRound />} value={students.length} label={lang === "bn" ? "মোট শিক্ষার্থী" : "Total Students"} />
       </div>
       <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
       <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getStudentTermKPI} id={sid} />

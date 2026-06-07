@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Clock, CheckCircle2, XCircle, UsersRound } from "lucide-react";
 import { genId, errMsg, cn } from "../lib";
 import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox , Page } from "../components";
 import { Button } from "@/components/ui/button";
@@ -112,10 +112,10 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
       )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard icon="⏳" value={pending.length} label={t.pending} />
-        <StatCard icon="✅" value={approved.length} label={t.approved} />
-        <StatCard icon="❌" value={rejected.length} label={t.rejected} />
-        <StatCard icon="👥" value={parents.length} label={lang === "bn" ? "মোট অভিভাবক" : "Total Parents"} />
+        <StatCard icon={<Clock />} value={pending.length} label={t.pending} />
+        <StatCard icon={<CheckCircle2 />} value={approved.length} label={t.approved} />
+        <StatCard icon={<XCircle />} value={rejected.length} label={t.rejected} />
+        <StatCard icon={<UsersRound />} value={parents.length} label={lang === "bn" ? "মোট অভিভাবক" : "Total Parents"} />
       </div>
 
       <Tabs items={[{ key: "pending", label: `${t.pending}(${pending.length})` }, { key: "approved", label: t.approved }, { key: "rejected", label: t.rejected }]} active={tab} onChange={setTab} />
