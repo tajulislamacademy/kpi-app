@@ -37,4 +37,12 @@ export default tseslint.config([
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    // shadcn-generated primitives export a component + its variants from one
+    // file by design; that's not a fast-refresh concern for vendored UI.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
