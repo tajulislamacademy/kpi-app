@@ -114,9 +114,9 @@ export function AccountsPage({ t, lang, showNotif }: Props) {
 
       <Tabs items={[{ key: "pending", label: `${t.pending}(${pending.length})` }, { key: "approved", label: t.approved }, { key: "rejected", label: t.rejected }]} active={tab} onChange={setTab} />
 
-      <Card>
-        <CardContent className="pt-6">
-          {current.length === 0 ? <div className="py-8 text-center text-muted-foreground">{lang === "bn" ? "কোনো অ্যাকাউন্ট নেই" : "No accounts"}</div> : (
+      <Card className="overflow-hidden py-0">
+        <CardContent className="p-0">
+          {current.length === 0 ? <div className="py-10 text-center text-muted-foreground">{lang === "bn" ? "কোনো অ্যাকাউন্ট নেই" : "No accounts"}</div> : (
             <Table>
               <TableHeader><TableRow>
                 <TableHead>{lang === "bn" ? "অভিভাবক" : "Parent"}</TableHead>
