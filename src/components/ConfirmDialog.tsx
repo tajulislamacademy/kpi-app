@@ -1,19 +1,25 @@
-import { S } from "../theme";
-import { Modal } from "./Modal";
+import { cn } from "../lib";
+import { buttonVariants } from "./ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import type { Lang } from "../types";
 
 interface Props { lang: Lang; name: string; onConfirm: () => void; onCancel: () => void; }
 
+// Destructive-confirm dialog. Rendered only while a deletion is pending, so it's
+// always open; ESC / overlay / Cancel all route to onCancel.
 export function ConfirmDialog({ lang, name, onConfirm, onCancel }: Props) {
   return (
-    <Modal maxWidth={360} style={{ textAlign: "center" }}>
-      <div style={{ fontSize: 40, marginBottom: 8 }}>⚠️</div>
-      <h3 style={{ ...S.ct, marginBottom: 8 }}>{lang === "bn" ? "নিশ্চিত করুন?" : "Confirm Delete?"}</h3>
-      <p style={{ fontSize: 14, color: "var(--muted-foreground)", marginBottom: 20 }}>{lang === "bn" ? (`"${name}" মুছে ফেলবেন?`) : (`Delete "${name}"?`)}</p>
-      <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-        <button onClick={onConfirm} style={{ padding: "9px 24px", background: "#ef4444", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 700 }}>{lang === "bn" ? "হ্যাঁ, মুছুন" : "Yes, Delete"}</button>
-        <button onClick={onCancel} style={S.cancelBtn}>{lang === "bn" ? "না" : "Cancel"}</button>
-      </div>
-    </Modal>
+    <AlertDialog open onOpenChange={(o) => { if (!o) onCancel(); }}>
+      <AlertDialogContent className="sm:max-w-sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{lang === "bn" ? "নিশ্চিত করুন?" : "Confirm Delete?"}</AlertDialogTitle>
+          <AlertDialogDescription>{lang === "bn" ? `"${name}" মুছে ফেলবেন?` : `Delete "${name}"?`}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onCancel}>{lang === "bn" ? "না" : "Cancel"}</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className={cn(buttonVariants({ variant: "destructive" }))}>{lang === "bn" ? "হ্যাঁ, মুছুন" : "Yes, Delete"}</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
