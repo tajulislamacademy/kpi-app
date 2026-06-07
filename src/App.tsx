@@ -33,7 +33,7 @@ export default function App() {
   const handleLogout = async () => { try { await supabase.auth.signOut(); } catch { /* no active backend session */ } setCurrentUser(null); };
   const { parents: dbParents } = useDbParents(true);
   if (!currentUser) return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u: SessionUser) => { setCurrentUser(u); setActiveTab("dashboard"); }} />;
-  const isAdmin = currentUser.role === "admin", isTeacher = currentUser.role === "teacher";
+  const isAdmin = currentUser.role === "admin" || !!currentUser.isAdmin, isTeacher = currentUser.role === "teacher";
   const pendingParents = dbParents.filter(p => p.status === "pending");
   const navItems = [
     { key: "dashboard", icon: LayoutDashboard, label: t.dashboard },
