@@ -1,4 +1,6 @@
-/* Global reset + base. Loaded once in main.jsx so it applies to every screen
+@import "tailwindcss";
+
+/* Global reset + base. Loaded once in main.tsx so it applies to every screen
    (including the login page, which doesn't render the Layout shell). */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
