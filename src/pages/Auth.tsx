@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { S } from "../theme";
 import { supabase } from "../supabase";
 import { systemIdToEmail } from "../api/identity";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import type { Dict, Lang, SessionUser } from "../types";
 
 // Builds the in-app user from a profiles row, loading role-specific extras the
@@ -49,7 +52,6 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
             onLogin(u);
             return;
           }
-          // authenticated but no matching profile row — undo
           await supabase.auth.signOut();
         }
       }
@@ -57,20 +59,34 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
     } finally { setBusy(false); }
   };
   return (
-    <div style={S.loginBg}>
-      <button onClick={() => setLang(lang === "bn" ? "en" : "bn")} style={{ position: "fixed", top: 16, right: 16, padding: "6px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "#fff", color: "var(--foreground)", cursor: "pointer", fontSize: 13, fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", zIndex: 10 }}>{lang === "bn" ? "English" : "বাংলা"}</button>
-      <div style={S.loginCard}>
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={S.loginLogo}>KPI</div>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)", margin: "8px 0 4px" }}>{t.appTitle}</h1>
-        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>{lang === "bn" ? "শিক্ষার্থী মূল্যায়ন ব্যবস্থাপনা" : "Student Evaluation Management"}</p>
-      </div>
-      <div style={S.fg}><label style={S.lbl}>{t.username}</label>
-        <input style={S.inp} value={form.id} onChange={e => setForm({ ...form, id: e.target.value })} /></div>
-      <div style={S.fg}><label style={S.lbl}>{t.password}</label>
-        <input style={S.inp} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} onKeyDown={e => e.key === "Enter" && !busy && doLogin()} /></div>
-      {error && <div style={{ color: "#ef4444", fontSize: 13, marginBottom: 8, textAlign: "center" }}>{error}</div>}
-      <button onClick={doLogin} disabled={busy} style={{ ...S.loginBtn, ...(busy ? { opacity: 0.6, cursor: "wait" } : {}) }}>{busy ? (lang === "bn" ? "প্রবেশ করা হচ্ছে…" : "Signing in…") : t.loginBtn}</button>
-    </div></div>
+    <div className="relative flex min-h-screen items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-indigo-700 p-4">
+      <button
+        onClick={() => setLang(lang === "bn" ? "en" : "bn")}
+        className="absolute right-4 top-4 rounded-md bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
+      >
+        {lang === "bn" ? "English" : "বাংলা"}
+      </button>
+      <Card className="w-full max-w-sm">
+        <CardContent className="space-y-5 pt-6">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-lg font-black tracking-widest text-primary-foreground">KPI</div>
+            <h1 className="mt-2 text-xl font-extrabold text-foreground">{t.appTitle}</h1>
+            <p className="text-xs text-muted-foreground">{lang === "bn" ? "শিক্ষার্থী মূল্যায়ন ব্যবস্থাপনা" : "Student Evaluation Management"}</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="kpi-uid">{t.username}</Label>
+            <Input id="kpi-uid" value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="kpi-pw">{t.password}</Label>
+            <Input id="kpi-pw" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} onKeyDown={(e) => e.key === "Enter" && !busy && doLogin()} />
+          </div>
+          {error && <p className="text-center text-sm text-destructive">{error}</p>}
+          <Button onClick={doLogin} disabled={busy} className="w-full">
+            {busy ? (lang === "bn" ? "প্রবেশ করা হচ্ছে…" : "Signing in…") : t.loginBtn}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
