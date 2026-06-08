@@ -127,13 +127,19 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
                 const list = dbStudents.filter(s => s.class === gcClass && s.section === gcSection);
                 return list.length === 0
                   ? <p className="text-xs text-muted-foreground">{lang === "bn" ? "এই শ্রেণী/সেকশনে কোনো শিক্ষার্থী নেই" : "No students in this class/section"}</p>
-                  : <div className="flex max-h-44 flex-wrap gap-x-4 gap-y-2 overflow-y-auto rounded-md bg-background/60 p-2">
-                      {list.map(s => (
-                        <label key={s.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                          <Checkbox checked={form.guideStudents.includes(s.id)} onCheckedChange={() => toggleGuide(s.id)} />
-                          {lang === "bn" ? s.name : s.nameEn}{s.roll ? ` (${t.roll} ${s.roll})` : ""}
-                        </label>
-                      ))}
+                  : <div className="flex max-h-44 flex-col gap-2 overflow-y-auto rounded-md bg-background/60 p-2">
+                      {list.map(s => {
+                        const owner = teachers.find(tc => tc.id !== editId && (tc.guideStudents || []).includes(s.id));
+                        const checked = form.guideStudents.includes(s.id);
+                        const blocked = !!owner && !checked;
+                        return (
+                          <label key={s.id} className={`flex items-center gap-2 text-sm ${blocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}>
+                            <Checkbox checked={checked} disabled={blocked} onCheckedChange={() => { if (!blocked) toggleGuide(s.id); }} />
+                            <span>{lang === "bn" ? s.name : s.nameEn}{s.roll ? ` (${t.roll} ${s.roll})` : ""}</span>
+                            {owner && <span className="text-xs text-amber-600 dark:text-amber-400">· {lang === "bn" ? "গাইড" : "guide"}: {lang === "bn" ? owner.name : owner.nameEn}</span>}
+                          </label>
+                        );
+                      })}
                     </div>;
               })()}
               {form.guideStudents.length > 0 && (
