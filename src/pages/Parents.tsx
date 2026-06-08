@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Plus, MoreHorizontal, Pencil, Trash2, Check, X, Inbox } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Check, X, Inbox, RotateCcw } from "lucide-react";
 import { errMsg, nextSystemId, cn } from "../lib";
+import { can } from "../permissions";
 import { Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox, EmptyState, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +12,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useDbParents, createParent, updateParent, setParentStatus, deleteParent } from "../api/parents";
+import { useDbParents, createParent, updateParent, setParentStatus, deleteParent, softDeleteParent, restoreParent } from "../api/parents";
 import { useDbStudents } from "../api/students";
-import type { Dict, Lang, Parent, ParentStatus } from "../types";
+import type { Dict, Lang, SessionUser, Parent, ParentStatus } from "../types";
 
-interface Props { t: Dict; lang: Lang; showNotif: (msg: string) => void; }
+interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
 interface AddForm { studentId: string; name: string; nameEn: string; relation: string; password: string; }
 interface EditForm { id: string; studentId: string; name: string; nameEn: string; relation: string; status: ParentStatus; password: string; authId?: string | null; systemId?: string; }
 
@@ -24,10 +25,11 @@ const statusClass = (s: string) =>
     : s === "rejected" ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
       : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300";
 
-export function ParentsPage({ t, lang, showNotif }: Props) {
-  const { parents, loading, error, reload } = useDbParents(true);
+export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
+  const { parents, loading, error, reload } = useDbParents(true, true);
   const { students: dbStudents } = useDbStudents(true);
   const [tab, setTab] = useState("all");
+  const c = (cap: string) => can(currentUser, cap);
   const [showAdd, setShowAdd] = useState(false);
   const blankAdd: AddForm = { studentId: "", name: "", nameEn: "", relation: "father", password: "123456" };
   const [addForm, setAddForm] = useState<AddForm>(blankAdd);
@@ -74,9 +76,11 @@ export function ParentsPage({ t, lang, showNotif }: Props) {
     setSaving(false); setEdit(null);
   };
 
-  const pending = parents.filter(p => p.status === "pending");
-  const counts = { all: parents.length, pending: pending.length, approved: parents.filter(p => p.status === "approved").length, rejected: parents.filter(p => p.status === "rejected").length };
-  const filtered = parents.filter(p => tab === "all" || p.status === tab);
+  const activeP = parents.filter(p => !p.deletedAt);
+  const trash = parents.filter(p => p.deletedAt);
+  const isTrash = tab === "trash";
+  const counts = { all: activeP.length, pending: activeP.filter(p => p.status === "pending").length, approved: activeP.filter(p => p.status === "approved").length, rejected: activeP.filter(p => p.status === "rejected").length };
+  const filtered = isTrash ? trash : activeP.filter(p => tab === "all" || p.status === tab);
   const pwHint = (hasLogin: boolean) => hasLogin ? (lang === "bn" ? "খালি = অপরিবর্তিত" : "blank = unchanged") : (lang === "bn" ? "login দিতে পাসওয়ার্ড দিন" : "set to give a login");
 
   return (
@@ -86,11 +90,11 @@ export function ParentsPage({ t, lang, showNotif }: Props) {
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{lang === "bn" ? "অভিভাবক" : "Parents"}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${counts.all} জন` : `Total ${counts.all}`}{loading ? " · …" : ""}</p>
         </div>
-        <Button onClick={() => setShowAdd(v => !v)}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>
+        {c("parents.create") && <Button onClick={() => setShowAdd(v => !v)}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>}
       </div>
       <ErrorNote lang={lang} error={error} />
 
-      {showAdd && (
+      {showAdd && c("parents.create") && (
         <Card>
           <CardHeader><CardTitle className="text-base">{lang === "bn" ? "নতুন অভিভাবক" : "New Parent"}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -113,6 +117,7 @@ export function ParentsPage({ t, lang, showNotif }: Props) {
           { key: "pending", label: `${t.pending} (${counts.pending})` },
           { key: "approved", label: `${t.approved} (${counts.approved})` },
           { key: "rejected", label: `${t.rejected} (${counts.rejected})` },
+          { key: "trash", label: `${lang === "bn" ? "ট্র্যাশ" : "Trash"} (${trash.length})` },
         ]}
         active={tab}
         onChange={setTab}
@@ -123,7 +128,7 @@ export function ParentsPage({ t, lang, showNotif }: Props) {
           {loading && parents.length === 0 ? (
             <div className="space-y-2 p-4">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-9 w-full animate-pulse rounded-md bg-accent" />)}</div>
           ) : filtered.length === 0 ? (
-            <EmptyState icon={Inbox} title={lang === "bn" ? "কোনো অভিভাবক নেই" : "No parents"} />
+            <EmptyState icon={Inbox} title={isTrash ? (lang === "bn" ? "ট্র্যাশ খালি" : "Trash is empty") : (lang === "bn" ? "কোনো অভিভাবক নেই" : "No parents")} />
           ) : (
             <Table>
               <TableHeader><TableRow>
@@ -148,14 +153,18 @@ export function ParentsPage({ t, lang, showNotif }: Props) {
                           <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={lang === "bn" ? "অ্যাকশন" : "Actions"}><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
-                          {p.status === "pending" && <>
-                            <DropdownMenuItem onClick={() => run(() => setParentStatus(p.id, "approved"), lang === "bn" ? "অনুমোদিত!" : "Approved!")}><Check className="h-4 w-4" />{t.approve}</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => run(() => setParentStatus(p.id, "rejected"), lang === "bn" ? "বাতিল!" : "Rejected!")}><X className="h-4 w-4" />{t.reject}</DropdownMenuItem>
-                            <DropdownMenuSeparator />
+                          {isTrash ? <>
+                            {c("parents.restore") && <DropdownMenuItem onClick={() => run(() => restoreParent(p.id), lang === "bn" ? "ফেরত আনা হয়েছে" : "Restored")}><RotateCcw className="h-4 w-4" />{lang === "bn" ? "ফেরত আনুন" : "Restore"}</DropdownMenuItem>}
+                            {c("parents.force_delete") && <DropdownMenuItem variant="destructive" onClick={() => setConfirmDel(p)}><Trash2 className="h-4 w-4" />{lang === "bn" ? "স্থায়ী মুছুন" : "Delete permanently"}</DropdownMenuItem>}
+                          </> : <>
+                            {p.status === "pending" && c("parents.edit") && <>
+                              <DropdownMenuItem onClick={() => run(() => setParentStatus(p.id, "approved"), lang === "bn" ? "অনুমোদিত!" : "Approved!")}><Check className="h-4 w-4" />{t.approve}</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => run(() => setParentStatus(p.id, "rejected"), lang === "bn" ? "বাতিল!" : "Rejected!")}><X className="h-4 w-4" />{t.reject}</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>}
+                            {c("parents.edit") && <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="h-4 w-4" />{t.edit}</DropdownMenuItem>}
+                            {c("parents.soft_delete") && <><DropdownMenuSeparator /><DropdownMenuItem variant="destructive" onClick={() => run(() => softDeleteParent(p.id), lang === "bn" ? "ট্র্যাশে পাঠানো হয়েছে" : "Moved to Trash")}><Trash2 className="h-4 w-4" />{lang === "bn" ? "ট্র্যাশে পাঠান" : "Move to Trash"}</DropdownMenuItem></>}
                           </>}
-                          <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="h-4 w-4" />{t.edit}</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem variant="destructive" onClick={() => setConfirmDel(p)}><Trash2 className="h-4 w-4" />{t.deleteAdmin}</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -184,7 +193,7 @@ export function ParentsPage({ t, lang, showNotif }: Props) {
         </DialogContent>
       </Dialog>
 
-      {confirmDel && <ConfirmDialog lang={lang} name={(lang === "bn" ? confirmDel.name : confirmDel.nameEn) || ""} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); run(() => deleteParent(id), lang === "bn" ? "মুছা হয়েছে!" : "Deleted!"); }} onCancel={() => setConfirmDel(null)} />}
+      {confirmDel && <ConfirmDialog lang={lang} name={(lang === "bn" ? confirmDel.name : confirmDel.nameEn) || ""} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); run(() => deleteParent(id), lang === "bn" ? "স্থায়ীভাবে মুছা হয়েছে!" : "Permanently deleted!"); }} onCancel={() => setConfirmDel(null)} />}
     </Page>
   );
 }
