@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, X, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { errMsg, nextSystemId } from "../lib";
-import { ConfirmDialog, ErrorNote, PasswordInput, MultiCombobox , Page } from "../components";
+import { ConfirmDialog, ErrorNote, PasswordInput, MultiCombobox, Tabs, Page } from "../components";
+import { can } from "../permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,16 +13,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher } from "../api/teachers";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher, softDeleteTeacher, restoreTeacher } from "../api/teachers";
 import { useDbStudents } from "../api/students";
-import type { Dict, Lang, Teacher, ClassTeacher, SubjectAssignment } from "../types";
+import type { Dict, Lang, SessionUser, Teacher, ClassTeacher, SubjectAssignment } from "../types";
 
-interface Props { t: Dict; lang: Lang; showNotif: (msg: string) => void; }
+interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
 interface TForm { name: string; nameEn: string; password: string; classTeacher: ClassTeacher | null; subjectAssignments: SubjectAssignment[]; guideStudents: string[]; _authId?: string | null; _systemId?: string; }
 
-export function TeachersPage({ t, lang, showNotif }: Props) {
-  const { teachers, loading, error, reload } = useDbTeachers(true);
+export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
+  const { teachers, loading, error, reload } = useDbTeachers(true, true);
   const { students: dbStudents } = useDbStudents(true);
+  const [tab, setTab] = useState("active");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const blank: TForm = { name: "", nameEn: "", password: "123456", classTeacher: null, subjectAssignments: [], guideStudents: [] };
@@ -30,6 +33,8 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
   const [hasClass, setHasClass] = useState(false);
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const c = (cap: string) => can(currentUser, cap);
+  const run = async (fn: () => Promise<void>, msg: string) => { try { await fn(); await reload(); showNotif(msg); } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); } };
   const addAssign = () => { if (form.subjectAssignments.find(a => a.class === newAssign.class && a.section === newAssign.section && a.subject === newAssign.subject)) return; setForm({ ...form, subjectAssignments: [...form.subjectAssignments, { ...newAssign }] }); };
   const removeAssign = (i: number) => setForm({ ...form, subjectAssignments: form.subjectAssignments.filter((_, idx) => idx !== i) });
   const openAdd = () => { setEditId(null); setForm(blank); setHasClass(false); setShowForm(true); };
@@ -53,23 +58,23 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
     } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); }
     finally { setSaving(false); }
   };
-  const doDelete = async (id: string) => {
-    try { await deleteTeacher(id); await reload(); showNotif(lang === "bn" ? "মুছা হয়েছে!" : "Deleted!"); }
-    catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); }
-  };
   const pwPlaceholder = editId ? (form._authId ? (lang === "bn" ? "খালি = অপরিবর্তিত" : "blank = unchanged") : (lang === "bn" ? "login দিতে পাসওয়ার্ড দিন" : "set to give a login")) : (lang === "bn" ? "খালি = login ছাড়া" : "blank = no login");
+  const active = teachers.filter(x => !x.deletedAt);
+  const trash = teachers.filter(x => x.deletedAt);
+  const isTrash = tab === "trash";
+  const view = isTrash ? trash : active;
   return (
     <Page>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.teachers}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${teachers.length} জন` : `Total ${teachers.length}`}{loading ? " · …" : ""}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${active.length} জন` : `Total ${active.length}`}{loading ? " · …" : ""}</p>
         </div>
-        <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addTeacher}</Button>
+        {c("teachers.create") && <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addTeacher}</Button>}
       </div>
       <ErrorNote lang={lang} error={error} />
 
-      {showForm && (
+      {showForm && c(editId ? "teachers.edit" : "teachers.create") && (
         <Card>
           <CardHeader><CardTitle className="text-base">{editId ? (lang === "bn" ? "শিক্ষক সম্পাদনা" : "Edit Teacher") : (lang === "bn" ? "নতুন শিক্ষক" : "New Teacher")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -126,43 +131,55 @@ export function TeachersPage({ t, lang, showNotif }: Props) {
         </Card>
       )}
 
+      <Tabs items={[{ key: "active", label: `${lang === "bn" ? "সক্রিয়" : "Active"} (${active.length})` }, { key: "trash", label: `${lang === "bn" ? "ট্র্যাশ" : "Trash"} (${trash.length})` }]} active={tab} onChange={setTab} />
+
       <Card className="overflow-hidden py-0">
         <CardContent className="p-0">
           {loading && teachers.length === 0 ? (
             <div className="space-y-2 p-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
+          ) : view.length === 0 ? (
+            <div className="py-10 text-center text-muted-foreground">{isTrash ? (lang === "bn" ? "ট্র্যাশ খালি" : "Trash is empty") : (lang === "bn" ? "কোনো শিক্ষক নেই" : "No teachers")}</div>
           ) : (
-          <Table>
-            <TableHeader><TableRow>
-              <TableHead>{t.autoId}</TableHead>
-              <TableHead>{t.name}</TableHead>
-              <TableHead>{t.classTeacher}</TableHead>
-              <TableHead>{t.subjectAssignments}</TableHead>
-              <TableHead>{t.guideStudents}</TableHead>
-              <TableHead>{lang === "bn" ? "অ্যাকশন" : "Action"}</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {teachers.map((tc) => (
-                <TableRow key={tc.id}>
-                  <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{tc.systemId}</code></TableCell>
-                  <TableCell className="font-semibold">{lang === "bn" ? tc.name : tc.nameEn}</TableCell>
-                  <TableCell>{tc.classTeacher ? `${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}` : "—"}</TableCell>
-                  <TableCell><div className="flex flex-wrap gap-1">{(tc.subjectAssignments || []).map((a, j) => (<Badge key={j} variant="secondary" className="text-xs">{t.class}{a.class}{a.section}/{a.subject.split("/")[1] || a.subject}</Badge>))}</div></TableCell>
-                  <TableCell>{(tc.guideStudents || []).length}{lang === "bn" ? "জন" : "sts"}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1.5">
-                      <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" />{t.edit}</Button>
-                      <Button size="sm" variant="outline" className="h-8 gap-1 text-destructive" onClick={() => setConfirmDel({ id: tc.id, name: (lang === "bn" ? tc.name : tc.nameEn) || "" })}><Trash2 className="h-3.5 w-3.5" />{t.deleteAdmin}</Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>{t.autoId}</TableHead>
+                <TableHead>{t.name}</TableHead>
+                <TableHead>{t.classTeacher}</TableHead>
+                <TableHead>{t.subjectAssignments}</TableHead>
+                <TableHead>{t.guideStudents}</TableHead>
+                <TableHead className="w-12" />
+              </TableRow></TableHeader>
+              <TableBody>
+                {view.map((tc) => (
+                  <TableRow key={tc.id}>
+                    <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{tc.systemId}</code></TableCell>
+                    <TableCell className="font-semibold">{lang === "bn" ? tc.name : tc.nameEn}</TableCell>
+                    <TableCell>{tc.classTeacher ? `${t.class} ${tc.classTeacher.class}${tc.classTeacher.section}` : "—"}</TableCell>
+                    <TableCell><div className="flex flex-wrap gap-1">{(tc.subjectAssignments || []).map((a, j) => (<Badge key={j} variant="secondary" className="text-xs">{t.class}{a.class}{a.section}/{a.subject.split("/")[1] || a.subject}</Badge>))}</div></TableCell>
+                    <TableCell>{(tc.guideStudents || []).length}{lang === "bn" ? "জন" : "sts"}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" aria-label={lang === "bn" ? "অ্যাকশন" : "Actions"}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          {isTrash ? <>
+                            {c("teachers.restore") && <DropdownMenuItem onClick={() => run(() => restoreTeacher(tc.id), lang === "bn" ? "ফেরত আনা হয়েছে" : "Restored")}><RotateCcw className="h-4 w-4" />{lang === "bn" ? "ফেরত আনুন" : "Restore"}</DropdownMenuItem>}
+                            {c("teachers.force_delete") && <DropdownMenuItem variant="destructive" onClick={() => setConfirmDel({ id: tc.id, name: (lang === "bn" ? tc.name : tc.nameEn) || "" })}><Trash2 className="h-4 w-4" />{lang === "bn" ? "স্থায়ী মুছুন" : "Delete permanently"}</DropdownMenuItem>}
+                          </> : <>
+                            {c("teachers.edit") && <DropdownMenuItem onClick={() => openEdit(tc)}><Pencil className="h-4 w-4" />{t.edit}</DropdownMenuItem>}
+                            {c("teachers.soft_delete") && <><DropdownMenuSeparator /><DropdownMenuItem variant="destructive" onClick={() => run(() => softDeleteTeacher(tc.id), lang === "bn" ? "ট্র্যাশে পাঠানো হয়েছে" : "Moved to Trash")}><Trash2 className="h-4 w-4" />{lang === "bn" ? "ট্র্যাশে পাঠান" : "Move to Trash"}</DropdownMenuItem></>}
+                          </>}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
-      {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); doDelete(id); }} onCancel={() => setConfirmDel(null)} />}
+      {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); run(() => deleteTeacher(id), lang === "bn" ? "স্থায়ীভাবে মুছা হয়েছে!" : "Permanently deleted!"); }} onCancel={() => setConfirmDel(null)} />}
     </Page>
   );
 }

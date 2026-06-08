@@ -64,7 +64,7 @@ export default function App() {
           : <ParentDashboard t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />
       )}
       {activeTab === "pointEntry" && (isTeacher || c("point_entry")) && <PointEntryPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} isAdmin={isAdmin} />}
-      {activeTab === "teachers" && c("teachers.view") && <TeachersPage t={t} lang={lang} showNotif={showNotif} />}
+      {activeTab === "teachers" && c("teachers.view") && <TeachersPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "students" && c("students.view") && <StudentsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "parents" && c("parents.view") && <ParentsPage t={t} lang={lang} showNotif={showNotif} />}
       {activeTab === "questions" && c("questions.view") && <QuestionsPage t={t} lang={lang} showNotif={showNotif} />}
