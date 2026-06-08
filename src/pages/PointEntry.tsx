@@ -179,8 +179,8 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
               {filterDefs.map(({ l, v, set, opts, searchable }) => (
                 <div key={l} className="space-y-1"><Label className="text-xs">{l}</Label>
                   {searchable
-                    ? <Combobox options={opts.map(o => ({ value: o.v, label: o.l }))} value={v} onChange={set} placeholder={l} searchPlaceholder={lang === "bn" ? "খুঁজুন…" : "Search…"} className="h-9 bg-transparent dark:bg-transparent dark:hover:bg-transparent" />
-                    : <Select value={v} onValueChange={set}><SelectTrigger className="h-9 w-full bg-transparent dark:bg-transparent dark:hover:bg-transparent"><SelectValue /></SelectTrigger><SelectContent>{opts.map(o => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}</SelectContent></Select>}
+                    ? <Combobox options={opts.map(o => ({ value: o.v, label: o.l }))} value={v} onChange={set} placeholder={l} searchPlaceholder={lang === "bn" ? "খুঁজুন…" : "Search…"} className="h-9 border-0 bg-transparent shadow-none dark:bg-transparent dark:hover:bg-transparent" />
+                    : <Select value={v} onValueChange={set}><SelectTrigger className="h-9 w-full border-0 bg-transparent shadow-none dark:bg-transparent dark:hover:bg-transparent"><SelectValue /></SelectTrigger><SelectContent>{opts.map(o => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}</SelectContent></Select>}
                 </div>
               ))}
               <div className="flex items-end"><Button variant="outline" className="w-full gap-1" onClick={() => { setFTc("all"); setFSt("all"); setFYr("all"); setFMo("all"); setFRo("all"); }}><RotateCcw className="h-4 w-4" />{lang === "bn" ? "রিসেট" : "Reset"}</Button></div>
