@@ -1,80 +1,111 @@
 # Limited-Permission Admins — Design & Plan
 
-**Author:** Claude · **Date:** 2026-06-08
-**Goal:** Let the root admin create/promote admins with a **subset** of admin
-powers (e.g. an admin who can only do point-entry + reports, or only manage
-students), instead of today's all-or-nothing admin.
+**Author:** Claude · **Date:** 2026-06-08 (rev 2)
+**Goal:** Let the **super admin** create admins with a fine-grained **subset** of
+powers — down to **per-resource × per-action** (Create / Edit / Soft-delete /
+Force-delete / View). The super admin (root) always has **every** right.
 
 ---
 
-## 1. Current state
+## 1. Super admin (you)
 
-An admin = **full access**. Two ways to be admin:
-- `profiles.role = 'admin'` (dedicated admin), or
-- `profiles.is_admin = true` (promoted user — migration 0011).
-
-`App.tsx` derives `isAdmin = role==='admin' || is_admin` and every admin nav
-item / route is gated by that single boolean. RLS (migration 0011) grants any
-admin **write access to every table**. There is no notion of "partial" admin.
-
-So today, a promoted admin can do *everything*. To make them *limited*, we must
-introduce **capabilities** and check them in BOTH the UI and (for real security)
-RLS.
+`profiles.is_root = true` = **super admin** → implicitly holds **all**
+capabilities forever; never editable/demotable (DB trigger already protects role,
+we'll extend it to permissions). Everything below is about *other* admins.
 
 ---
 
-## 2. Capability model
+## 2. Current state
 
-One capability per admin area (maps 1:1 to the admin nav items):
+Admin = all-or-nothing (`role='admin'` or `is_admin=true` → full access; RLS 0011
+grants every admin write to every table). No partial admin, and deletes are
+**hard** (row removed immediately). We add (a) a capability matrix and (b) a
+soft-delete/restore layer.
 
-| Capability key | Area / nav | Sensitivity |
-|---|---|---|
-| `point_entry`   | পয়েন্ট এন্ট্রি (student KPI entry) | low |
-| `teacher_kpi`   | শিক্ষক KPI entry | low |
-| `parent_kpi`    | অভিভাবক KPI entry | low |
-| `view_reports`  | রিপোর্ট | low |
-| `manage_students` | শিক্ষার্থী CRUD | medium |
-| `manage_teachers` | শিক্ষক CRUD | medium |
-| `manage_parents`  | অভিভাবক CRUD | medium |
-| `manage_questions`| প্রশ্নমালা CRUD | medium |
-| `manage_settings` | সেটিংস (term config, seed) | medium |
-| `manage_accounts` | Account Management: reset/grant/revoke login | **high** |
-| `manage_admins`   | promote/demote others to admin | **highest** (root-only by default) |
+---
+
+## 3. Permission model — resource × action matrix
+
+Key format: **`<resource>.<action>`**.
+
+**Resources with full CRUD:** `students`, `teachers`, `parents`, `questions`
+**Actions:** `view`, `create`, `edit`, `soft_delete`, `force_delete`, `restore`
+
+→ e.g. `students.create`, `students.edit`, `students.soft_delete`,
+`students.force_delete`, `students.restore`, `students.view`.
+
+**Non-CRUD areas (single capability each):**
+
+| Capability | Area |
+|---|---|
+| `point_entry` | student KPI entry |
+| `teacher_kpi` | teacher KPI entry |
+| `parent_kpi` | parent KPI entry |
+| `reports.view` | reports |
+| `settings.edit` | term config + seed |
+| `accounts.manage` | reset / grant / revoke login (Account Mgmt) |
+| `admins.manage` | promote/demote & set others' permissions (**super-admin default**) |
 
 **Effective capabilities:**
-- `is_root` → **all** capabilities (incl. `manage_admins`). Never editable.
-- `role = 'admin'` (dedicated admin) → **all** capabilities (full admin, legacy).
-- `is_admin = true` (promoted) → exactly `profiles.permissions` (the chosen subset).
+- `is_root` → **ALL** (super admin).
+- `role='admin'` (legacy dedicated admin) → **ALL** (full admin).
+- `is_admin=true` (promoted) → exactly `profiles.permissions`.
 
-A "full admin" can still be made by granting all keys, or by keeping
-`role='admin'`. A "limited admin" = `is_admin=true` + a chosen `permissions` set.
+This maps cleanly to Postgres RLS (which is per-command):
 
-### Optional presets (nicer UX than free-form checkboxes)
-- **Data-entry admin:** `point_entry, teacher_kpi, parent_kpi, view_reports`
-- **Academic admin:** `manage_students, manage_teachers, manage_questions, manage_settings, view_reports`
-- **Account admin:** `manage_parents, manage_accounts, view_reports`
-- **Custom:** pick any keys.
+| Action | Postgres | Enforced by |
+|---|---|---|
+| view | SELECT policy | `<res>.view` |
+| create | INSERT policy | `<res>.create` |
+| edit | UPDATE policy | `<res>.edit` |
+| force_delete | DELETE policy | `<res>.force_delete` |
+| soft_delete / restore | UPDATE of `deleted_at` (via RPC) | `<res>.soft_delete` / `<res>.restore` |
+
+### Presets (quick assign; still editable)
+- **Data-entry:** `point_entry, teacher_kpi, parent_kpi, reports.view, *.view`
+- **Academic:** students/teachers/questions `view,create,edit,soft_delete` + `settings.edit, reports.view`
+- **Account:** parents `view,create,edit,soft_delete` + `accounts.manage, reports.view`
+- **Custom:** tick any keys. (Force-delete is high-risk → off by default in presets.)
 
 ---
 
-## 3. Data model (migration)
+## 4. Soft delete vs force delete (new feature)
+
+Today delete = permanent. We add a recoverable tier.
+
+- **Schema:** add `deleted_at timestamptz` (null = active) to `students`,
+  `teachers`, `parents`, `questions`. (Optionally `kpi_entries` later.)
+- **Soft delete** (`<res>.soft_delete`): set `deleted_at = now()`. Row hidden from
+  normal lists; login-capable people with a soft-deleted profile should be blocked
+  at login (treat like revoked).
+- **Trash view + Restore** (`<res>.restore`): a "Trash/recycle" filter shows
+  soft-deleted rows; restore sets `deleted_at = null`.
+- **Force delete** (`<res>.force_delete`): permanent row DELETE (cascades to
+  profile). Available from Trash (and/or directly for high-privilege admins).
+- **Lists filter** `deleted_at is null` by default everywhere (api `toUi`/queries).
+- Implement soft_delete/restore via SECURITY DEFINER RPCs that check the cap, so
+  the distinct permission is DB-enforced (a plain UPDATE policy can't tell a
+  `deleted_at` change from a name change).
+
+---
+
+## 5. Data model (migration)
 
 ```sql
-alter table public.profiles
-  add column if not exists permissions text[] not null default '{}';
-```
-- Empty `{}` for non-admins and for `role='admin'`/root (they're "all" via the
-  effective-caps rule, so the array is ignored for them).
-- For promoted limited admins, holds the granted keys.
+-- granular permissions
+alter table public.profiles add column if not exists permissions text[] not null default '{}';
 
-A capability predicate for RLS (SECURITY DEFINER, mirrors `my_role()`):
-```sql
+-- soft delete
+alter table public.students  add column if not exists deleted_at timestamptz;
+alter table public.teachers  add column if not exists deleted_at timestamptz;
+alter table public.parents   add column if not exists deleted_at timestamptz;
+alter table public.questions add column if not exists deleted_at timestamptz;
+
+-- capability predicate (root/full-admin = all; promoted = their array)
 create or replace function public.has_cap(cap text)
 returns boolean language sql stable security definer set search_path = public as $$
   select coalesce((
-    select is_root
-        or role = 'admin'
-        or (is_admin and cap = any(permissions))
+    select is_root or role='admin' or (is_admin and cap = any(permissions))
     from public.profiles where auth_id = auth.uid()
   ), false)
 $$;
@@ -82,91 +113,80 @@ $$;
 
 ---
 
-## 4. Frontend (session + gating)
+## 6. Frontend (session + per-action gating)
 
-- `SessionUser` gains `permissions: string[]` (and keep `isAdmin`).
-- `loadSessionUser`: set `permissions = is_root||role==='admin' ? ALL_CAPS : (is_admin ? prof.permissions : [])`.
-- Helper `can(user, cap)` = `user.isRoot || user.role==='admin' || user.permissions.includes(cap)`.
-- `App.tsx` nav + routes: gate each admin entry by its capability instead of the
-  blanket `isAdmin`. e.g. teachers item shows only if `can(u,'manage_teachers')`;
-  `pointEntry` if `can(u,'point_entry')`; etc. `isAdmin` still decides "has any
-  admin panel at all".
-- Account Management: only visible with `manage_accounts`; the promote/demote
-  action only with `manage_admins` (root by default).
-
----
-
-## 5. RLS enforcement — the security crux
-
-UI gating alone is **not secure**: a limited admin could still call the Supabase
-API directly. For true limits, the table write policies must check capabilities.
-
-Today (0011) every admin policy is `is_admin_user()` = role='admin' OR is_admin
-→ blanket. To make limits real, swap the blanket check for the matching
-capability on each table:
-
-| Table | policy check becomes |
-|---|---|
-| students  | `my_role()='admin' OR has_cap('manage_students')` |
-| teachers  | `my_role()='admin' OR has_cap('manage_teachers')` |
-| parents   | `my_role()='admin' OR has_cap('manage_parents')` |
-| questions / term_config | `... OR has_cap('manage_questions' / 'manage_settings')` |
-| kpi_entries | `... OR has_cap('point_entry')` (+teacher/parent kpi as today) |
-| profiles  | read: any admin; write: `... OR has_cap('manage_accounts')`; admin-promotion writes guarded to `has_cap('manage_admins')` |
-
-`admin_set_password` body: require `has_cap('manage_accounts')`.
-
-> ⚠️ Same surface that broke before — so do it **carefully**: one migration, test
-> `has_cap()` returns true for the root admin BEFORE switching policies, keep a
-> tested rollback, and apply in a low-traffic window. (See the stale-session
-> lesson: a blank app after deploy is usually re-login, not RLS — but a real
-> has_cap typo WOULD block reads, so verify.)
+- `SessionUser.permissions: string[]`; `loadSessionUser` sets it to ALL for
+  root/role-admin else `prof.permissions`.
+- `can(user, cap)` = `user.isRoot || user.role==='admin' || permissions.includes(cap)`.
+- Gating granularity:
+  - **Nav/page**: show if `can(u, '<res>.view')` (or the area cap).
+  - **"+ Add" button**: `can(u,'<res>.create')`.
+  - **Edit action**: `can(u,'<res>.edit')`.
+  - **Soft-delete (Trash) action**: `can(u,'<res>.soft_delete')`.
+  - **Force-delete action** (in Trash): `can(u,'<res>.force_delete')`.
+  - **Restore**: `can(u,'<res>.restore')`.
+- Each list page gets an active/Trash toggle (Trash visible with any soft_delete/
+  restore/force_delete cap).
 
 ---
 
-## 6. UI for assigning permissions
+## 7. RLS enforcement (real limits, Phase 2)
 
-In **Account Management** (requires `manage_admins`):
-- "Make admin" opens a dialog with capability **checkboxes** (or a preset
-  dropdown + custom). Saving = `is_admin=true, permissions=[...]`.
-- An existing limited admin row gets an "Edit permissions" action.
-- `role='admin'` and root rows show "Full admin" (no checkboxes; not editable).
-- API: `setAdminPermissions(id, caps[])` = update `{ is_admin: true, permissions: caps }`;
-  demote = `{ is_admin: false, permissions: '{}' }`.
+Per table, split the single admin policy into command-scoped policies:
+```sql
+-- students (same shape for teachers/parents/questions)
+drop policy if exists students_admin_all on public.students;
+create policy students_view   on public.students for select using (my_role()='admin' or has_cap('students.view'));
+create policy students_create on public.students for insert with check (my_role()='admin' or has_cap('students.create'));
+create policy students_edit   on public.students for update using (my_role()='admin' or has_cap('students.edit')) with check (my_role()='admin' or has_cap('students.edit'));
+create policy students_delete on public.students for delete using (my_role()='admin' or has_cap('students.force_delete'));
+```
+- Soft-delete & restore go through `soft_delete_row(res,id)` / `restore_row(res,id)`
+  SECURITY DEFINER RPCs that check the matching cap then update `deleted_at`.
+- `profiles` writes: `accounts.manage`; admin-promotion / permission edits:
+  `admins.manage`. `admin_set_password` body requires `accounts.manage`.
+- Keep `my_role()='admin'` in every check so legacy dedicated admins & root keep
+  full access. **Verify `has_cap()` returns true for root before switching
+  policies; keep a tested rollback; apply off-peak** (a typo here blocks reads —
+  see [[debug-stale-session]], but a real RLS error shows up, it's not the
+  re-login case).
 
 ---
 
-## 7. Edge cases / guards
-- Root (`is_root`) = all caps, never demotable/editable (DB trigger already
-  protects role; extend to block permission edits on root).
-- `manage_admins` default **root-only**; optionally let a full admin grant it.
-- Don't let a limited admin escalate themselves — `manage_accounts`/`manage_admins`
-  control who can edit permissions; without them the Account page is hidden +
-  RLS on profiles writes blocks it.
-- Last-admin / self-demote guards (as before).
+## 8. UI for assigning permissions (Account Management, needs `admins.manage`)
+- "Make admin" → dialog: preset dropdown + a capability **matrix** (resources ×
+  actions checkboxes + the area toggles). Save = `is_admin=true, permissions=[...]`.
+- Existing admin row → "Edit permissions". Root / role-admin show "Full (super)"
+  and are not editable.
+- API: `setAdminPermissions(id, caps[])`, `demote(id)` = `{is_admin:false, permissions:'{}'}`.
 
 ---
 
-## 8. Phasing & effort
+## 9. Effort & phasing
 
 | Phase | Scope | Security | Effort |
 |---|---|---|---|
-| **0** | migration: `permissions` column + `has_cap()` | — | ~15 min (user applies SQL) |
-| **1** | frontend: SessionUser.permissions, `can()`, nav/route gating, Account-Mgmt permission dialog | UI-level (menus hidden) | ~2–3 h |
-| **2** | RLS: per-table cap checks + `admin_set_password`/profiles guards | **DB-enforced** (real limits) | ~1–2 h + careful test |
+| **0** | migration: `permissions` + `deleted_at` cols + `has_cap()` | — | ~20 min (you apply) |
+| **1** | frontend: SessionUser.permissions, `can()`, per-button/nav gating, permission-matrix dialog in Account Mgmt | UI-level | ~3–4 h |
+| **2** | soft-delete: `deleted_at` filtering in all api lists, Trash view + restore + force-delete UI, soft/restore RPCs | feature | ~3–4 h |
+| **3** | RLS: command-scoped per-cap policies + RPC cap checks + profiles guards | **DB-enforced** | ~2 h + careful test |
 
-**Recommendation:** ship **Phase 0 + 1** first (functional limited admins, menus
-gated), then **Phase 2** to make the limits tamper-proof. Be explicit with the
-user that until Phase 2, "limited" = UI convenience, not a hard security boundary.
+**Recommendation:** Phase 0 → 1 (limited admins, menus/buttons gated) → 2
+(soft/force delete + trash) → 3 (make limits tamper-proof in the DB). Until
+Phase 3, "limited" = UI boundary; Phase 3 makes it real.
 
 ---
 
-## 9. Decisions needed from you
-1. **Free-form capabilities, presets, or both?** (Recommend: presets + custom.)
-2. **Who can create/limit admins** — root only, or any full admin? (Recommend:
-   `manage_admins`, root-only by default.)
-3. **Phase 2 (RLS) now or later?** If admins are all trusted staff, Phase 1 may
-   suffice short-term; Phase 2 for real security.
-4. Confirm the capability list in §2 matches the areas you want to gate.
+## 10. Decisions needed
+1. Confirm the **resource list** (students, teachers, parents, questions) and the
+   **action set** (view/create/edit/soft_delete/force_delete/restore). Add any
+   resource? (e.g. should `kpi_entries` get soft-delete too?)
+2. **Force-delete**: allow it directly, or **only from Trash** (must soft-delete
+   first)? (Recommend: only from Trash — safer.)
+3. Who can grant/limit admins — **super-admin (root) only** (recommend) or any
+   full admin?
+4. Phasing: do all four phases now, or ship 0+1+2 and defer 3 (RLS) if all admins
+   are trusted?
+5. Presets in §3 ok, or different bundles?
 
-Answer 1–4 and I'll implement Phase 0 (migration SQL) + Phase 1, then Phase 2.
+Answer these and I'll start at Phase 0 (migration SQL) → Phase 1.
