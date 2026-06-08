@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pencil, RotateCcw } from "lucide-react";
 import { T } from "../i18n";
-import { MONTHS } from "../constants";
+import { MONTHS, CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { useIsMobile } from "../composables";
 import { getWeekNumber, errMsg, cn } from "../lib";
 import { Tabs, ErrorNote, Combobox, DatePicker, Page } from "../components";
@@ -39,17 +39,25 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const [activeRole, setActiveRole] = useState("classTeacher");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedAssign, setSelectedAssign] = useState<SubjectAssignment | null>(null);
+  // Admin scope picker (admins have no teaching assignment, so they choose any class/section/subject).
+  const [adminClass, setAdminClass] = useState("8");
+  const [adminSection, setAdminSection] = useState("A");
+  const [adminSubject, setAdminSubject] = useState<string>(SUBJECTS[0]);
   const [allScores, setAllScores] = useState<Scores>({});
   const [editEntry, setEditEntry] = useState<StudentEntry | null>(null);
   const [editScore, setEditScore] = useState<number | string>("");
   const [fTc, setFTc] = useState("all"), [fSt, setFSt] = useState("all"), [fYr, setFYr] = useState("all"), [fMo, setFMo] = useState("all"), [fRo, setFRo] = useState("all");
   const cm = new Date(selectedDate).getMonth(), cw = getWeekNumber(selectedDate), cy = new Date(selectedDate).getFullYear();
   const ct = currentUser.classTeacher;
-  const classStudents = ct ? students.filter(s => s.class === ct.class && s.section === ct.section) : [];
+  // For admins the class/section comes from the scope picker; teachers use their assignment.
+  const classStudents = ct ? students.filter(s => s.class === ct.class && s.section === ct.section)
+    : isAdmin ? students.filter(s => s.class === adminClass && s.section === adminSection) : [];
   const subjectAssignments = currentUser.subjectAssignments || [];
-  const subjectStudents = selectedAssign ? students.filter(s => s.class === selectedAssign.class && s.section === selectedAssign.section) : [];
+  // Effective subject assignment: admin = picked class/section/subject; teacher = selected one.
+  const effAssign: SubjectAssignment | null = isAdmin ? { class: adminClass, section: adminSection, subject: adminSubject } : selectedAssign;
+  const subjectStudents = effAssign ? students.filter(s => s.class === effAssign.class && s.section === effAssign.section) : [];
   const guideIds = currentUser.guideStudents || [];
-  const guideStudents = students.filter(s => guideIds.includes(s.id));
+  const guideStudents = isAdmin ? students.filter(s => s.class === adminClass && s.section === adminSection) : students.filter(s => guideIds.includes(s.id));
   const weekDoneCheck = (sid: string) => entries.some(e => e.studentId === sid && e.teacherId === currentUser.id && e.role === "guideTeacher" && getWeekNumber(e.date) === cw && new Date(e.date).getFullYear() === cy);
   const isQFreqDone = (sid: string, qid: string) => { const q = questions.find(x => x.id === qid); const freq = q?.frequency || "monthly"; const d = new Date(selectedDate), year = d.getFullYear(), month = d.getMonth(); return entries.some(e => { if (e.studentId !== sid || e.questionId !== qid) return false; const ed = new Date(e.date), eYear = e.year || 2026; switch (freq) { case "daily": return e.date === selectedDate; case "weekly": return getWeekNumber(e.date) === cw && eYear === year; case "quarterly": return Math.floor(ed.getMonth() / 3) === Math.floor(month / 3) && eYear === year; case "annual": return eYear === year; default: return e.month === month && eYear === year; } }); };
   const roleQs = questions.filter(q => q.role === activeRole && q.activeMonths.includes(cm));
@@ -64,7 +72,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       if (activeRole === "guideTeacher" && weekDoneCheck(s.id)) return;
       roleQs.forEach(q => {
         if (isQFreqDone(s.id, q.id)) return; // skip questions already entered for this period
-        rows.push({ target_type: "student", target_id: s.id, entered_by: currentUser.id, question_id: q.id, question_text: q.textBn, question_text_en: q.textEn, max_points: q.points, score: allScores[s.id]?.[q.id] || 0, role: activeRole, subject: selectedAssign?.subject || "", month: cm, year: cy, entry_date: selectedDate, edit_log: [] });
+        rows.push({ target_type: "student", target_id: s.id, entered_by: currentUser.id, question_id: q.id, question_text: q.textBn, question_text_en: q.textEn, max_points: q.points, score: allScores[s.id]?.[q.id] || 0, role: activeRole, subject: effAssign?.subject || "", month: cm, year: cy, entry_date: selectedDate, edit_log: [] });
       });
     });
     if (!rows.length) { showNotif(lang === "bn" ? "জমা দেওয়ার মতো কিছু নেই" : "Nothing to submit"); return; }
@@ -98,7 +106,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
     { l: lang === "bn" ? "ভূমিকা" : "Role", v: fRo, set: setFRo, searchable: false, opts: [{ v: "all", l: lang === "bn" ? "সব" : "All" }, { v: "classTeacher", l: t.classTeacher }, { v: "subjectTeacher", l: t.subjectTeacher }, { v: "guideTeacher", l: t.guideTeacher }] },
   ];
   const maxPts = roleQs.reduce((acc, q) => acc + q.points, 0);
-  const showGrid = curStudents.length > 0 && roleQs.length > 0 && (activeRole !== "subjectTeacher" || selectedAssign);
+  const showGrid = curStudents.length > 0 && roleQs.length > 0 && (activeRole !== "subjectTeacher" || effAssign);
   return (
     <Page>
       <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.pointEntry}</h2>
@@ -107,12 +115,21 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
       <Tabs items={tabs} active={activeRole} onChange={(k) => { setActiveRole(k); setAllScores({}); setSelectedAssign(null); }} />
 
-      {activeRole === "subjectTeacher" && (
+      {isAdmin && (
+        <Card>
+          <CardContent className="flex flex-wrap items-end gap-3 pt-6">
+            <div className="space-y-1.5"><Label>{t.class}</Label><Select value={adminClass} onValueChange={v => { setAdminClass(v); setAllScores({}); }}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-1.5"><Label>{t.section}</Label><Select value={adminSection} onValueChange={v => { setAdminSection(v); setAllScores({}); }}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+            {activeRole === "subjectTeacher" && <div className="space-y-1.5"><Label>{lang === "bn" ? "বিষয়" : "Subject"}</Label><Select value={adminSubject} onValueChange={v => { setAdminSubject(v); setAllScores({}); }}><SelectTrigger className="min-w-40"><SelectValue /></SelectTrigger><SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>}
+          </CardContent>
+        </Card>
+      )}
+      {!isAdmin && activeRole === "subjectTeacher" && (
         <Card>
           <CardContent className="space-y-2 pt-6">
             <Label>{lang === "bn" ? "শ্রেণী ও বিষয় নির্বাচন" : "Select Class & Subject"}</Label>
             <div className="flex flex-wrap gap-2">
-              {(isAdmin ? [{ class: "8", section: "A", subject: "গণিত/Math" }] : subjectAssignments).map((a, i) => (
+              {subjectAssignments.map((a, i) => (
                 <Button key={i} variant={selectedAssign === a ? "default" : "outline"} size="sm" onClick={() => { setSelectedAssign(a); setAllScores({}); }}>{t.class}{a.class}{a.section}—{a.subject}</Button>
               ))}
             </div>
@@ -122,9 +139,9 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       {activeRole === "guideTeacher" && <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300">⚠️ {lang === "bn" ? "গাইড শিক্ষক সপ্তাহে ১ বার।" : "Guide teacher: once per week."}</div>}
 
       {activeRole === "classTeacher" && !isAdmin && !currentUser.classTeacher && <div className={EMPTY}>{t.noClassRole}</div>}
-      {activeRole === "subjectTeacher" && !selectedAssign && <div className={EMPTY}>{t.selectClassSubject}</div>}
-      {(activeRole !== "subjectTeacher" || selectedAssign) && (activeRole !== "classTeacher" || isAdmin || currentUser.classTeacher) && roleQs.length === 0 && <div className={EMPTY}>{lang === "bn" ? "এই ভূমিকা ও মাসের জন্য কোনো প্রশ্ন নেই — প্রশ্নমালায় এই ভূমিকার প্রশ্ন যোগ করুন" : "No questions for this role & month — add some in Questions first"}</div>}
-      {(activeRole !== "subjectTeacher" || selectedAssign) && (activeRole !== "classTeacher" || isAdmin || currentUser.classTeacher) && roleQs.length > 0 && curStudents.length === 0 && <div className={EMPTY}>{lang === "bn" ? "কোনো শিক্ষার্থী পাওয়া যায়নি — অনুমতি (RLS) বা নিয়োগ যাচাই করুন" : "No students found — check permissions (RLS) or assignment"}</div>}
+      {activeRole === "subjectTeacher" && !effAssign && <div className={EMPTY}>{t.selectClassSubject}</div>}
+      {(activeRole !== "subjectTeacher" || effAssign) && (activeRole !== "classTeacher" || isAdmin || currentUser.classTeacher) && roleQs.length === 0 && <div className={EMPTY}>{lang === "bn" ? "এই ভূমিকা ও মাসের জন্য কোনো প্রশ্ন নেই — প্রশ্নমালায় এই ভূমিকার প্রশ্ন যোগ করুন" : "No questions for this role & month — add some in Questions first"}</div>}
+      {(activeRole !== "subjectTeacher" || effAssign) && (activeRole !== "classTeacher" || isAdmin || currentUser.classTeacher) && roleQs.length > 0 && curStudents.length === 0 && <div className={EMPTY}>{lang === "bn" ? "কোনো শিক্ষার্থী পাওয়া যায়নি — অনুমতি (RLS) বা নিয়োগ যাচাই করুন" : "No students found — check permissions (RLS) or assignment"}</div>}
 
       {showGrid && (isMobile ? (
         <div className="flex flex-col gap-3">
