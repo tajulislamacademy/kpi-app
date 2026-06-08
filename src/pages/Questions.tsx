@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, MoreHorizontal, RotateCcw } from "lucide-react";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { cn } from "../lib";
-import { ConfirmDialog, Tabs, MonthsPicker, ErrorNote , Page } from "../components";
+import { can } from "../permissions";
+import { ConfirmDialog, Tabs, MonthsPicker, ErrorNote, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,10 +14,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/questions";
-import type { Dict, Lang, Question, QuestionInput, QuestionCategory, Frequency } from "../types";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useDbQuestions, createQuestion, updateQuestion, deleteQuestion, softDeleteQuestion, restoreQuestion } from "../api/questions";
+import type { Dict, Lang, SessionUser, Question, QuestionInput, QuestionCategory, Frequency } from "../types";
 
-interface Props { t: Dict; lang: Lang; showNotif: (msg: string) => void; }
+interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
 interface QForm { textBn: string; textEn: string; role?: string; points: number | string; activeMonths: number[]; frequency: string; }
 
 const roleBadge = (r?: string | null) =>
@@ -24,9 +26,10 @@ const roleBadge = (r?: string | null) =>
     : r === "subjectTeacher" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
       : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300";
 
-export function QuestionsPage({ t, lang, showNotif }: Props) {
-  const { questions: allQ, loading, error, reload } = useDbQuestions(true);
-  const [qTab, setQTab] = useState<QuestionCategory>("student");
+export function QuestionsPage({ t, lang, currentUser, showNotif }: Props) {
+  const { questions: allQ, loading, error, reload } = useDbQuestions(true, true);
+  const c = (cap: string) => can(currentUser, cap);
+  const [qTab, setQTab] = useState<string>("student");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [viewQ, setViewQ] = useState<Question | null>(null);
@@ -36,10 +39,14 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
   const blankO: QForm = { textBn: "", textEn: "", points: 10, activeMonths: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], frequency: "monthly" };
   const [form, setForm] = useState<QForm>(blankS);
   const toggleM = (m: number) => { const am = form.activeMonths.includes(m) ? form.activeMonths.filter(x => x !== m) : [...form.activeMonths, m]; setForm({ ...form, activeMonths: am }); };
+  const run = async (fn: () => Promise<void>, msg: string) => { try { await fn(); await reload(); showNotif(msg); } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + (e instanceof Error ? e.message : String(e))); } };
+  const activeQ = allQ.filter(q => !q.deletedAt);
+  const trashQ = allQ.filter(q => q.deletedAt);
+  const isTrash = qTab === "trash";
   const isStd = qTab === "student";
-  const stdQ = allQ.filter(q => q.category === "student");
-  const tchrQ = allQ.filter(q => q.category === "teacher");
-  const parQ = allQ.filter(q => q.category === "parent");
+  const stdQ = activeQ.filter(q => q.category === "student");
+  const tchrQ = activeQ.filter(q => q.category === "teacher");
+  const parQ = activeQ.filter(q => q.category === "parent");
   const curQs = isStd ? stdQ : qTab === "teacher" ? tchrQ : parQ;
   const rLabel = (r?: string | null) => r === "classTeacher" ? t.classTeacher : r === "subjectTeacher" ? t.subjectTeacher : t.guideTeacher;
   const openAdd = () => { setEditId(null); setForm(isStd ? blankS : blankO); setShowForm(true); };
@@ -49,17 +56,13 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
     setSaving(true);
     try {
       const pts = parseInt(String(form.points)) || 0;
-      const payload: QuestionInput = { category: qTab, role: isStd ? (form.role || null) : null, textBn: form.textBn, textEn: form.textEn, points: pts, frequency: (form.frequency || "monthly") as Frequency, activeMonths: form.activeMonths };
+      const payload: QuestionInput = { category: qTab as QuestionCategory, role: isStd ? (form.role || null) : null, textBn: form.textBn, textEn: form.textEn, points: pts, frequency: (form.frequency || "monthly") as Frequency, activeMonths: form.activeMonths };
       if (editId) { await updateQuestion(editId, payload); showNotif(lang === "bn" ? "আপডেট হয়েছে!" : "Updated!"); }
       else { await createQuestion(payload); showNotif(lang === "bn" ? "প্রশ্ন যোগ হয়েছে!" : "Question added!"); }
       await reload();
       setShowForm(false); setEditId(null); setForm(isStd ? blankS : blankO);
     } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + (e instanceof Error ? e.message : String(e))); }
     finally { setSaving(false); }
-  };
-  const doDelete = async (id: string) => {
-    try { await deleteQuestion(id); await reload(); showNotif(lang === "bn" ? "মুছা হয়েছে!" : "Deleted!"); }
-    catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + (e instanceof Error ? e.message : String(e))); }
   };
   const freqLabel = (f?: string) => { const map: Record<string, string> = { daily: t.daily, weekly: t.weekly, monthly: t.monthly, quarterly: t.quarterly, annual: t.annual }; return map[f || "monthly"] || t.monthly; };
   const qTable = (list: Question[]) => (
@@ -87,11 +90,19 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
               </div>
             </TableCell>
             <TableCell>
-              <div className="flex gap-1">
-                <Button size="icon" variant="outline" aria-label={lang === "bn" ? "দেখুন" : "View"} className="h-8 w-8" onClick={() => setViewQ(q)}><Eye className="h-3.5 w-3.5" /></Button>
-                <Button size="icon" variant="outline" aria-label={t.edit} className="h-8 w-8" onClick={() => openEdit(q)}><Pencil className="h-3.5 w-3.5" /></Button>
-                <Button size="icon" variant="outline" aria-label={t.deleteAdmin} className="h-8 w-8 text-destructive" onClick={() => setConfirmDel({ id: q.id, name: lang === "bn" ? q.textBn : q.textEn })}><Trash2 className="h-3.5 w-3.5" /></Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" aria-label={lang === "bn" ? "অ্যাকশন" : "Actions"}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  {q.deletedAt ? <>
+                    {c("questions.restore") && <DropdownMenuItem onClick={() => run(() => restoreQuestion(q.id), lang === "bn" ? "ফেরত আনা হয়েছে" : "Restored")}><RotateCcw className="h-4 w-4" />{lang === "bn" ? "ফেরত আনুন" : "Restore"}</DropdownMenuItem>}
+                    {c("questions.force_delete") && <DropdownMenuItem variant="destructive" onClick={() => setConfirmDel({ id: q.id, name: lang === "bn" ? q.textBn : q.textEn })}><Trash2 className="h-4 w-4" />{lang === "bn" ? "স্থায়ী মুছুন" : "Delete permanently"}</DropdownMenuItem>}
+                  </> : <>
+                    <DropdownMenuItem onClick={() => setViewQ(q)}><Eye className="h-4 w-4" />{lang === "bn" ? "দেখুন" : "View"}</DropdownMenuItem>
+                    {c("questions.edit") && <DropdownMenuItem onClick={() => openEdit(q)}><Pencil className="h-4 w-4" />{t.edit}</DropdownMenuItem>}
+                    {c("questions.soft_delete") && <><DropdownMenuSeparator /><DropdownMenuItem variant="destructive" onClick={() => run(() => softDeleteQuestion(q.id), lang === "bn" ? "ট্র্যাশে পাঠানো হয়েছে" : "Moved to Trash")}><Trash2 className="h-4 w-4" />{lang === "bn" ? "ট্র্যাশে পাঠান" : "Move to Trash"}</DropdownMenuItem></>}
+                  </>}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </TableCell>
           </TableRow>
         ))}
@@ -103,14 +114,14 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.questions}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? "মোট " + curQs.length + "টি" : "Total " + curQs.length}{loading ? " · …" : ""}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? "মোট " + (isTrash ? trashQ.length : curQs.length) + "টি" : "Total " + (isTrash ? trashQ.length : curQs.length)}{loading ? " · …" : ""}</p>
         </div>
-        <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addQuestion}</Button>
+        {c("questions.create") && !isTrash && <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addQuestion}</Button>}
       </div>
       <ErrorNote lang={lang} error={error} />
-      <Tabs items={[{ key: "student", label: `${t.stdQuestions} (${stdQ.length})` }, { key: "teacher", label: `${t.tchrQuestions} (${tchrQ.length})` }, { key: "parent", label: `${t.parQuestions} (${parQ.length})` }]} active={qTab} onChange={(k) => { setQTab(k as QuestionCategory); setShowForm(false); setEditId(null); }} />
+      <Tabs items={[{ key: "student", label: `${t.stdQuestions} (${stdQ.length})` }, { key: "teacher", label: `${t.tchrQuestions} (${tchrQ.length})` }, { key: "parent", label: `${t.parQuestions} (${parQ.length})` }, { key: "trash", label: `${lang === "bn" ? "ট্র্যাশ" : "Trash"} (${trashQ.length})` }]} active={qTab} onChange={(k) => { setQTab(k); setShowForm(false); setEditId(null); }} />
 
-      {showForm && (
+      {showForm && c(editId ? "questions.edit" : "questions.create") && (
         <Card>
           <CardHeader><CardTitle className="text-base">{editId ? (lang === "bn" ? "প্রশ্ন সম্পাদনা" : "Edit Question") : (lang === "bn" ? "নতুন প্রশ্ন" : "New Question")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -129,6 +140,10 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
 
       {loading && allQ.length === 0 ? (
         <Card className="overflow-hidden py-0"><div className="space-y-2 p-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div></Card>
+      ) : isTrash ? (
+        trashQ.length === 0
+          ? <Card className="overflow-hidden py-0"><div className="py-10 text-center text-muted-foreground">{lang === "bn" ? "ট্র্যাশ খালি" : "Trash is empty"}</div></Card>
+          : <Card className="overflow-hidden py-0"><CardContent className="p-0">{qTable(trashQ)}</CardContent></Card>
       ) : isStd ? ["classTeacher", "subjectTeacher", "guideTeacher"].map(role => (
         <Card key={role} className="overflow-hidden">
           <CardHeader><CardTitle><Badge className={cn("border-transparent text-sm font-bold", roleBadge(role))}>{rLabel(role)}</Badge></CardTitle></CardHeader>
@@ -157,7 +172,7 @@ export function QuestionsPage({ t, lang, showNotif }: Props) {
         </DialogContent>
       </Dialog>
 
-      {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); doDelete(id); }} onCancel={() => setConfirmDel(null)} />}
+      {confirmDel && <ConfirmDialog lang={lang} name={confirmDel.name} onConfirm={() => { const id = confirmDel.id; setConfirmDel(null); run(() => deleteQuestion(id), lang === "bn" ? "স্থায়ীভাবে মুছা হয়েছে!" : "Permanently deleted!"); }} onCancel={() => setConfirmDel(null)} />}
     </Page>
   );
 }

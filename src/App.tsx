@@ -67,7 +67,7 @@ export default function App() {
       {activeTab === "teachers" && c("teachers.view") && <TeachersPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "students" && c("students.view") && <StudentsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "parents" && c("parents.view") && <ParentsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
-      {activeTab === "questions" && c("questions.view") && <QuestionsPage t={t} lang={lang} showNotif={showNotif} />}
+      {activeTab === "questions" && c("questions.view") && <QuestionsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "accounts" && c("accounts.manage") && <AccountsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "reports" && <ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
       {activeTab === "settings" && c("settings.edit") && <SettingsPage t={t} lang={lang} termConfig={termConfig} onSaveTermConfig={saveTermConfig} showNotif={showNotif} />}
