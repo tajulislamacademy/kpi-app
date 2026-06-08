@@ -17,16 +17,17 @@ export interface Account {
   hasLogin: boolean;
   isAdmin: boolean;
   isRoot: boolean;
+  permissions: string[];
   parentStatus: string | null;   // parents only
   parentRelation: string | null; // parents only
 }
 
 export async function listAccounts(): Promise<Account[]> {
   const base = "id, system_id, name, name_en, role, auth_id, is_root, parents(relation, status)";
-  // Prefer the is_admin column; gracefully fall back if migration 0011 isn't
-  // applied yet (then everyone shows as non-admin until it is).
-  let { data, error } = await supabase.from("profiles").select(`is_admin, ${base}`);
-  if (error && /is_admin/i.test(error.message || "")) {
+  // Prefer the is_admin/permissions columns; gracefully fall back if migrations
+  // 0011/0012 aren't applied yet (then everyone shows as non-admin until they are).
+  let { data, error } = await supabase.from("profiles").select(`is_admin, permissions, ${base}`);
+  if (error && /(is_admin|permissions)/i.test(error.message || "")) {
     ({ data, error } = await supabase.from("profiles").select(base));
   }
   if (error) throw error;
@@ -42,6 +43,7 @@ export async function listAccounts(): Promise<Account[]> {
         hasLogin: !!r.auth_id,
         isAdmin: r.role === "admin" || !!r.is_admin,
         isRoot: !!r.is_root,
+        permissions: r.permissions || [],
         parentStatus: par?.status ?? null,
         parentRelation: par?.relation ?? null,
       };
@@ -49,9 +51,17 @@ export async function listAccounts(): Promise<Account[]> {
     .sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
 }
 
-// Promote/demote admin. Root admin is protected at the DB level (trigger).
+// Promote/demote admin. Demoting also clears the capability list. Root admin is
+// protected at the DB level (trigger).
 export async function setAdmin(profileId: string, value: boolean): Promise<void> {
-  const { error } = await supabase.from("profiles").update({ is_admin: value }).eq("id", profileId);
+  const patch = value ? { is_admin: true } : { is_admin: false, permissions: [] };
+  const { error } = await supabase.from("profiles").update(patch).eq("id", profileId);
+  if (error) throw error;
+}
+
+// Promote (if needed) and set the exact capability list for a limited admin.
+export async function setAdminPermissions(profileId: string, caps: string[]): Promise<void> {
+  const { error } = await supabase.from("profiles").update({ is_admin: true, permissions: caps }).eq("id", profileId);
   if (error) throw error;
 }
 
