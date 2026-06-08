@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, X, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { errMsg, nextSystemId } from "../lib";
-import { ConfirmDialog, ErrorNote, PasswordInput, MultiCombobox, Tabs, Page } from "../components";
+import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page } from "../components";
 import { can } from "../permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,9 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
   const [form, setForm] = useState<TForm>(blank);
   const [newAssign, setNewAssign] = useState<SubjectAssignment>({ class: "8", section: "A", subject: SUBJECTS[0] });
   const [hasClass, setHasClass] = useState(false);
+  const [gcClass, setGcClass] = useState("8");
+  const [gcSection, setGcSection] = useState("A");
+  const toggleGuide = (sid: string) => setForm(f => ({ ...f, guideStudents: f.guideStudents.includes(sid) ? f.guideStudents.filter(x => x !== sid) : [...f.guideStudents, sid] }));
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const c = (cap: string) => can(currentUser, cap);
@@ -114,16 +117,38 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
               </div>
             </div>
 
-            <div className="rounded-lg bg-muted/40 p-4">
-              <div className="mb-3 text-sm font-bold text-foreground">{t.guideStudents}</div>
-              <MultiCombobox
-                options={dbStudents.map(s => ({ value: s.id, label: `${lang === "bn" ? s.name : s.nameEn} (${t.class}${s.class}${s.section})` }))}
-                values={form.guideStudents}
-                onChange={gs => setForm({ ...form, guideStudents: gs })}
-                placeholder={lang === "bn" ? "শিক্ষার্থী নির্বাচন" : "Select students"}
-                searchPlaceholder={lang === "bn" ? "নাম খুঁজুন…" : "Search name…"}
-              />
-              {form.guideStudents.length > 0 && <div className="mt-1.5 text-xs text-muted-foreground">{form.guideStudents.length} {lang === "bn" ? "জন নির্বাচিত" : "selected"}</div>}
+            <div className="space-y-3 rounded-lg bg-muted/40 p-4">
+              <div className="text-sm font-bold text-foreground">{t.guideStudents}</div>
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="space-y-1.5"><Label className="text-xs">{t.class}</Label><Select value={gcClass} onValueChange={setGcClass}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+                <div className="space-y-1.5"><Label className="text-xs">{t.section}</Label><Select value={gcSection} onValueChange={setGcSection}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+              </div>
+              {(() => {
+                const list = dbStudents.filter(s => s.class === gcClass && s.section === gcSection);
+                return list.length === 0
+                  ? <p className="text-xs text-muted-foreground">{lang === "bn" ? "এই শ্রেণী/সেকশনে কোনো শিক্ষার্থী নেই" : "No students in this class/section"}</p>
+                  : <div className="flex max-h-44 flex-wrap gap-x-4 gap-y-2 overflow-y-auto rounded-md bg-background/60 p-2">
+                      {list.map(s => (
+                        <label key={s.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                          <Checkbox checked={form.guideStudents.includes(s.id)} onCheckedChange={() => toggleGuide(s.id)} />
+                          {lang === "bn" ? s.name : s.nameEn}{s.roll ? ` (${t.roll} ${s.roll})` : ""}
+                        </label>
+                      ))}
+                    </div>;
+              })()}
+              {form.guideStudents.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-xs text-muted-foreground">{lang === "bn" ? `নির্বাচিত (${form.guideStudents.length})` : `Selected (${form.guideStudents.length})`}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {dbStudents.filter(s => form.guideStudents.includes(s.id)).map(s => (
+                      <Badge key={s.id} variant="secondary" className="gap-1">
+                        {lang === "bn" ? s.name : s.nameEn} ({t.class}{s.class}{s.section})
+                        <button type="button" onClick={() => toggleGuide(s.id)} className="ml-0.5 rounded-full hover:text-destructive"><X className="h-3 w-3" /></button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2"><Button onClick={handleSave} disabled={saving}>{saving ? (lang === "bn" ? "সংরক্ষণ…" : "Saving…") : t.save}</Button><Button variant="outline" onClick={() => { setShowForm(false); setEditId(null); }}>{t.cancel}</Button></div>
