@@ -15,16 +15,16 @@ import type { Dict, Lang, SessionUser } from "../types";
 async function loadSessionUser(prof: any, lang: Lang): Promise<SessionUser> {
   const base: SessionUser = { id: prof.id, systemId: prof.system_id, name: lang === "bn" ? prof.name : prof.name_en, nameEn: prof.name_en, role: prof.role, isRoot: prof.is_root, isAdmin: prof.role === "admin" || !!prof.is_admin, permissions: capsFor({ isRoot: prof.is_root, role: prof.role, isAdmin: prof.is_admin, permissions: prof.permissions }), backend: true };
   if (prof.role === "teacher") {
-    const { data: tc } = await supabase.from("teachers").select("class_teacher,subject_assignments,guide_students").eq("id", prof.id).maybeSingle();
-    if (tc) return { ...base, classTeacher: tc.class_teacher, subjectAssignments: tc.subject_assignments || [], guideStudents: tc.guide_students || [] };
+    const { data: tc } = await supabase.from("teachers").select("class_teacher,subject_assignments,guide_students,deleted_at").eq("id", prof.id).maybeSingle();
+    if (tc) return { ...base, classTeacher: tc.class_teacher, subjectAssignments: tc.subject_assignments || [], guideStudents: tc.guide_students || [], isDeleted: !!tc.deleted_at };
   }
   if (prof.role === "student") {
-    const { data: st } = await supabase.from("students").select("class,section,roll").eq("id", prof.id).maybeSingle();
-    if (st) return { ...base, class: st.class, section: st.section, roll: st.roll };
+    const { data: st } = await supabase.from("students").select("class,section,roll,deleted_at").eq("id", prof.id).maybeSingle();
+    if (st) return { ...base, class: st.class, section: st.section, roll: st.roll, isDeleted: !!st.deleted_at };
   }
   if (prof.role === "parent") {
-    const { data: pr } = await supabase.from("parents").select("student_id,relation,status").eq("id", prof.id).maybeSingle();
-    if (pr) return { ...base, studentId: pr.student_id, relation: pr.relation, status: pr.status };
+    const { data: pr } = await supabase.from("parents").select("student_id,relation,status,deleted_at").eq("id", prof.id).maybeSingle();
+    if (pr) return { ...base, studentId: pr.student_id, relation: pr.relation, status: pr.status, isDeleted: !!pr.deleted_at };
   }
   return base;
 }
@@ -46,6 +46,11 @@ export function AuthPage({ t, lang, setLang, onLogin }: Props) {
           const { data: prof } = await supabase.from("profiles").select("*").eq("auth_id", data.user.id).maybeSingle();
           if (prof) {
             const u = await loadSessionUser(prof, lang);
+            if (u.isDeleted) {
+              await supabase.auth.signOut();
+              setError(lang === "bn" ? "অ্যাকাউন্ট মুছে ফেলা হয়েছে" : "Account has been removed");
+              return;
+            }
             if (u.role === "parent" && u.status !== "approved") {
               await supabase.auth.signOut();
               setError(u.status === "rejected" ? (lang === "bn" ? "অ্যাকাউন্ট বাতিল" : "Account rejected") : (lang === "bn" ? "অ্যাডমিনের অনুমোদন বাকি" : "Awaiting admin approval"));
