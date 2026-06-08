@@ -40,7 +40,7 @@ export async function listAccounts(): Promise<Account[]> {
         nameEn: r.name_en,
         role: r.role,
         hasLogin: !!r.auth_id,
-        isAdmin: !!r.is_admin,
+        isAdmin: r.role === "admin" || !!r.is_admin,
         isRoot: !!r.is_root,
         parentStatus: par?.status ?? null,
         parentRelation: par?.relation ?? null,
