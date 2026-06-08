@@ -14,6 +14,7 @@ export { ScoreEntryGrid } from "./ScoreEntryGrid";
 export { ErrorBoundary } from "./ErrorBoundary";
 export { ErrorNote } from "./ErrorNote";
 export { PasswordInput } from "./PasswordInput";
+export { DatePicker } from "./DatePicker";
 export { Combobox, MultiCombobox } from "./Combobox";
 export { EmptyState } from "./EmptyState";
 export type { ComboOption } from "./Combobox";
