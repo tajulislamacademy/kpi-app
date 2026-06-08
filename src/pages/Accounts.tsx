@@ -1,17 +1,30 @@
 import { useState } from "react";
-import { MoreHorizontal, Shield, ShieldOff, KeyRound, LogIn, LogOut, Trash2, Clock, UsersRound, Inbox, Search } from "lucide-react";
+import { MoreHorizontal, Shield, ShieldOff, SlidersHorizontal, KeyRound, LogIn, LogOut, Trash2, Clock, UsersRound, Inbox, Search } from "lucide-react";
 import { errMsg, cn } from "../lib";
+import { can, RESOURCES, ACTIONS, AREAS } from "../permissions";
 import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, EmptyState, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useDbAccounts, setAdmin, grantLogin, revokeLogin, resetPassword, deleteAccount, type Account } from "../api/accounts";
+import { useDbAccounts, setAdmin, setAdminPermissions, grantLogin, revokeLogin, resetPassword, deleteAccount, type Account } from "../api/accounts";
 import type { Dict, Lang, SessionUser } from "../types";
+
+const RES_LABEL: Record<string, [string, string]> = { students: ["শিক্ষার্থী", "Students"], teachers: ["শিক্ষক", "Teachers"], parents: ["অভিভাবক", "Parents"], questions: ["প্রশ্ন", "Questions"] };
+const ACT_LABEL: Record<string, [string, string]> = { view: ["দেখা", "View"], create: ["তৈরি", "Create"], edit: ["সম্পাদনা", "Edit"], soft_delete: ["ট্র্যাশ", "Trash"], force_delete: ["স্থায়ী মুছা", "Delete"], restore: ["ফেরত", "Restore"] };
+const AREA_LABEL: Record<string, [string, string]> = { point_entry: ["পয়েন্ট এন্ট্রি", "Point entry"], teacher_kpi: ["শিক্ষক KPI", "Teacher KPI"], parent_kpi: ["অভিভাবক KPI", "Parent KPI"], "reports.view": ["রিপোর্ট", "Reports"], "settings.edit": ["সেটিংস", "Settings"], "accounts.manage": ["অ্যাকাউন্ট ম্যানেজ", "Manage accounts"], "admins.manage": ["অ্যাডমিন ব্যবস্থাপনা", "Manage admins"] };
+const PRESETS: Record<string, string[]> = {
+  data_entry: ["point_entry", "teacher_kpi", "parent_kpi", "reports.view", "students.view", "teachers.view", "parents.view", "questions.view"],
+  academic: ["students", "teachers", "questions"].flatMap(r => ["view", "create", "edit", "soft_delete"].map(a => `${r}.${a}`)).concat(["settings.edit", "reports.view"]),
+  account: ["parents.view", "parents.create", "parents.edit", "parents.soft_delete", "accounts.manage", "reports.view"],
+};
+// admins.manage stays super-admin-only → not offered as an assignable area.
+const ASSIGNABLE_AREAS = AREAS.filter(a => a !== "admins.manage");
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
 
@@ -29,9 +42,15 @@ export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
   const [grantTarget, setGrantTarget] = useState<Account | null>(null);
   const [pwValue, setPwValue] = useState("");
   const [confirmDel, setConfirmDel] = useState<Account | null>(null);
+  const [permTarget, setPermTarget] = useState<Account | null>(null);
+  const [permSel, setPermSel] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const manageAdmins = can(currentUser, "admins.manage");
 
   const roleLabel = (r: string) => r === "admin" ? t.admin : r === "teacher" ? t.teacher : r === "student" ? t.student : t.parent;
+  const openPerm = (a: Account) => { setPermTarget(a); setPermSel(a.permissions || []); };
+  const togglePerm = (cap: string) => setPermSel(p => p.includes(cap) ? p.filter(x => x !== cap) : [...p, cap]);
+  const savePerm = async () => { if (!permTarget) return; setSaving(true); await run(() => setAdminPermissions(permTarget.id, permSel), lang === "bn" ? "পারমিশন সংরক্ষণ!" : "Permissions saved!"); setSaving(false); setPermTarget(null); };
 
   const run = async (fn: () => Promise<void>, msg: string) => {
     try { await fn(); await reload(); showNotif(msg); }
@@ -136,7 +155,10 @@ export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
                             <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={lang === "bn" ? "অ্যাকশন" : "Actions"}><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-52">
-                            {canToggleAdmin && <DropdownMenuItem onClick={() => run(() => setAdmin(a.id, !a.isAdmin), a.isAdmin ? (lang === "bn" ? "অ্যাডমিন সরানো হয়েছে" : "Admin removed") : (lang === "bn" ? "অ্যাডমিন করা হয়েছে" : "Made admin"))}>{a.isAdmin ? <><ShieldOff className="h-4 w-4" />{t.removeAdmin}</> : <><Shield className="h-4 w-4" />{t.makeAdmin}</>}</DropdownMenuItem>}
+                            {canToggleAdmin && manageAdmins && (a.isAdmin ? <>
+                              <DropdownMenuItem onClick={() => openPerm(a)}><SlidersHorizontal className="h-4 w-4" />{lang === "bn" ? "পারমিশন" : "Permissions"}</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => run(() => setAdmin(a.id, false), lang === "bn" ? "অ্যাডমিন সরানো হয়েছে" : "Admin removed")}><ShieldOff className="h-4 w-4" />{t.removeAdmin}</DropdownMenuItem>
+                            </> : <DropdownMenuItem onClick={() => openPerm(a)}><Shield className="h-4 w-4" />{t.makeAdmin}</DropdownMenuItem>)}
                             {a.hasLogin
                               ? <DropdownMenuItem onClick={() => { setPwTarget(a); setPwValue(""); }}><KeyRound className="h-4 w-4" />{lang === "bn" ? "পাসওয়ার্ড রিসেট" : "Reset password"}</DropdownMenuItem>
                               : <DropdownMenuItem onClick={() => { setGrantTarget(a); setPwValue(""); }}><LogIn className="h-4 w-4" />{lang === "bn" ? "লগইন দিন" : "Grant login"}</DropdownMenuItem>}
@@ -172,6 +194,39 @@ export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
           <p className="text-sm text-muted-foreground">{grantTarget && (lang === "bn" ? grantTarget.name : grantTarget.nameEn)} · {grantTarget?.systemId}</p>
           <div className="space-y-1.5"><Label htmlFor="gl-pw">{lang === "bn" ? "পাসওয়ার্ড" : "Password"}</Label><PasswordInput id="gl-pw" value={pwValue} onChange={e => setPwValue(e.target.value)} /></div>
           <DialogFooter><Button variant="outline" onClick={() => setGrantTarget(null)}>{t.cancel}</Button><Button onClick={handleGrant} disabled={saving}>{t.save}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!permTarget} onOpenChange={(o) => { if (!o) setPermTarget(null); }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader><DialogTitle>{lang === "bn" ? "পারমিশন" : "Permissions"} — {permTarget && (lang === "bn" ? permTarget.name : permTarget.nameEn)}</DialogTitle></DialogHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">{lang === "bn" ? "প্রিসেট:" : "Preset:"}</span>
+            <Button size="sm" variant="outline" onClick={() => setPermSel(PRESETS.data_entry)}>{lang === "bn" ? "ডেটা-এন্ট্রি" : "Data-entry"}</Button>
+            <Button size="sm" variant="outline" onClick={() => setPermSel(PRESETS.academic)}>{lang === "bn" ? "একাডেমিক" : "Academic"}</Button>
+            <Button size="sm" variant="outline" onClick={() => setPermSel(PRESETS.account)}>{lang === "bn" ? "অ্যাকাউন্ট" : "Account"}</Button>
+            <Button size="sm" variant="ghost" onClick={() => setPermSel([])}>{lang === "bn" ? "ক্লিয়ার" : "Clear"}</Button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr><th className="p-2 text-left" />{ACTIONS.map(act => <th key={act} className="p-2 text-center text-xs font-medium text-muted-foreground">{ACT_LABEL[act][lang === "bn" ? 0 : 1]}</th>)}</tr></thead>
+              <tbody>
+                {RESOURCES.map(res => (
+                  <tr key={res} className="border-t border-border">
+                    <td className="p-2 font-medium">{RES_LABEL[res][lang === "bn" ? 0 : 1]}</td>
+                    {ACTIONS.map(act => { const cap = `${res}.${act}`; return <td key={act} className="p-2 text-center"><Checkbox className="mx-auto" checked={permSel.includes(cap)} onCheckedChange={() => togglePerm(cap)} aria-label={cap} /></td>; })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground">{lang === "bn" ? "অন্যান্য" : "Areas"}</div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {ASSIGNABLE_AREAS.map(area => <label key={area} className="flex cursor-pointer items-center gap-2 text-sm"><Checkbox checked={permSel.includes(area)} onCheckedChange={() => togglePerm(area)} />{AREA_LABEL[area][lang === "bn" ? 0 : 1]}</label>)}
+            </div>
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setPermTarget(null)}>{t.cancel}</Button><Button onClick={savePerm} disabled={saving}>{t.save}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
