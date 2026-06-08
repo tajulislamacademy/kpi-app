@@ -14,12 +14,23 @@ const toUi = (r: any): Question => ({
   points: r.points,
   frequency: r.frequency,
   activeMonths: r.active_months || [],
+  deletedAt: r.deleted_at ?? null,
 });
 
-export async function listQuestions(): Promise<Question[]> {
+export async function listQuestions(withTrash = false): Promise<Question[]> {
   const { data, error } = await supabase.from("questions").select("*").order("created_at");
   if (error) throw error;
-  return (data || []).map(toUi);
+  const rows = (data || []).map(toUi);
+  return withTrash ? rows : rows.filter(q => !q.deletedAt);
+}
+
+export async function softDeleteQuestion(id: string): Promise<void> {
+  const { error } = await supabase.from("questions").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+export async function restoreQuestion(id: string): Promise<void> {
+  const { error } = await supabase.from("questions").update({ deleted_at: null }).eq("id", id);
+  if (error) throw error;
 }
 
 export async function createQuestion({ category, role, textBn, textEn, points, frequency, activeMonths }: QuestionInput): Promise<void> {
@@ -55,7 +66,7 @@ export async function deleteQuestion(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export function useDbQuestions(enabled = true) {
+export function useDbQuestions(enabled = true, withTrash = false) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,13 +75,13 @@ export function useDbQuestions(enabled = true) {
     setLoading(true);
     setError(null);
     try {
-      setQuestions(await listQuestions());
+      setQuestions(await listQuestions(withTrash));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, withTrash]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     reload();

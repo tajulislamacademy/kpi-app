@@ -24,6 +24,7 @@ export interface Student extends Person {
   class?: string;
   section?: string | null;
   roll?: number | null;
+  deletedAt?: string | null;
 }
 
 export interface ClassTeacher { class: string; section: string; }
@@ -33,12 +34,14 @@ export interface Teacher extends Person {
   classTeacher?: ClassTeacher | null;
   subjectAssignments: SubjectAssignment[];
   guideStudents: string[];
+  deletedAt?: string | null;
 }
 
 export interface Parent extends Person {
   studentId?: string | null;
   relation: string;
   status: ParentStatus;
+  deletedAt?: string | null;
 }
 
 export interface Question {
@@ -50,6 +53,7 @@ export interface Question {
   points: number;
   frequency: Frequency;
   activeMonths: number[];
+  deletedAt?: string | null;
 }
 
 export interface EditLogEntry { editedBy?: string; editedAt: string; oldScore: number; newScore: number; }

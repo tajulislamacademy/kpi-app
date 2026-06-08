@@ -17,16 +17,26 @@ const toUi = (r: any): Teacher => ({
   classTeacher: r.class_teacher,
   subjectAssignments: r.subject_assignments || [],
   guideStudents: r.guide_students || [],
+  deletedAt: r.deleted_at ?? null,
 });
 
-export async function listTeachers(): Promise<Teacher[]> {
-  const { data, error } = await supabase
-    .from("teachers")
-    .select("id, class_teacher, subject_assignments, guide_students, profiles(system_id, name, name_en, auth_id)");
+export async function listTeachers(withTrash = false): Promise<Teacher[]> {
+  const base = "id, class_teacher, subject_assignments, guide_students, profiles(system_id, name, name_en, auth_id)";
+  let { data, error } = await supabase.from("teachers").select(`deleted_at, ${base}`);
+  if (error && /deleted_at/i.test(error.message || "")) ({ data, error } = await supabase.from("teachers").select(base));
   if (error) throw error;
-  return (data || [])
-    .map(toUi)
-    .sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
+  let rows = (data || []).map(toUi);
+  if (!withTrash) rows = rows.filter(t => !t.deletedAt);
+  return rows.sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
+}
+
+export async function softDeleteTeacher(id: string): Promise<void> {
+  const { error } = await supabase.from("teachers").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+export async function restoreTeacher(id: string): Promise<void> {
+  const { error } = await supabase.from("teachers").update({ deleted_at: null }).eq("id", id);
+  if (error) throw error;
 }
 
 export async function createTeacher({ systemId, name, nameEn, password, classTeacher, subjectAssignments, guideStudents }: TeacherInput): Promise<string> {
@@ -82,7 +92,7 @@ export async function deleteTeacher(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export function useDbTeachers(enabled = true) {
+export function useDbTeachers(enabled = true, withTrash = false) {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,13 +101,13 @@ export function useDbTeachers(enabled = true) {
     setLoading(true);
     setError(null);
     try {
-      setTeachers(await listTeachers());
+      setTeachers(await listTeachers(withTrash));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, withTrash]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     reload();

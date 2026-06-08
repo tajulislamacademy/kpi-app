@@ -16,14 +16,26 @@ const toUi = (r: any): Parent => ({
   studentId: r.student_id,
   relation: r.relation,
   status: r.status,
+  deletedAt: r.deleted_at ?? null,
 });
 
-export async function listParents(): Promise<Parent[]> {
-  const { data, error } = await supabase
-    .from("parents")
-    .select("id, student_id, relation, status, profiles(system_id, name, name_en, auth_id)");
+export async function listParents(withTrash = false): Promise<Parent[]> {
+  const base = "id, student_id, relation, status, profiles(system_id, name, name_en, auth_id)";
+  let { data, error } = await supabase.from("parents").select(`deleted_at, ${base}`);
+  if (error && /deleted_at/i.test(error.message || "")) ({ data, error } = await supabase.from("parents").select(base));
   if (error) throw error;
-  return (data || []).map(toUi).sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
+  let rows = (data || []).map(toUi);
+  if (!withTrash) rows = rows.filter(p => !p.deletedAt);
+  return rows.sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
+}
+
+export async function softDeleteParent(id: string): Promise<void> {
+  const { error } = await supabase.from("parents").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+export async function restoreParent(id: string): Promise<void> {
+  const { error } = await supabase.from("parents").update({ deleted_at: null }).eq("id", id);
+  if (error) throw error;
 }
 
 export async function createParent({ systemId, name, nameEn, password, studentId, relation, status }: ParentInput): Promise<string> {
@@ -74,7 +86,7 @@ export async function deleteParent(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export function useDbParents(enabled = true) {
+export function useDbParents(enabled = true, withTrash = false) {
   const [parents, setParents] = useState<Parent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,13 +95,13 @@ export function useDbParents(enabled = true) {
     setLoading(true);
     setError(null);
     try {
-      setParents(await listParents());
+      setParents(await listParents(withTrash));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, withTrash]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     reload();
