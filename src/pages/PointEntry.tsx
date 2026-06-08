@@ -131,13 +131,13 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
           {curStudents.map((s) => { const wd = activeRole === "guideTeacher" && weekDoneCheck(s.id); return (
             <Card key={s.id} style={{ opacity: wd ? 0.65 : 1 }}>
               <CardContent className="pt-6">
-                <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+                <div className="mb-3 flex items-center justify-between border-b border-border/50 pb-2">
                   <div><div className="text-sm font-bold text-foreground">{lang === "bn" ? s.name : s.nameEn}</div><div className="text-xs text-muted-foreground">{s.systemId} · {t.class}{s.class}{s.section} · Roll {s.roll}</div></div>
                   <div className="ml-2 shrink-0 text-right"><div className="text-2xl font-black leading-none text-foreground">{getTotal(s.id)}</div><div className="text-xs text-muted-foreground">/{maxPts} pts</div></div>
                 </div>
                 {wd && <div className="mb-2 rounded-lg bg-red-100 px-3 py-2 text-sm font-semibold text-red-700 dark:bg-red-950 dark:text-red-300">⚠️ {lang === "bn" ? "এই সপ্তাহে পয়েন্ট দেওয়া হয়েছে" : "Already submitted this week"}</div>}
                 {roleQs.map(q => { const qd = isQFreqDone(s.id, q.id); return (
-                  <div key={q.id} className="flex items-center justify-between border-b border-border py-2.5">
+                  <div key={q.id} className="flex items-center justify-between border-b border-border/50 py-2.5">
                     <div className="mr-3 flex-1"><div className="text-sm font-medium text-foreground">{lang === "bn" ? q.textBn : q.textEn}</div><div className="text-xs text-muted-foreground">{freqLabel(q.frequency)} · max {q.points}</div></div>
                     {qd ? <div className="grid h-11 w-16 place-items-center rounded-lg bg-green-100 text-xs font-bold text-green-700 dark:bg-green-950 dark:text-green-300">✓</div> : <Input type="number" min={0} max={q.points} disabled={wd} className="h-11 w-16 text-center text-lg font-bold" value={getScore(s.id, q.id)} onChange={e => setScore(s.id, q.id, e.target.value)} placeholder="0" />}
                   </div>
@@ -188,7 +188,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
           )}
           <div className="text-xs text-muted-foreground">{lang === "bn" ? `${filtered.length}টি এন্ট্রি` : `${filtered.length} entries`}</div>
         </CardContent>
-        <div className="border-t border-border">
+        <div className="border-t border-border/50">
           <Table>
             <TableHeader><TableRow>
               <TableHead>{lang === "bn" ? "তারিখ" : "Date"}</TableHead>

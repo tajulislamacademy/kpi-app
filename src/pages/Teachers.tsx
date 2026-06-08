@@ -84,7 +84,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
               <div className="space-y-1.5"><Label>{editId ? (lang === "bn" ? "পাসওয়ার্ড" : "Password") : (t.defaultPass + " (login)")}</Label><PasswordInput value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder={pwPlaceholder} /></div>
             </div>
 
-            <div className="rounded-lg border border-border bg-muted/40 p-4">
+            <div className="rounded-lg bg-muted/40 p-4">
               <label className="flex items-center gap-2 text-sm font-bold text-foreground">
                 <Checkbox checked={hasClass} onCheckedChange={(c) => setHasClass(c === true)} />{t.classTeacher}?
               </label>
@@ -96,7 +96,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
               )}
             </div>
 
-            <div className="rounded-lg border border-border bg-muted/40 p-4">
+            <div className="rounded-lg bg-muted/40 p-4">
               <div className="mb-3 text-sm font-bold text-foreground">{t.subjectAssignments}</div>
               <div className="mb-3 flex flex-wrap items-end gap-2">
                 <Select value={newAssign.class} onValueChange={v => setNewAssign({ ...newAssign, class: v })}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
@@ -114,7 +114,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
               </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-muted/40 p-4">
+            <div className="rounded-lg bg-muted/40 p-4">
               <div className="mb-3 text-sm font-bold text-foreground">{t.guideStudents}</div>
               <MultiCombobox
                 options={dbStudents.map(s => ({ value: s.id, label: `${lang === "bn" ? s.name : s.nameEn} (${t.class}${s.class}${s.section})` }))}
