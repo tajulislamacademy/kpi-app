@@ -78,8 +78,11 @@ Today delete = permanent. We add a recoverable tier.
 - **Soft delete** (`<res>.soft_delete`): set `deleted_at = now()`. Row hidden from
   normal lists; login-capable people with a soft-deleted profile should be blocked
   at login (treat like revoked).
-- **Trash view + Restore** (`<res>.restore`): a "Trash/recycle" filter shows
-  soft-deleted rows; restore sets `deleted_at = null`.
+- **Trash view + Restore** (`<res>.restore`): **every list page** gets a
+  filtering bar with an **Active / Trash** toggle (plus the existing search and
+  role/status filters); the Trash view lists soft-deleted rows; restore sets
+  `deleted_at = null`. Filtering system is shared across students/teachers/
+  parents/questions (search + status + active/trash).
 - **Force delete** (`<res>.force_delete`): permanent row DELETE (cascades to
   profile). Available from Trash (and/or directly for high-privilege admins).
 - **Lists filter** `deleted_at is null` by default everywhere (api `toUi`/queries).

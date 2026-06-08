@@ -4,8 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../composables";
 import { freqDone, errMsg } from "../lib";
-import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid, ErrorNote } from "../components";
-import { Input } from "@/components/ui/input";
+import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid, ErrorNote, DatePicker } from "../components";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDbTeachers } from "../api/teachers";
@@ -67,7 +66,7 @@ export function TeacherKPIPage({ t, lang, currentUser, showNotif, selectedYear, 
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <ErrorNote lang={lang} error={e1 || e2 || e3} />
-      <div className="space-y-1.5"><Label>{t.selectDate}</Label><Input type="date" className="w-50" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></div>
+      <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
       <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={teachers} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.teachers} emptyMsg={t.noQForMonth} />
       <EntryHistoryTable t={t} lang={lang} entries={teacherEntries} people={teachers} whoLabel={t.teachers} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
     </div>
@@ -110,7 +109,7 @@ export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, s
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <ErrorNote lang={lang} error={e1 || e2 || e3} />
-      <div className="space-y-1.5"><Label>{t.selectDate}</Label><Input type="date" className="w-50" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></div>
+      <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
       <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={approvedParents} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.parent} emptyMsg={t.noQForMonth} />
       <EntryHistoryTable t={t} lang={lang} entries={parentEntries} people={parents} whoLabel={t.parent} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
     </div>

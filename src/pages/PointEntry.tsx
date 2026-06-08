@@ -4,7 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../composables";
 import { getWeekNumber, errMsg, cn } from "../lib";
-import { Tabs, ErrorNote, Combobox , Page } from "../components";
+import { Tabs, ErrorNote, Combobox, DatePicker, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -104,7 +104,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.pointEntry}</h2>
       <ErrorNote lang={lang} error={loadErr} />
 
-      <div className="space-y-1.5"><Label>{t.selectDate}</Label><Input type="date" className="w-50" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></div>
+      <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
       <Tabs items={tabs} active={activeRole} onChange={(k) => { setActiveRole(k); setAllScores({}); setSelectedAssign(null); }} />
 
       {activeRole === "subjectTeacher" && (
