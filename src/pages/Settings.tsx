@@ -64,7 +64,7 @@ export function SettingsPage({ t, lang, termConfig, onSaveTermConfig, showNotif 
         <CardHeader><CardTitle>{lang === "bn" ? "বর্তমান কনফিগারেশন" : "Current Configuration"}</CardTitle></CardHeader>
         <CardContent>
           {TERMS.map((term, ti) => (
-            <div key={term} className="border-b border-border py-2 text-sm text-foreground last:border-0">
+            <div key={term} className="border-b border-border/50 py-2 text-sm text-foreground last:border-0">
               <strong>{termLabel(ti)}:</strong>
               <span className="ml-2 text-muted-foreground">{termConfig[term].map(m => T[lang][MONTHS[m]]).join(", ") || "—"}</span>
             </div>

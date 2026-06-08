@@ -214,7 +214,7 @@ export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
               <thead><tr><th className="p-2 text-left" />{ACTIONS.map(act => <th key={act} className="p-2 text-center text-xs font-medium text-muted-foreground">{ACT_LABEL[act][lang === "bn" ? 0 : 1]}</th>)}</tr></thead>
               <tbody>
                 {RESOURCES.map(res => (
-                  <tr key={res} className="border-t border-border">
+                  <tr key={res} className="border-t border-border/50">
                     <td className="p-2 font-medium">{RES_LABEL[res][lang === "bn" ? 0 : 1]}</td>
                     {ACTIONS.map(act => { const cap = `${res}.${act}`; return <td key={act} className="p-2 text-center"><Checkbox className="mx-auto" checked={permSel.includes(cap)} onCheckedChange={() => togglePerm(cap)} aria-label={cap} /></td>; })}
                   </tr>

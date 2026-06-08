@@ -38,12 +38,12 @@ export function ScoreEntryGrid({ t, lang, isMobile, targets, questions, getScore
       {targets.map((tg) => (
         <Card key={tg.id}>
           <CardContent className="pt-6">
-            <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+            <div className="mb-3 flex items-center justify-between border-b border-border/50 pb-2">
               <div><div className="text-sm font-bold text-foreground">{lang === "bn" ? tg.name : tg.nameEn}</div><div className="text-xs text-muted-foreground">{tg.systemId}</div></div>
               <div className="ml-2 shrink-0 text-right"><div className="text-2xl font-black leading-none tabular-nums text-foreground">{getTotal(tg.id)}</div><div className="text-xs text-muted-foreground">/{maxTotal} pts</div></div>
             </div>
             {questions.map((q) => (
-              <div key={q.id} className="flex items-center justify-between border-b border-border py-2.5 last:border-0">
+              <div key={q.id} className="flex items-center justify-between border-b border-border/50 py-2.5 last:border-0">
                 <div className="mr-3 flex-1"><div className="text-sm font-medium text-foreground">{lang === "bn" ? q.textBn : q.textEn}</div><div className="text-xs text-muted-foreground">max {q.points}</div></div>
                 {isFreqDone(tg.id, q.id) ? <div className={`${DONE} h-11 w-16`}>✓</div> : <Input type="number" min={0} max={q.points} className="h-11 w-16 text-center text-lg font-bold" value={getScore(tg.id, q.id)} onChange={(e) => setScore(tg.id, q.id, e.target.value)} placeholder="0" />}
               </div>
