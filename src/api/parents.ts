@@ -45,10 +45,12 @@ export async function createParent({ systemId, name, nameEn, password, studentId
   return prof.id;
 }
 
-export async function updateParent(id: string, { name, nameEn, relation, status, password, authId, systemId }: ParentUpdate): Promise<void> {
+export async function updateParent(id: string, { name, nameEn, relation, status, studentId, password, authId, systemId }: ParentUpdate): Promise<void> {
   const { error: e1 } = await supabase.from("profiles").update({ name, name_en: nameEn || name }).eq("id", id);
   if (e1) throw e1;
-  const { error: e2 } = await supabase.from("parents").update({ relation, status }).eq("id", id);
+  const parentPatch: Record<string, unknown> = { relation, status };
+  if (studentId !== undefined) parentPatch.student_id = studentId || null;
+  const { error: e2 } = await supabase.from("parents").update(parentPatch).eq("id", id);
   if (e2) throw e2;
   if (password) {
     if (authId) {
