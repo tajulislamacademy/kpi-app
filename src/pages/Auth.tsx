@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../supabase";
 import { systemIdToEmail } from "../api/identity";
+import { capsFor } from "../permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,7 @@ import type { Dict, Lang, SessionUser } from "../types";
 // app relies on: a teacher's class/subject/guide assignments (in the teachers
 // table, not profiles) and a student's class/section/roll, a parent's child.
 async function loadSessionUser(prof: any, lang: Lang): Promise<SessionUser> {
-  const base: SessionUser = { id: prof.id, systemId: prof.system_id, name: lang === "bn" ? prof.name : prof.name_en, nameEn: prof.name_en, role: prof.role, isRoot: prof.is_root, isAdmin: prof.role === "admin" || !!prof.is_admin, backend: true };
+  const base: SessionUser = { id: prof.id, systemId: prof.system_id, name: lang === "bn" ? prof.name : prof.name_en, nameEn: prof.name_en, role: prof.role, isRoot: prof.is_root, isAdmin: prof.role === "admin" || !!prof.is_admin, permissions: capsFor({ isRoot: prof.is_root, role: prof.role, isAdmin: prof.is_admin, permissions: prof.permissions }), backend: true };
   if (prof.role === "teacher") {
     const { data: tc } = await supabase.from("teachers").select("class_teacher,subject_assignments,guide_students").eq("id", prof.id).maybeSingle();
     if (tc) return { ...base, classTeacher: tc.class_teacher, subjectAssignments: tc.subject_assignments || [], guideStudents: tc.guide_students || [] };

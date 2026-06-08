@@ -7,6 +7,7 @@ import { useLocalStorage } from "./composables";
 import { T } from "./i18n";
 import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCog, Contact, BarChart3, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
 import { ErrorBoundary, Layout } from "./components";
+import { can } from "./permissions";
 import { AuthPage } from "./pages/Auth";
 import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards";
 import { TeacherKPIPage, ParentKPIPage, MyTeacherKPIPage, MyParentKPIPage } from "./pages/KPI";
@@ -35,19 +36,20 @@ export default function App() {
   const { parents: dbParents } = useDbParents(true);
   if (!currentUser) return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u: SessionUser) => { setCurrentUser(u); setActiveTab("dashboard"); }} />;
   const isAdmin = currentUser.role === "admin" || !!currentUser.isAdmin, isTeacher = currentUser.role === "teacher";
+  const c = (cap: string) => can(currentUser, cap);
   const pendingParents = dbParents.filter(p => p.status === "pending");
   const navItems = [
     { key: "dashboard", icon: LayoutDashboard, label: t.dashboard },
-    ...(isAdmin || isTeacher ? [{ key: "pointEntry", icon: ClipboardPen, label: t.pointEntry }] : []),
-    ...(isAdmin ? [
-      { key: "teachers", icon: Users, label: t.teachers },
-      { key: "students", icon: GraduationCap, label: t.students },
-      { key: "parents", icon: Contact, label: lang === "bn" ? "অভিভাবক" : "Parents" },
-      { key: "questions", icon: ListChecks, label: t.questions },
-      { key: "accounts", icon: UserCog, label: `${t.accounts}${pendingParents.length > 0 ? ` (${pendingParents.length})` : ""}` },
-    ] : []),
+    ...((isTeacher || c("point_entry")) ? [{ key: "pointEntry", icon: ClipboardPen, label: t.pointEntry }] : []),
+    ...(c("teachers.view") ? [{ key: "teachers", icon: Users, label: t.teachers }] : []),
+    ...(c("students.view") ? [{ key: "students", icon: GraduationCap, label: t.students }] : []),
+    ...(c("parents.view") ? [{ key: "parents", icon: Contact, label: `${lang === "bn" ? "অভিভাবক" : "Parents"}${pendingParents.length > 0 ? ` (${pendingParents.length})` : ""}` }] : []),
+    ...(c("questions.view") ? [{ key: "questions", icon: ListChecks, label: t.questions }] : []),
+    ...(c("accounts.manage") ? [{ key: "accounts", icon: UserCog, label: t.accounts }] : []),
     { key: "reports", icon: BarChart3, label: t.reports },
-    ...(isAdmin ? [{ key: "teacherKpi", icon: Award, label: t.teacherKPI }, { key: "parentKpi", icon: UsersRound, label: t.parentKPI }, { key: "settings", icon: Settings, label: t.settings }] : []),
+    ...(c("teacher_kpi") ? [{ key: "teacherKpi", icon: Award, label: t.teacherKPI }] : []),
+    ...(c("parent_kpi") ? [{ key: "parentKpi", icon: UsersRound, label: t.parentKPI }] : []),
+    ...(c("settings.edit") ? [{ key: "settings", icon: Settings, label: t.settings }] : []),
     ...(isTeacher ? [{ key: "myTchrKpi", icon: TrendingUp, label: t.myTchrKPI }] : []),
     ...(currentUser.role === "parent" ? [{ key: "myParKpi", icon: TrendingUp, label: t.myKPI }] : []),
     { key: "profile", icon: KeyRound, label: t.myProfile },
@@ -61,17 +63,17 @@ export default function App() {
           ? <StudentDashboard t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />
           : <ParentDashboard t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />
       )}
-      {activeTab === "pointEntry" && (isAdmin || isTeacher) && <PointEntryPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} isAdmin={isAdmin} />}
-      {activeTab === "teachers" && isAdmin && <TeachersPage t={t} lang={lang} showNotif={showNotif} />}
-      {activeTab === "students" && isAdmin && <StudentsPage t={t} lang={lang} showNotif={showNotif} />}
-      {activeTab === "parents" && isAdmin && <ParentsPage t={t} lang={lang} showNotif={showNotif} />}
-      {activeTab === "questions" && isAdmin && <QuestionsPage t={t} lang={lang} showNotif={showNotif} />}
-      {activeTab === "accounts" && isAdmin && <AccountsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
+      {activeTab === "pointEntry" && (isTeacher || c("point_entry")) && <PointEntryPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} isAdmin={isAdmin} />}
+      {activeTab === "teachers" && c("teachers.view") && <TeachersPage t={t} lang={lang} showNotif={showNotif} />}
+      {activeTab === "students" && c("students.view") && <StudentsPage t={t} lang={lang} showNotif={showNotif} />}
+      {activeTab === "parents" && c("parents.view") && <ParentsPage t={t} lang={lang} showNotif={showNotif} />}
+      {activeTab === "questions" && c("questions.view") && <QuestionsPage t={t} lang={lang} showNotif={showNotif} />}
+      {activeTab === "accounts" && c("accounts.manage") && <AccountsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "reports" && <ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
-      {activeTab === "settings" && isAdmin && <SettingsPage t={t} lang={lang} termConfig={termConfig} onSaveTermConfig={saveTermConfig} showNotif={showNotif} />}
+      {activeTab === "settings" && c("settings.edit") && <SettingsPage t={t} lang={lang} termConfig={termConfig} onSaveTermConfig={saveTermConfig} showNotif={showNotif} />}
       {activeTab === "profile" && <ProfilePage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
-      {activeTab === "teacherKpi" && isAdmin && <TeacherKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
-      {activeTab === "parentKpi" && isAdmin && <ParentKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
+      {activeTab === "teacherKpi" && c("teacher_kpi") && <TeacherKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
+      {activeTab === "parentKpi" && c("parent_kpi") && <ParentKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
       {activeTab === "myTchrKpi" && isTeacher && <MyTeacherKPIPage t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />}
       {activeTab === "myParKpi" && currentUser.role === "parent" && <MyParentKPIPage t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />}
       </ErrorBoundary>

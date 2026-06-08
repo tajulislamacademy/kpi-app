@@ -94,6 +94,7 @@ export interface SessionUser extends Person {
   role: Role;
   isRoot?: boolean;
   isAdmin?: boolean;
+  permissions?: string[];
   backend?: boolean;
   classTeacher?: ClassTeacher | null;
   subjectAssignments?: SubjectAssignment[];

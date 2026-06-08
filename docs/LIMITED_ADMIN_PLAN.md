@@ -180,7 +180,16 @@ Phase 3, "limited" = UI boundary; Phase 3 makes it real.
 
 ---
 
-## 10. Decisions needed
+## 10. Decisions — LOCKED (2026-06-08)
+1. Soft-delete resources = **students, teachers, parents, questions** (NOT kpi_entries).
+2. Force-delete = **only from Trash** (must soft-delete first).
+3. Manage/limit admins = **super-admin (root) only** (`admins.manage` not granted to others by default).
+4. Enforcement = **UI first (Phase 1), DB/RLS later (Phase 3)**. → promoted admins
+   get full DB access via 0011's `is_admin`; the UI shows only their permitted
+   areas. (Means 0011 must be applied.)
+5. Presets + custom matrix.
+
+### (original questions, for reference)
 1. Confirm the **resource list** (students, teachers, parents, questions) and the
    **action set** (view/create/edit/soft_delete/force_delete/restore). Add any
    resource? (e.g. should `kpi_entries` get soft-delete too?)
