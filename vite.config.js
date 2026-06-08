@@ -11,6 +11,22 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    // Split heavy third-party libs into their own cached chunks so no single
+    // file is huge (and the warning goes away). App code stays in the entry.
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('@supabase')) return 'supabase'
+          if (id.includes('react-day-picker') || id.includes('date-fns')) return 'datepicker'
+          if (id.includes('radix-ui') || id.includes('@radix-ui') || id.includes('cmdk')) return 'radix'
+          if (id.includes('react') || id.includes('scheduler')) return 'react'
+          return 'vendor'
+        },
+      },
+    },
+  },
   test: {
     environment: 'node',
     // Dummy Supabase env so modules that import the client (which throws when
