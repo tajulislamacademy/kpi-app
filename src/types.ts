@@ -99,6 +99,7 @@ export interface SessionUser extends Person {
   isRoot?: boolean;
   isAdmin?: boolean;
   permissions?: string[];
+  isDeleted?: boolean;
   backend?: boolean;
   classTeacher?: ClassTeacher | null;
   subjectAssignments?: SubjectAssignment[];
