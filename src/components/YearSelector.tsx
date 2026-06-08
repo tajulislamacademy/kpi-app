@@ -1,14 +1,20 @@
+import { CalendarDays } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type { Lang } from "../types";
 
 interface Props { lang: Lang; selectedYear: number; setSelectedYear: (y: number) => void; availableYears: number[]; }
 
 export function YearSelector({ lang, selectedYear, setSelectedYear, availableYears }: Props) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--muted)", borderRadius: 10, padding: "8px 14px" }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>📅 {lang === "bn" ? "বছর" : "Year"}:</span>
-      <select style={{ border: "none", background: "transparent", fontSize: 15, fontWeight: 800, color: "var(--foreground)", outline: "none", cursor: "pointer" }} value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
-        {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
-      </select>
+    <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5">
+      <CalendarDays className="h-4 w-4 text-muted-foreground" />
+      <span className="text-sm font-semibold text-foreground">{lang === "bn" ? "বছর" : "Year"}:</span>
+      <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+        <SelectTrigger size="sm" className="h-8 w-20 border-0 bg-transparent font-bold shadow-none focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>{availableYears.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+      </Select>
     </div>
   );
 }
