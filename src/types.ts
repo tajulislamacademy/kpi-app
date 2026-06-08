@@ -113,4 +113,4 @@ export interface TeacherInput { systemId: string; name: string; nameEn?: string;
 export interface TeacherUpdate { name: string; nameEn?: string; classTeacher?: ClassTeacher | null; subjectAssignments?: SubjectAssignment[]; guideStudents?: string[]; password?: string | null; authId?: string | null; systemId?: string; }
 export interface QuestionInput { category: QuestionCategory; role: string | null; textBn: string; textEn: string; points: number; frequency: Frequency; activeMonths: number[]; }
 export interface ParentInput { systemId: string; name: string; nameEn?: string; password?: string | null; studentId?: string | null; relation: string; status?: ParentStatus; }
-export interface ParentUpdate { name: string; nameEn?: string; relation: string; status: ParentStatus; password?: string | null; authId?: string | null; systemId?: string; }
+export interface ParentUpdate { name: string; nameEn?: string; relation: string; status: ParentStatus; studentId?: string | null; password?: string | null; authId?: string | null; systemId?: string; }

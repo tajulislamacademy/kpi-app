@@ -22,9 +22,13 @@ export interface Account {
 }
 
 export async function listAccounts(): Promise<Account[]> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, system_id, name, name_en, role, auth_id, is_admin, is_root, parents(relation, status)");
+  const base = "id, system_id, name, name_en, role, auth_id, is_root, parents(relation, status)";
+  // Prefer the is_admin column; gracefully fall back if migration 0011 isn't
+  // applied yet (then everyone shows as non-admin until it is).
+  let { data, error } = await supabase.from("profiles").select(`is_admin, ${base}`);
+  if (error && /is_admin/i.test(error.message || "")) {
+    ({ data, error } = await supabase.from("profiles").select(base));
+  }
   if (error) throw error;
   return (data || [])
     .map((r: any): Account => {

@@ -5,7 +5,7 @@ import { useDbParents } from "./api/parents";
 import { useDbTermConfig, updateTermConfig } from "./api/config";
 import { useLocalStorage } from "./composables";
 import { T } from "./i18n";
-import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCog, BarChart3, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
+import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCog, Contact, BarChart3, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
 import { ErrorBoundary, Layout } from "./components";
 import { AuthPage } from "./pages/Auth";
 import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards";
@@ -16,6 +16,7 @@ import { PointEntryPage } from "./pages/PointEntry";
 import { QuestionsPage } from "./pages/Questions";
 import { StudentsPage } from "./pages/Students";
 import { TeachersPage } from "./pages/Teachers";
+import { ParentsPage } from "./pages/Parents";
 import { ProfilePage } from "./pages/Profile";
 import { AccountsPage } from "./pages/Accounts";
 import type { Lang, SessionUser, TermConfig } from "./types";
@@ -41,6 +42,7 @@ export default function App() {
     ...(isAdmin ? [
       { key: "teachers", icon: Users, label: t.teachers },
       { key: "students", icon: GraduationCap, label: t.students },
+      { key: "parents", icon: Contact, label: lang === "bn" ? "অভিভাবক" : "Parents" },
       { key: "questions", icon: ListChecks, label: t.questions },
       { key: "accounts", icon: UserCog, label: `${t.accounts}${pendingParents.length > 0 ? ` (${pendingParents.length})` : ""}` },
     ] : []),
@@ -62,6 +64,7 @@ export default function App() {
       {activeTab === "pointEntry" && (isAdmin || isTeacher) && <PointEntryPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} isAdmin={isAdmin} />}
       {activeTab === "teachers" && isAdmin && <TeachersPage t={t} lang={lang} showNotif={showNotif} />}
       {activeTab === "students" && isAdmin && <StudentsPage t={t} lang={lang} showNotif={showNotif} />}
+      {activeTab === "parents" && isAdmin && <ParentsPage t={t} lang={lang} showNotif={showNotif} />}
       {activeTab === "questions" && isAdmin && <QuestionsPage t={t} lang={lang} showNotif={showNotif} />}
       {activeTab === "accounts" && isAdmin && <AccountsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "reports" && <ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
