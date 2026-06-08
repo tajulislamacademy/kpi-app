@@ -18,16 +18,28 @@ const toUi = (r: any): Student => ({
   class: r.class,
   section: r.section,
   roll: r.roll,
+  deletedAt: r.deleted_at ?? null,
 });
 
-export async function listStudents(): Promise<Student[]> {
-  const { data, error } = await supabase
-    .from("students")
-    .select("id, class, section, roll, profiles(system_id, name, name_en, auth_id)");
+// Active by default; withTrash=true also returns soft-deleted rows (admin Trash).
+export async function listStudents(withTrash = false): Promise<Student[]> {
+  const base = "id, class, section, roll, profiles(system_id, name, name_en, auth_id)";
+  let { data, error } = await supabase.from("students").select(`deleted_at, ${base}`);
+  if (error && /deleted_at/i.test(error.message || "")) ({ data, error } = await supabase.from("students").select(base));
   if (error) throw error;
-  return (data || [])
-    .map(toUi)
-    .sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
+  let rows = (data || []).map(toUi);
+  if (!withTrash) rows = rows.filter(s => !s.deletedAt);
+  return rows.sort((a, b) => String(a.systemId).localeCompare(String(b.systemId)));
+}
+
+// Soft-delete (to Trash) / restore. deleted_at lives on the students row.
+export async function softDeleteStudent(id: string): Promise<void> {
+  const { error } = await supabase.from("students").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+export async function restoreStudent(id: string): Promise<void> {
+  const { error } = await supabase.from("students").update({ deleted_at: null }).eq("id", id);
+  if (error) throw error;
 }
 
 // Creates a student. If `password` is given, first provisions a login account
@@ -90,7 +102,7 @@ export async function deleteStudent(id: string): Promise<void> {
 
 // Hook: load students once, expose a reload(). `enabled` gates the fetch until
 // an admin session exists (RLS would otherwise return zero rows).
-export function useDbStudents(enabled = true) {
+export function useDbStudents(enabled = true, withTrash = false) {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,13 +111,13 @@ export function useDbStudents(enabled = true) {
     setLoading(true);
     setError(null);
     try {
-      setStudents(await listStudents());
+      setStudents(await listStudents(withTrash));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, withTrash]);
   useEffect(() => {
     // Intentional fetch-on-mount; reload() owns its own loading/error state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
