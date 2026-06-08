@@ -21,7 +21,8 @@ const AREA_LABEL: Record<string, [string, string]> = { point_entry: ["পয়�
 const PRESETS: Record<string, string[]> = {
   data_entry: ["point_entry", "teacher_kpi", "parent_kpi", "reports.view", "students.view", "teachers.view", "parents.view", "questions.view"],
   academic: ["students", "teachers", "questions"].flatMap(r => ["view", "create", "edit", "soft_delete"].map(a => `${r}.${a}`)).concat(["settings.edit", "reports.view"]),
-  account: ["parents.view", "parents.create", "parents.edit", "parents.soft_delete", "accounts.manage", "reports.view"],
+  account: ["accounts.manage", "reports.view"],
+  parent: ["parents.view", "parents.create", "parents.edit", "parents.soft_delete", "reports.view"],
 };
 // admins.manage stays super-admin-only → not offered as an assignable area.
 const ASSIGNABLE_AREAS = AREAS.filter(a => a !== "admins.manage");
@@ -204,6 +205,7 @@ export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
             <span className="text-xs text-muted-foreground">{lang === "bn" ? "প্রিসেট:" : "Preset:"}</span>
             <Button size="sm" variant="outline" onClick={() => setPermSel(PRESETS.data_entry)}>{lang === "bn" ? "ডেটা-এন্ট্রি" : "Data-entry"}</Button>
             <Button size="sm" variant="outline" onClick={() => setPermSel(PRESETS.academic)}>{lang === "bn" ? "একাডেমিক" : "Academic"}</Button>
+            <Button size="sm" variant="outline" onClick={() => setPermSel(PRESETS.parent)}>{lang === "bn" ? "অভিভাবক" : "Parent"}</Button>
             <Button size="sm" variant="outline" onClick={() => setPermSel(PRESETS.account)}>{lang === "bn" ? "অ্যাকাউন্ট" : "Account"}</Button>
             <Button size="sm" variant="ghost" onClick={() => setPermSel([])}>{lang === "bn" ? "ক্লিয়ার" : "Clear"}</Button>
           </div>
