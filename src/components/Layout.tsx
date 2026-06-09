@@ -28,24 +28,25 @@ interface Props {
 
 type SidebarProps = Omit<Props, "children">;
 
-// Dark sidebar body, shared between the desktop rail and the mobile drawer.
+// Theme-aware sidebar body (light in light mode, dark in dark mode), shared
+// between the desktop rail and the mobile drawer.
 function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, activeTab, onNav, onLogout }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const roleLabel = isAdmin ? t.admin : isTeacher ? t.teacher : currentUser.role === "student" ? t.student : t.parent;
   return (
-    <div className="flex h-full flex-col bg-slate-900 text-slate-200">
-      <div className="flex items-center gap-2 border-b border-slate-800 px-4 py-4">
-        <div className="grid h-9 w-9 place-items-center rounded-lg bg-white text-sm font-extrabold text-slate-900">KPI</div>
-        <div className="truncate text-sm font-bold text-slate-100">{t.appTitle}</div>
+    <div className="flex h-full flex-col border-r border-border bg-card text-card-foreground">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-4">
+        <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground">KPI</div>
+        <div className="truncate text-sm font-bold text-foreground">{t.appTitle}</div>
       </div>
       <div className="space-y-2 px-4 py-3">
         <button
           onClick={() => setLang(lang === "bn" ? "en" : "bn")}
-          className="w-full rounded-md border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-700"
+          className="w-full rounded-md border border-border bg-muted/50 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-accent"
         >
           {lang === "bn" ? "English" : "বাংলা"}
         </button>
-        <div className="flex gap-1 rounded-md border border-slate-700 bg-slate-800/60 p-1">
+        <div className="flex gap-1 rounded-md border border-border bg-muted/50 p-1">
           {THEME_OPTIONS.map(([val, Icon]) => (
             <button
               key={val}
@@ -53,7 +54,7 @@ function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, 
               title={val}
               className={cn(
                 "flex flex-1 items-center justify-center rounded py-1.5 transition-colors",
-                theme === val ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white",
+                theme === val ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Icon className="h-4 w-4" />
@@ -71,7 +72,7 @@ function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, 
               onClick={() => onNav(item.key)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                active ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/60 hover:text-white",
+                active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -80,16 +81,16 @@ function Sidebar({ t, lang, setLang, currentUser, isAdmin, isTeacher, navItems, 
           );
         })}
       </nav>
-      <div className="border-t border-slate-800 p-3">
+      <div className="border-t border-border p-3">
         <div className="mb-2 flex items-center gap-3 px-1">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-700 text-sm font-bold text-white">{(currentUser.name || "A")[0]}</div>
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{(currentUser.name || "A")[0]}</div>
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-slate-100">{currentUser.name}</div>
-            <div className="text-xs text-slate-400">{roleLabel}</div>
-            {currentUser.systemId && <div className="text-[10px] text-slate-500">{currentUser.systemId}</div>}
+            <div className="truncate text-sm font-semibold text-foreground">{currentUser.name}</div>
+            <div className="text-xs text-muted-foreground">{roleLabel}</div>
+            {currentUser.systemId && <div className="text-[10px] text-muted-foreground">{currentUser.systemId}</div>}
           </div>
         </div>
-        <Button onClick={onLogout} size="sm" className="w-full gap-2 bg-slate-800 text-slate-100 hover:bg-slate-700">
+        <Button onClick={onLogout} size="sm" variant="secondary" className="w-full gap-2">
           <LogOut className="h-4 w-4" />{t.logout}
         </Button>
       </div>
@@ -108,18 +109,18 @@ export function Layout(props: Props) {
         <Sidebar {...sidebarProps} />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-2 bg-slate-900 px-3 shadow md:hidden">
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-card px-3 shadow-sm md:hidden">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <button className="p-1 text-white" aria-label="Menu"><Menu className="h-6 w-6" /></button>
+              <button className="p-1 text-foreground" aria-label="Menu"><Menu className="h-6 w-6" /></button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 border-0 p-0">
               <SheetTitle className="sr-only">{t.appTitle}</SheetTitle>
               <Sidebar {...sidebarProps} />
             </SheetContent>
           </Sheet>
-          <div className="grid h-7 w-7 place-items-center rounded bg-white text-xs font-extrabold text-slate-900">KPI</div>
-          <span className="flex-1 truncate text-xs font-bold text-slate-100">{t.appTitle}</span>
+          <div className="grid h-7 w-7 place-items-center rounded bg-primary text-xs font-extrabold text-primary-foreground">KPI</div>
+          <span className="flex-1 truncate text-xs font-bold text-foreground">{t.appTitle}</span>
         </header>
         <main className="min-w-0 flex-1">{children}</main>
       </div>
