@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useDbStudents } from "../api/students";
-import { useDbStudentEntries, studentKpiHelpers } from "../api/entries";
+import { useStudentTotals, totalsMap, useKpiYears } from "../api/entries";
 import type { Dict, Lang, SessionUser, TermConfig } from "../types";
 
 interface Props {
@@ -24,10 +24,19 @@ export function ReportsPage({ t, lang, termConfig, currentUser, isAdmin, selecte
   const [rType, setRType] = useState("monthly");
   const [selMonth, setSelMonth] = useState(new Date().getMonth());
   const { students, error: e1 } = useDbStudents(true);
-  const { entries, error: e2 } = useDbStudentEntries(true);
-  const helpers = useMemo(() => studentKpiHelpers(entries), [entries]);
-  const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = helpers;
-  const availableYears = useMemo(() => { const ys = [...new Set(entries.map(e => e.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [entries, selectedYear]);
+  // The cut's months → a single bounded aggregate call (≤ #students rows).
+  const cutMonths = useMemo(() => {
+    if (rType === "monthly") return [selMonth];
+    if (rType === "term1") return termConfig.term1;
+    if (rType === "term2") return termConfig.term2;
+    if (rType === "term3") return termConfig.term3;
+    if (rType === "term4") return termConfig.term4;
+    return null; // yearly
+  }, [rType, selMonth, termConfig]);
+  const { totals, error: e2 } = useStudentTotals(selectedYear, cutMonths);
+  const kMap = useMemo(() => totalsMap(totals), [totals]);
+  const { years } = useKpiYears();
+  const availableYears = useMemo(() => { const ys = [...years]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [years, selectedYear]);
   const isStudent = currentUser.role === "student", isParent = currentUser.role === "parent";
   const vis = useMemo(() => {
     if (isAdmin) return students;
@@ -39,7 +48,7 @@ export function ReportsPage({ t, lang, termConfig, currentUser, isAdmin, selecte
     if (guide.length > 0) return students.filter(s => guide.includes(s.id));
     return students;
   }, [students, isAdmin, isStudent, isParent, currentUser]);
-  const ranked = useMemo(() => [...vis].map(s => ({ ...s, kpi: rType === "monthly" ? getStudentMonthKPI(s.id, selMonth, selectedYear) : rType === "term1" ? getStudentTermKPI(s.id, termConfig.term1, selectedYear) : rType === "term2" ? getStudentTermKPI(s.id, termConfig.term2, selectedYear) : rType === "term3" ? getStudentTermKPI(s.id, termConfig.term3, selectedYear) : rType === "term4" ? getStudentTermKPI(s.id, termConfig.term4, selectedYear) : getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [vis, rType, selMonth, selectedYear, termConfig, getStudentMonthKPI, getStudentTermKPI, getStudentYearKPI]);
+  const ranked = useMemo(() => [...vis].map(s => ({ ...s, kpi: kMap.get(s.id) || 0 })).sort((a, b) => b.kpi - a.kpi), [vis, kMap]);
   const medalBg = (i: number) => (i === 0 ? "#fef3c7" : i === 1 ? "#f1f5f9" : i === 2 ? "#fff7ed" : "transparent");
   return (
     <Page>

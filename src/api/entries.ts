@@ -75,37 +75,51 @@ export function studentKpiHelpers(entries: StudentEntry[]) {
   return { monthKPI, termKPI, yearKPI };
 }
 
-// --- Aggregate-only student totals (privacy: rankings/dashboards) -----------
-// Reads the student_kpi_month_totals view (per-student monthly SUMS, no
-// per-question detail). Used wherever a full-cohort ranking is needed by users
-// who are not allowed to read other students' raw entries (migration 0020).
-export interface MonthTotal { studentId: string; year: number; month: number; points: number; }
+// --- Bounded ranking aggregate (scales to 200+ students) --------------------
+// student_totals(year, months) sums server-side and returns ONE row per student
+// (≤ #students rows), so the result never hits PostgREST's 1000-row cap the way
+// loading raw entries would. months=null → whole year; [m] → one month; a term →
+// its months. (migration 0023; privacy: aggregate only, no per-question detail.)
+export interface StudentTotal { studentId: string; points: number; }
 
-export async function listStudentMonthTotals(): Promise<MonthTotal[]> {
-  // SECURITY DEFINER RPC (migration 0021) — aggregates all students' monthly
-  // sums for rankings without exposing raw per-question rows.
-  const { data, error } = await supabase.rpc("student_month_totals");
+export async function listStudentTotals(year: number, months: number[] | null): Promise<StudentTotal[]> {
+  const { data, error } = await supabase.rpc("student_totals", { p_year: year, p_months: months ?? null });
   if (error) throw error;
-  return (data || []).map((r: any) => ({ studentId: r.student_id, year: r.year ?? 2026, month: r.month, points: r.points || 0 }));
+  return (data || []).map((r: any) => ({ studentId: r.student_id, points: r.points || 0 }));
 }
 
-// Same monthKPI/termKPI/yearKPI shape as studentKpiHelpers, over the totals view.
-export function monthTotalsHelpers(totals: MonthTotal[]) {
-  const monthKPI = (sid: string, month: number, year: number): number =>
-    totals.filter((x) => x.studentId === sid && x.month === month && x.year === year).reduce((s, x) => s + x.points, 0);
-  const termKPI = (sid: string, months: number[], year: number): number => (months || []).reduce((s, m) => s + monthKPI(sid, m, year), 0);
-  const yearKPI = (sid: string, year: number): number => {
-    let total = 0;
-    for (let m = 0; m < 12; m++) total += monthKPI(sid, m, year);
-    return total;
-  };
-  return { monthKPI, termKPI, yearKPI };
-}
+export const totalsMap = (totals: StudentTotal[]): Map<string, number> => new Map(totals.map((t) => [t.studentId, t.points]));
 
-const totalsCache = makeCache<MonthTotal[]>([]);
-export function useStudentMonthTotals(enabled = true) {
-  const { data, loading, error, reload } = totalsCache.useCache("all", listStudentMonthTotals, enabled);
+const totalsCache = makeCache<StudentTotal[]>([]);
+export function useStudentTotals(year: number, months: number[] | null, enabled = true) {
+  const key = `${year}:${months ? [...months].sort((a, b) => a - b).join(",") : "all"}`;
+  const { data, loading, error, reload } = totalsCache.useCache(key, () => listStudentTotals(year, months), enabled);
   return { totals: data, loading, error, reload };
+}
+
+// Raw entries for ONE student (their own KPI charts / term breakdown). Bounded
+// by a single person's history, so it never approaches the row cap.
+export async function listStudentEntriesFor(studentId: string): Promise<StudentEntry[]> {
+  const { data, error } = await supabase.from("kpi_entries").select("*").eq("target_type", "student").eq("target_id", studentId);
+  if (error) throw error;
+  return (data || []).map(toUi);
+}
+const studentEntriesForCache = makeCache<StudentEntry[]>([]);
+export function useStudentEntriesFor(studentId: string, enabled = true) {
+  const { data, loading, error, reload } = studentEntriesForCache.useCache(studentId || "none", () => studentId ? listStudentEntriesFor(studentId) : Promise.resolve([]), enabled && !!studentId);
+  return { entries: data, loading, error, reload };
+}
+
+// Distinct years across kpi_entries, for the YearSelector (migration 0023).
+export async function listKpiYears(): Promise<number[]> {
+  const { data, error } = await supabase.rpc("kpi_years");
+  if (error) throw error;
+  return (data || []).map((r: any) => r.year as number);
+}
+const yearsCache = makeCache<number[]>([]);
+export function useKpiYears(enabled = true) {
+  const { data, reload } = yearsCache.useCache("all", listKpiYears, enabled);
+  return { years: data, reload };
 }
 
 // --- Generic target entries (teacher / parent KPI) --------------------------
