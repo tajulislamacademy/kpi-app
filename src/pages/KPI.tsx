@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
 import { useDbQuestions } from "../api/questions";
-import { useDbEntriesByTarget, insertEntries, updateEntryScore, targetKpiHelpers } from "../api/entries";
+import { useDbEntriesByTarget, useEntriesForTarget, insertEntries, updateEntryScore, targetKpiHelpers } from "../api/entries";
 import type { Dict, Lang, SessionUser, TermConfig, TargetEntry } from "../types";
 
 type Scores = Record<string, Record<string, number>>;
@@ -118,7 +118,7 @@ export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, s
 
 export function MyTeacherKPIPage({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
   const tid = currentUser.id, cm = new Date().getMonth();
-  const { entries: teacherEntries } = useDbEntriesByTarget("teacher", true);
+  const { entries: teacherEntries } = useEntriesForTarget("teacher", tid);
   const { monthKPI: getTchrMonthKPI, termKPI: getTchrTermKPI, yearKPI: getTchrYearKPI } = targetKpiHelpers(teacherEntries);
   const monthData = MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getTchrMonthKPI(tid, i, selectedYear) }));
   const tchrYears = [...new Set([...teacherEntries.filter(e => e.targetId === tid).map(e => e.year), selectedYear])].sort((a, b) => b - a);
@@ -142,7 +142,7 @@ export function MyTeacherKPIPage({ t, lang, currentUser, selectedYear, setSelect
 
 export function MyParentKPIPage({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
   const pid = currentUser.id, cm = new Date().getMonth();
-  const { entries: parentEntries } = useDbEntriesByTarget("parent", true);
+  const { entries: parentEntries } = useEntriesForTarget("parent", pid);
   const { monthKPI: getParMonthKPI, termKPI: getParTermKPI, yearKPI: getParYearKPI } = targetKpiHelpers(parentEntries);
   const monthData = MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getParMonthKPI(pid, i, selectedYear) }));
   const parYears = [...new Set([...parentEntries.filter(e => e.targetId === pid).map(e => e.year), selectedYear])].sort((a, b) => b - a);
