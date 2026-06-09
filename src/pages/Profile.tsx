@@ -3,8 +3,11 @@ import { supabase } from "../supabase";
 import { systemIdToEmail } from "../api/identity";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PasswordInput, Page, PageHeader } from "../components";
+import { cn } from "../lib";
+import { accountRoleBadge, accountRoleLabel } from "../labels";
 import type { Dict, Lang, SessionUser } from "../types";
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
@@ -36,7 +39,10 @@ export function ProfilePage({ t, lang, currentUser, showNotif }: Props) {
           <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">{(currentUser.name || "A")[0]}</div>
             <div>
-              <div className="text-lg font-extrabold text-foreground">{currentUser.name}</div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-extrabold text-foreground">{currentUser.name}</span>
+                <Badge className={cn("border-transparent text-xs font-semibold", accountRoleBadge(currentUser.role || "admin"))}>{accountRoleLabel(t, currentUser.role || "admin")}</Badge>
+              </div>
               <div className="text-sm text-muted-foreground">{currentUser.systemId || "admin"}</div>
             </div>
           </div>
