@@ -1,8 +1,9 @@
 // Students data access — Supabase (Phase 3, students slice).
 // A student is a `profiles` row (role='student') joined 1:1 to a `students` row.
 // Writes require an authenticated admin session (enforced by RLS).
-import { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { supabase } from "../supabase";
+import { makeCache } from "./cache";
 import { provisionAuthUser } from "./provision";
 import { systemIdToEmail } from "./identity";
 import type { Student, StudentInput, StudentUpdate } from "../types";
@@ -102,26 +103,11 @@ export async function deleteStudent(id: string): Promise<void> {
 
 // Hook: load students once, expose a reload(). `enabled` gates the fetch until
 // an admin session exists (RLS would otherwise return zero rows).
+// One shared cache holding the full set (active + trash); the hook filters for
+// active-only callers so a single fetch + reload keeps every consumer in sync.
+const studentsCache = makeCache<Student[]>([]);
 export function useDbStudents(enabled = true, withTrash = false) {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setStudents(await listStudents(withTrash));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled, withTrash]);
-  useEffect(() => {
-    // Intentional fetch-on-mount; reload() owns its own loading/error state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
+  const { data, loading, error, reload } = studentsCache.useCache("all", () => listStudents(true), enabled);
+  const students = useMemo(() => withTrash ? data : data.filter(s => !s.deletedAt), [data, withTrash]);
   return { students, loading, error, reload };
 }
