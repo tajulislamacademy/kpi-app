@@ -31,7 +31,7 @@ export function EditScoreModal({ t, lang, entry, score, setScore, onSave, onCanc
         )}
         <div className="space-y-1.5">
           <Label htmlFor="esm-score">{lang === "bn" ? "নতুন পয়েন্ট" : "New Score"} (max:{max})</Label>
-          <Input id="esm-score" type="number" min={0} max={max} className="w-32 text-lg font-bold" value={score} onChange={(e) => setScore(Math.min(parseInt(e.target.value) || 0, max))} />
+          <Input id="esm-score" type="number" min={0} max={max} className="w-32 text-lg font-bold" value={score} onChange={(e) => setScore(Math.max(0, Math.min(parseInt(e.target.value, 10) || 0, max)))} />
         </div>
         <DialogFooter><Button variant="outline" onClick={onCancel}>{t.cancel}</Button><Button onClick={onSave}>{t.save}</Button></DialogFooter>
       </DialogContent>

@@ -43,7 +43,7 @@ export function TeacherKPIPage({ t, lang, currentUser, showNotif, selectedYear, 
   const cm = new Date(selectedDate).getMonth(), cy = new Date(selectedDate).getFullYear();
   const yearsSet = [...new Set(teacherEntries.map(e => e.year))]; if (!yearsSet.includes(selectedYear)) yearsSet.push(selectedYear); const availableYears = yearsSet.sort((a, b) => b - a);
   const activeQs = teacherQuestions.filter(q => q.activeMonths.includes(cm));
-  const setScore = (tid: string, qid: string, val: string) => { const max = teacherQuestions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [tid]: { ...(p[tid] || {}), [qid]: Math.min(parseInt(val) || 0, max) } })); };
+  const setScore = (tid: string, qid: string, val: string) => { const max = teacherQuestions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [tid]: { ...(p[tid] || {}), [qid]: Math.max(0, Math.min(parseInt(val, 10) || 0, max)) } })); };
   const getScore = (tid: string, qid: string): number | string => allScores[tid]?.[qid] ?? "";
   const getTotal = (tid: string) => activeQs.reduce((s, q) => s + (allScores[tid]?.[q.id] || 0), 0);
   const isFreqDone = (tid: string, qid: string) => freqDone(teacherEntries, tid, qid, teacherQuestions.find(x => x.id === qid)?.frequency, selectedDate);
@@ -86,7 +86,7 @@ export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, s
   const cm = new Date(selectedDate).getMonth(), cy = new Date(selectedDate).getFullYear();
   const yearsSet = [...new Set(parentEntries.map(e => e.year))]; if (!yearsSet.includes(selectedYear)) yearsSet.push(selectedYear); const availableYears = yearsSet.sort((a, b) => b - a);
   const activeQs = parentQuestions.filter(q => q.activeMonths.includes(cm));
-  const setScore = (pid: string, qid: string, val: string) => { const max = parentQuestions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [pid]: { ...(p[pid] || {}), [qid]: Math.min(parseInt(val) || 0, max) } })); };
+  const setScore = (pid: string, qid: string, val: string) => { const max = parentQuestions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [pid]: { ...(p[pid] || {}), [qid]: Math.max(0, Math.min(parseInt(val, 10) || 0, max)) } })); };
   const getScore = (pid: string, qid: string): number | string => allScores[pid]?.[qid] ?? "";
   const getTotal = (pid: string) => activeQs.reduce((s, q) => s + (allScores[pid]?.[q.id] || 0), 0);
   const isFreqDone = (pid: string, qid: string) => freqDone(parentEntries, pid, qid, parentQuestions.find(x => x.id === qid)?.frequency, selectedDate);
