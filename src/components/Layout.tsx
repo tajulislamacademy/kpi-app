@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Menu, LogOut, Sun, Moon } from "lucide-react";
+import { Menu, LogOut, Sun, Moon, Languages } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "../lib";
 import { Button } from "./ui/button";
@@ -56,9 +56,10 @@ function Sidebar({ t, lang, setLang, currentUser, navItems, activeTab, onNav, on
           <button
             onClick={() => setLang(lang === "bn" ? "en" : "bn")}
             title={lang === "bn" ? "English" : "বাংলা"}
-            className="flex flex-1 items-center justify-center rounded py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={lang === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন"}
+            className="flex flex-1 items-center justify-center rounded py-1.5 text-muted-foreground transition-colors hover:text-foreground"
           >
-            {lang === "bn" ? "EN" : "বাং"}
+            <Languages className="h-4 w-4" />
           </button>
         </div>
       </div>
