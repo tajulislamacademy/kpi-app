@@ -38,8 +38,8 @@ function Sidebar({ t, lang, setLang, currentUser, navItems, activeTab, onNav, on
         <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground">KPI</div>
         <div className="truncate text-sm font-bold text-foreground">{t.appTitle}</div>
       </div>
-      <div className="px-4 py-3">
-        <div className="flex gap-1 rounded-md border border-border bg-muted/50 p-1">
+      <div className="flex items-center gap-2 px-4 py-3">
+        <div className="flex flex-1 gap-1 rounded-md border border-border bg-muted/50 p-1">
           {THEME_OPTIONS.map(([val, Icon]) => (
             <button
               key={val}
@@ -53,15 +53,15 @@ function Sidebar({ t, lang, setLang, currentUser, navItems, activeTab, onNav, on
               <Icon className="h-4 w-4" />
             </button>
           ))}
-          <button
-            onClick={() => setLang(lang === "bn" ? "en" : "bn")}
-            title={lang === "bn" ? "English" : "বাংলা"}
-            aria-label={lang === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন"}
-            className="flex flex-1 items-center justify-center rounded bg-primary py-1.5 text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-          >
-            <Languages className="h-4 w-4" />
-          </button>
         </div>
+        <button
+          onClick={() => setLang(lang === "bn" ? "en" : "bn")}
+          title={lang === "bn" ? "English" : "বাংলা"}
+          aria-label={lang === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন"}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-muted/50 text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          <Languages className="h-4 w-4" />
+        </button>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-1">
         {navItems.map((item) => {
