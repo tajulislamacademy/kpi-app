@@ -3,6 +3,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { cn } from "../lib";
 import { Tabs, ErrorNote, Combobox, YearSelector, EmptyState, Page } from "../components";
+import { can } from "../permissions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,8 +41,11 @@ export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, se
   const scopedStudentIds = scopedStudents.map(s => s.id);
   const scopedParents = parents.filter(p => p.studentId && scopedStudentIds.includes(p.studentId));
 
-  // Allowed target types + person list per role.
-  const allowedTypes: TType[] = isAdmin ? ["student", "teacher", "parent"]
+  // Allowed target types + person list per role. Admin sees teacher/parent tabs
+  // only with the matching cap (super-admin has all caps; a limited admin needs
+  // teacher_kpi / parent_kpi — the same caps the DB now enforces, migration 0015).
+  const allowedTypes: TType[] = isAdmin
+    ? (["student", can(currentUser, "teacher_kpi") && "teacher", can(currentUser, "parent_kpi") && "parent"].filter(Boolean) as TType[])
     : isTeacher ? ["student", "teacher", "parent"]
       : isStudent ? ["student"]
         : ["student", "parent"]; // parent: child + self
