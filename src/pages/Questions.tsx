@@ -4,6 +4,7 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { cn } from "../lib";
 import { can } from "../permissions";
+import { teacherRoleBadge, teacherRoleLabel } from "../labels";
 import { ConfirmDialog, Tabs, MonthsPicker, ErrorNote, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,11 +21,6 @@ import type { Dict, Lang, SessionUser, Question, QuestionInput, QuestionCategory
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
 interface QForm { textBn: string; textEn: string; role?: string; points: number | string; activeMonths: number[]; frequency: string; }
-
-const roleBadge = (r?: string | null) =>
-  r === "classTeacher" ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-    : r === "subjectTeacher" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
-      : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300";
 
 export function QuestionsPage({ t, lang, currentUser, showNotif }: Props) {
   const { questions: allQ, loading, error, reload } = useDbQuestions(true, true);
@@ -48,7 +44,6 @@ export function QuestionsPage({ t, lang, currentUser, showNotif }: Props) {
   const tchrQ = activeQ.filter(q => q.category === "teacher");
   const parQ = activeQ.filter(q => q.category === "parent");
   const curQs = isStd ? stdQ : qTab === "teacher" ? tchrQ : parQ;
-  const rLabel = (r?: string | null) => r === "classTeacher" ? t.classTeacher : r === "subjectTeacher" ? t.subjectTeacher : t.guideTeacher;
   const openAdd = () => { setEditId(null); setForm(isStd ? blankS : blankO); setShowForm(true); };
   const openEdit = (q: Question) => { setEditId(q.id); setForm(isStd ? { textBn: q.textBn, textEn: q.textEn, role: q.role || "classTeacher", points: q.points, activeMonths: [...q.activeMonths], frequency: q.frequency || "monthly" } : { textBn: q.textBn, textEn: q.textEn, points: q.points, activeMonths: [...q.activeMonths], frequency: q.frequency || "monthly" }); setShowForm(true); };
   const handleSave = async () => {
@@ -146,7 +141,7 @@ export function QuestionsPage({ t, lang, currentUser, showNotif }: Props) {
           : <Card className="overflow-hidden py-0"><CardContent className="p-0">{qTable(trashQ)}</CardContent></Card>
       ) : isStd ? ["classTeacher", "subjectTeacher", "guideTeacher"].map(role => (
         <Card key={role} className="overflow-hidden">
-          <CardHeader><CardTitle><Badge className={cn("border-transparent text-sm font-bold", roleBadge(role))}>{rLabel(role)}</Badge></CardTitle></CardHeader>
+          <CardHeader><CardTitle><Badge className={cn("border-transparent text-sm font-bold", teacherRoleBadge(role))}>{teacherRoleLabel(t, role)}</Badge></CardTitle></CardHeader>
           <CardContent className="px-0 pt-0">{qTable(curQs.filter(q => q.role === role))}</CardContent>
         </Card>
       )) : <Card className="overflow-hidden py-0"><CardContent className="p-0">{qTable(curQs)}</CardContent></Card>}
@@ -159,7 +154,7 @@ export function QuestionsPage({ t, lang, currentUser, showNotif }: Props) {
               <div className="text-base font-bold text-foreground">{viewQ.textBn}</div>
               <div className="mb-3 text-sm italic text-muted-foreground">{viewQ.textEn}</div>
               <div className="flex flex-wrap gap-2">
-                {isStd && <Badge className={cn("border-transparent font-bold", roleBadge(viewQ.role))}>{rLabel(viewQ.role)}</Badge>}
+                {isStd && <Badge className={cn("border-transparent font-bold", teacherRoleBadge(viewQ.role))}>{teacherRoleLabel(t, viewQ.role)}</Badge>}
                 <Badge variant="secondary">{t.pointsPerEntry}: {viewQ.points}</Badge>
               </div>
             </div>

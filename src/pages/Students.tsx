@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { CLASSES } from "../constants";
 import { errMsg, nextSystemId, genPassword } from "../lib";
+import { relationLabel } from "../labels";
 import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page } from "../components";
 import { can } from "../permissions";
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ export function StudentsPage({ t, lang, currentUser, showNotif }: Props) {
                       <TableCell>
                         {sParents.length === 0 ? <span className="text-xs text-muted-foreground">—</span> : (
                           <div className="flex flex-col gap-0.5">
-                            {sParents.map(p => (<div key={p.id} className="text-xs"><span className="font-semibold">{lang === "bn" ? p.name : p.nameEn}</span><span className="ml-1 text-muted-foreground">({lang === "bn" ? (p.relation === "father" ? "বাবা" : p.relation === "mother" ? "মা" : "অভিভাবক") : p.relation})</span></div>))}
+                            {sParents.map(p => (<div key={p.id} className="text-xs"><span className="font-semibold">{lang === "bn" ? p.name : p.nameEn}</span><span className="ml-1 text-muted-foreground">({relationLabel(t, p.relation)})</span></div>))}
                           </div>
                         )}
                       </TableCell>

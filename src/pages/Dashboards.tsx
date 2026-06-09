@@ -3,6 +3,7 @@ import { GraduationCap, Users, ClipboardPen, Trophy, Clock, CalendarDays, BarCha
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { StatCard, RankCard, BarChart, YearSelector, TermBreakdown, ErrorNote } from "../components";
+import { relationLabel } from "../labels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
@@ -102,7 +103,7 @@ export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelecte
   const myRankIdx = allRanked.findIndex(s => s.id === sid);
   const myRank = myRankIdx < 0 ? 0 : myRankIdx + 1;
   const monthData = MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getStudentMonthKPI(sid, i, selectedYear) }));
-  const relLabel = currentUser.relation === "father" ? t.father : currentUser.relation === "mother" ? t.mother : t.guardian;
+  const relLabel = relationLabel(t, currentUser.relation);
   return (
     <div className={PAGE}>
       <ErrorNote lang={lang} error={e1 || e2} />

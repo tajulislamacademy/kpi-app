@@ -2,7 +2,7 @@
 export const T = {
   bn: {
     appTitle:"শিক্ষার্থী KPI সিস্টেম", dashboard:"ড্যাশবোর্ড", teachers:"শিক্ষক",
-    students:"শিক্ষার্থী", questions:"প্রশ্নমালা", reports:"রিপোর্ট",
+    students:"শিক্ষার্থী", questions:"প্রশ্নমালা", reports:"রিপোর্ট", details:"বিস্তারিত",
     pointEntry:"পয়েন্ট এন্ট্রি", settings:"সেটিংস", accounts:"অ্যাকাউন্ট",
     admin:"অ্যাডমিন", teacher:"শিক্ষক", student:"শিক্ষার্থী", parent:"অভিভাবক",
     logout:"লগআউট", login:"লগইন", register:"রেজিস্ট্রেশন",
@@ -46,7 +46,7 @@ export const T = {
   },
   en: {
     appTitle:"Student KPI System", dashboard:"Dashboard", teachers:"Teachers",
-    students:"Students", questions:"Questions", reports:"Reports",
+    students:"Students", questions:"Questions", reports:"Reports", details:"Details",
     pointEntry:"Point Entry", settings:"Settings", accounts:"Accounts",
     admin:"Admin", teacher:"Teacher", student:"Student", parent:"Parent",
     logout:"Logout", login:"Login", register:"Register",
