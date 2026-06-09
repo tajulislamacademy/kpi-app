@@ -14,7 +14,7 @@ import { teacherRoleBadge, teacherRoleLabel } from "../labels";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
-import { useDbStudentEntries, useDbEntriesByTarget } from "../api/entries";
+import { useStudentEntriesFor, useEntriesForTarget, useKpiYears } from "../api/entries";
 import type { Dict, Lang, SessionUser } from "../types";
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; isAdmin: boolean; selectedYear: number; setSelectedYear: (y: number) => void; }
@@ -24,10 +24,6 @@ export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, se
   const { students, error: e1 } = useDbStudents(true);
   const { teachers, error: e2 } = useDbTeachers(true);
   const { parents, error: e3 } = useDbParents(true);
-  const { entries: studentEntries, error: e4 } = useDbStudentEntries(true);
-  const { entries: teacherEntries } = useDbEntriesByTarget("teacher", true);
-  const { entries: parentEntries } = useDbEntriesByTarget("parent", true);
-  const loadErr = e1 || e2 || e3 || e4;
 
   const isTeacher = currentUser.role === "teacher", isStudent = currentUser.role === "student";
   const ct = currentUser.classTeacher;
@@ -65,19 +61,28 @@ export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, se
   const effId = targetId && persons.some(p => p.id === targetId) ? targetId : (persons[0]?.id || "");
   const [selMonth, setSelMonth] = useState(new Date().getMonth());
 
+  // Load ONLY the selected target's raw entries (bounded by one person), not the
+  // whole table — only the hook matching the active type fetches.
+  const { entries: stEntries, error: se } = useStudentEntriesFor(tType === "student" ? effId : "");
+  const { entries: tcEntries, error: te } = useEntriesForTarget("teacher", tType === "teacher" ? effId : "");
+  const { entries: prEntries, error: pe } = useEntriesForTarget("parent", tType === "parent" ? effId : "");
+  const loadErr = e1 || e2 || e3 || se || te || pe;
+
   const teacherName = (id?: string | null) => { const tc = teachers.find(x => x.id === id); return tc ? (lang === "bn" ? tc.name : tc.nameEn) : (lang === "bn" ? "অ্যাডমিন" : "Admin"); };
 
-  // Rows for the selected target/month/year (snapshot text → deleted questions still show).
+  // Rows for the selected target/month/year (entries already scoped to the
+  // target; snapshot text → deleted questions still show).
   const rows = useMemo(() => (tType === "student"
-    ? studentEntries.filter(e => e.studentId === effId && e.month === selMonth && (e.year || selectedYear) === selectedYear).map(e => ({ id: e.id, date: e.date, q: lang === "bn" ? e.questionText : e.questionTextEn, role: e.role, who: teacherName(e.teacherId), score: e.score, max: e.maxPoints || 0 }))
-    : (tType === "teacher" ? teacherEntries : parentEntries).filter(e => e.targetId === effId && e.month === selMonth && e.year === selectedYear).map(e => ({ id: e.id, date: e.date, q: lang === "bn" ? e.questionText : e.questionTextEn, role: null as string | null, who: "", score: e.score, max: e.maxPoints || 0 })))
+    ? stEntries.filter(e => e.month === selMonth && (e.year || selectedYear) === selectedYear).map(e => ({ id: e.id, date: e.date, q: lang === "bn" ? e.questionText : e.questionTextEn, role: e.role, who: teacherName(e.teacherId), score: e.score, max: e.maxPoints || 0 }))
+    : (tType === "teacher" ? tcEntries : prEntries).filter(e => e.month === selMonth && e.year === selectedYear).map(e => ({ id: e.id, date: e.date, q: lang === "bn" ? e.questionText : e.questionTextEn, role: null as string | null, who: "", score: e.score, max: e.maxPoints || 0 })))
     .sort((a, b) => a.date.localeCompare(b.date)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tType, effId, selMonth, selectedYear, studentEntries, teacherEntries, parentEntries, lang, teachers]);
+    [tType, selMonth, selectedYear, stEntries, tcEntries, prEntries, lang, teachers]);
   const total = rows.reduce((s, r) => s + r.score, 0);
   const maxTotal = rows.reduce((s, r) => s + r.max, 0);
 
-  const allYears = useMemo(() => [...new Set([...studentEntries.map(e => e.year || 2026), ...teacherEntries.map(e => e.year), ...parentEntries.map(e => e.year), selectedYear])].sort((a, b) => b - a), [studentEntries, teacherEntries, parentEntries, selectedYear]);
+  const { years } = useKpiYears();
+  const allYears = useMemo(() => { const ys = [...years]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [years, selectedYear]);
   const typeLabel = (ty: TType) => ty === "student" ? t.student : ty === "teacher" ? t.teacher : t.parent;
   const showStudentCols = tType === "student";
 

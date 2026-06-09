@@ -143,6 +143,18 @@ export async function listEntriesByTarget(targetType: string): Promise<TargetEnt
   return (data || []).map(toUiTarget);
 }
 
+// Raw entries for ONE teacher/parent target (their own KPI history / detail).
+export async function listEntriesForTarget(targetType: string, targetId: string): Promise<TargetEntry[]> {
+  const { data, error } = await supabase.from("kpi_entries").select("*").eq("target_type", targetType).eq("target_id", targetId);
+  if (error) throw error;
+  return (data || []).map(toUiTarget);
+}
+const entriesForTargetCache = makeCache<TargetEntry[]>([]);
+export function useEntriesForTarget(targetType: string, targetId: string, enabled = true) {
+  const { data, loading, error, reload } = entriesForTargetCache.useCache(`${targetType}:${targetId || "none"}`, () => targetId ? listEntriesForTarget(targetType, targetId) : Promise.resolve([]), enabled && !!targetId);
+  return { entries: data, loading, error, reload };
+}
+
 // Aggregation over target entries (keyed by targetId), same shape as students.
 export function targetKpiHelpers(entries: TargetEntry[]) {
   const monthKPI = (tid: string, month: number, year: number): number =>
