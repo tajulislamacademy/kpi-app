@@ -5,13 +5,14 @@ import { useDbParents } from "./api/parents";
 import { useDbTermConfig, updateTermConfig } from "./api/config";
 import { useLocalStorage } from "./composables";
 import { T } from "./i18n";
-import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCog, Contact, BarChart3, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
+import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCog, Contact, BarChart3, ScrollText, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
 import { ErrorBoundary, Layout } from "./components";
 import { can } from "./permissions";
 import { AuthPage } from "./pages/Auth";
 import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards";
 import { TeacherKPIPage, ParentKPIPage, MyTeacherKPIPage, MyParentKPIPage } from "./pages/KPI";
 import { ReportsPage } from "./pages/Reports";
+import { KpiDetailsPage } from "./pages/KpiDetails";
 import { SettingsPage } from "./pages/Settings";
 import { PointEntryPage } from "./pages/PointEntry";
 import { QuestionsPage } from "./pages/Questions";
@@ -47,6 +48,7 @@ export default function App() {
     ...(c("questions.view") ? [{ key: "questions", icon: ListChecks, label: t.questions }] : []),
     ...(c("accounts.manage") ? [{ key: "accounts", icon: UserCog, label: t.accounts }] : []),
     { key: "reports", icon: BarChart3, label: t.reports },
+    { key: "kpiDetails", icon: ScrollText, label: lang === "bn" ? "বিস্তারিত" : "Details" },
     ...(c("teacher_kpi") ? [{ key: "teacherKpi", icon: Award, label: t.teacherKPI }] : []),
     ...(c("parent_kpi") ? [{ key: "parentKpi", icon: UsersRound, label: t.parentKPI }] : []),
     ...(c("settings.edit") ? [{ key: "settings", icon: Settings, label: t.settings }] : []),
@@ -70,6 +72,7 @@ export default function App() {
       {activeTab === "questions" && c("questions.view") && <QuestionsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "accounts" && c("accounts.manage") && <AccountsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "reports" && <ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
+      {activeTab === "kpiDetails" && <KpiDetailsPage t={t} lang={lang} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
       {activeTab === "settings" && c("settings.edit") && <SettingsPage t={t} lang={lang} termConfig={termConfig} onSaveTermConfig={saveTermConfig} showNotif={showNotif} />}
       {activeTab === "profile" && <ProfilePage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "teacherKpi" && c("teacher_kpi") && <TeacherKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
