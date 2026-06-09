@@ -57,7 +57,7 @@ function Sidebar({ t, lang, setLang, currentUser, navItems, activeTab, onNav, on
             onClick={() => setLang(lang === "bn" ? "en" : "bn")}
             title={lang === "bn" ? "English" : "বাংলা"}
             aria-label={lang === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন"}
-            className="flex flex-1 items-center justify-center rounded bg-primary/10 py-1.5 text-primary transition-colors hover:bg-primary/20"
+            className="flex flex-1 items-center justify-center rounded bg-primary py-1.5 text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
             <Languages className="h-4 w-4" />
           </button>
