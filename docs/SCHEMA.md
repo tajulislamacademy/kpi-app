@@ -105,7 +105,8 @@ To regenerate authoritatively from a live DB: `supabase db dump --schema public`
 | `has_cap(cap text)` | `is_root OR role='admin' OR (is_admin AND cap = any(permissions))` |
 | `teacher_can_target_student(uuid)` (0017) | true iff the student is in the caller-teacher's guide_students / class-teacher class+section / a subject_assignment |
 | `admin_set_password(uuid, text)` (0018) | requires `accounts.manage`; refuses resetting root unless caller is root |
-| `student_month_totals()` (0021) | aggregate per-student monthly sums for rankings (replaces the 0020 definer view; authenticated-only) |
+| `student_totals(p_year int, p_months int[])` (0023) | per-student summed points over the given months (NULL = whole year) → **one row per student**, for rankings/reports. Replaces the 0020 view / 0021 `student_month_totals()` which returned student×month rows and crossed the 1000-row cap. authenticated-only. |
+| `kpi_years()` (0023) | distinct years present in kpi_entries (for the YearSelector) |
 | `protect_root_admin()` | trigger fn — see below |
 | `scrub_deleted_student_refs()` | trigger fn — see below |
 
@@ -129,3 +130,19 @@ To regenerate authoritatively from a live DB: `supabase db dump --schema public`
 - **term_config** — `my_role()='admin' OR has_cap('settings.edit')`.
 
 > Privacy model: raw per-question scores are visible only to admin / the person / their parent / their teacher. Everyone else sees only aggregate monthly totals (names + sums) for rankings.
+
+## Scale / the 1000-row cap
+
+PostgREST returns at most `db_max_rows` rows per request (Supabase default **1000**)
+and **truncates silently**. `kpi_entries` is the only table that grows past this
+(every score is a row). The app therefore never loads the whole entries table:
+
+- **Rankings / reports** → `student_totals()` (≤ #students rows).
+- **A person's own KPI (charts, Details, self pages)** → scoped to that one target.
+- **Point-entry grid checks** → scoped to the displayed class + year.
+- **Point-entry review list** → recent N (server-side `order ... limit`).
+
+Recommended belt-and-suspenders: raise **Settings → API → Max rows** to ~5000 so
+the bounded-but-largish scoped queries (a class-year) never clip. Remaining
+unscoped path: the admin TeacherKPI/ParentKPI bulk-entry pages load all entries of
+that target type — fine for teachers; scope by class for parent KPI if it grows.
