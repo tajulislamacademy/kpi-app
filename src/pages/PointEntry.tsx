@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbQuestions } from "../api/questions";
-import { useDbStudentEntries, insertEntries, updateEntryScore } from "../api/entries";
+import { useStudentEntriesForStudents, useRecentStudentEntries, useKpiYears, insertEntries, updateEntryScore } from "../api/entries";
 import type { Dict, Lang, SessionUser, SubjectAssignment, StudentEntry } from "../types";
 
 type Scores = Record<string, Record<string, number>>;
@@ -31,8 +31,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const { questions: allQuestions, error: e2 } = useDbQuestions(true);
   const questions = allQuestions.filter(q => q.category === "student");
   const { teachers, error: e3 } = useDbTeachers(true);
-  const { entries, reload: reloadEntries, error: e4 } = useDbStudentEntries(true);
-  const loadErr = e1 || e2 || e3 || e4;
+  const loadErr = e1 || e2 || e3;
   const [activeRole, setActiveRole] = useState("classTeacher");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedAssign, setSelectedAssign] = useState<SubjectAssignment | null>(null);
@@ -55,10 +54,16 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const subjectStudents = effAssign ? students.filter(s => s.class === effAssign.class && s.section === effAssign.section) : [];
   const guideIds = currentUser.guideStudents || [];
   const guideStudents = isAdmin ? students.filter(s => s.class === adminClass && s.section === adminSection) : students.filter(s => guideIds.includes(s.id));
-  const weekDoneCheck = (sid: string) => entries.some(e => e.studentId === sid && e.teacherId === currentUser.id && e.role === "guideTeacher" && getWeekNumber(e.date) === cw && new Date(e.date).getFullYear() === cy);
-  const isQFreqDone = (sid: string, qid: string) => { const q = questions.find(x => x.id === qid); return entries.some(e => e.studentId === sid && e.questionId === qid && inSamePeriod(e, q?.frequency, selectedDate)); };
   const roleQs = questions.filter(q => q.role === activeRole && q.activeMonths.includes(cm));
   const curStudents = activeRole === "classTeacher" ? classStudents : activeRole === "subjectTeacher" ? subjectStudents : guideStudents;
+  const curStudentIds = curStudents.map(s => s.id); // hook keys by sorted ids, so a fresh array here is fine
+  // Grid freq-checks load only the displayed class's entries for the year; the
+  // review list loads recent entries (own, for a teacher) — neither unbounded.
+  const { entries: gridEntries, reload: reloadGrid } = useStudentEntriesForStudents(curStudentIds, cy);
+  const { entries: histEntries, reload: reloadHist } = useRecentStudentEntries(isAdmin ? null : currentUser.id, 500);
+  const reloadEntries = async () => { await reloadGrid(); await reloadHist(); };
+  const weekDoneCheck = (sid: string) => gridEntries.some(e => e.studentId === sid && e.teacherId === currentUser.id && e.role === "guideTeacher" && getWeekNumber(e.date) === cw && new Date(e.date).getFullYear() === cy);
+  const isQFreqDone = (sid: string, qid: string) => { const q = questions.find(x => x.id === qid); return gridEntries.some(e => e.studentId === sid && e.questionId === qid && inSamePeriod(e, q?.frequency, selectedDate)); };
   const setScore = (sid: string, qid: string, val: string) => { const max = questions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [sid]: { ...(p[sid] || {}), [qid]: Math.max(0, Math.min(parseInt(val, 10) || 0, max)) } })); };
   const getScore = (sid: string, qid: string): number | string => allScores[sid]?.[qid] ?? "";
   const getTotal = (sid: string) => roleQs.reduce((s, q) => s + (allScores[sid]?.[q.id] || 0), 0);
@@ -88,8 +93,10 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       setEditEntry(null); showNotif(lang === "bn" ? "সম্পাদনা সফল!" : "Edited!");
     } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); }
   };
-  const entryYears = useMemo(() => [...new Set(entries.map(e => e.year || 2026))].sort((a, b) => b - a), [entries]);
-  const filtered = useMemo(() => entries.filter(e => isAdmin || e.teacherId === currentUser.id).filter(e => fTc === "all" || e.teacherId === fTc).filter(e => fSt === "all" || e.studentId === fSt).filter(e => fYr === "all" || (e.year || 2026) === parseInt(fYr)).filter(e => fMo === "all" || e.month === parseInt(fMo)).filter(e => fRo === "all" || e.role === fRo).slice().reverse(), [entries, isAdmin, currentUser.id, fTc, fSt, fYr, fMo, fRo]);
+  const { years: kpiYears } = useKpiYears();
+  const entryYears = useMemo(() => { const ys = [...kpiYears]; if (!ys.includes(cy)) ys.push(cy); return ys.sort((a, b) => b - a); }, [kpiYears, cy]);
+  // histEntries is already scoped (own, for a teacher) + recent-limited; filters apply within it.
+  const filtered = useMemo(() => histEntries.filter(e => fTc === "all" || e.teacherId === fTc).filter(e => fSt === "all" || e.studentId === fSt).filter(e => fYr === "all" || (e.year || 2026) === parseInt(fYr)).filter(e => fMo === "all" || e.month === parseInt(fMo)).filter(e => fRo === "all" || e.role === fRo), [histEntries, fTc, fSt, fYr, fMo, fRo]);
   // id → record maps so the entry-list render is O(rows) not O(rows × people).
   const stMap = useMemo(() => new Map(students.map(s => [s.id, s])), [students]);
   const tcMap = useMemo(() => new Map(teachers.map(x => [x.id, x])), [teachers]);

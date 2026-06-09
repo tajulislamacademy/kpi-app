@@ -22,15 +22,6 @@ const toUi = (r: any): StudentEntry => ({
   editLog: r.edit_log || [],
 });
 
-export async function listStudentEntries(): Promise<StudentEntry[]> {
-  const { data, error } = await supabase
-    .from("kpi_entries")
-    .select("*")
-    .eq("target_type", "student");
-  if (error) throw error;
-  return (data || []).map(toUi);
-}
-
 // rows must already be in db shape (snake_case columns). Upsert with
 // ignoreDuplicates so a double-submit hitting the (target_id, question_id,
 // entry_date) unique index (migration 0010) is a no-op for the dup row instead
@@ -110,6 +101,36 @@ export function useStudentEntriesFor(studentId: string, enabled = true) {
   return { entries: data, loading, error, reload };
 }
 
+// Entries for a SET of students in one year — for the point-entry grid's
+// frequency ("already entered ✓") checks. Bounded by the displayed class.
+export async function listStudentEntriesForStudents(ids: string[], year: number): Promise<StudentEntry[]> {
+  if (!ids.length) return [];
+  const { data, error } = await supabase.from("kpi_entries").select("*").eq("target_type", "student").eq("year", year).in("target_id", ids);
+  if (error) throw error;
+  return (data || []).map(toUi);
+}
+const studentEntriesForStudentsCache = makeCache<StudentEntry[]>([]);
+export function useStudentEntriesForStudents(ids: string[], year: number, enabled = true) {
+  const key = `${year}:${[...ids].sort().join(",")}`;
+  const { data, loading, error, reload } = studentEntriesForStudentsCache.useCache(key, () => listStudentEntriesForStudents(ids, year), enabled && ids.length > 0);
+  return { entries: data, loading, error, reload };
+}
+
+// Most-recent student entries for the review list (bounded by a hard limit).
+// A teacher sees only their own; an admin sees everyone's recent N.
+export async function listRecentStudentEntries(enteredBy: string | null, limit = 500): Promise<StudentEntry[]> {
+  let q = supabase.from("kpi_entries").select("*").eq("target_type", "student").order("entry_date", { ascending: false }).limit(limit);
+  if (enteredBy) q = q.eq("entered_by", enteredBy);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data || []).map(toUi);
+}
+const recentStudentEntriesCache = makeCache<StudentEntry[]>([]);
+export function useRecentStudentEntries(enteredBy: string | null, limit = 500, enabled = true) {
+  const { data, loading, error, reload } = recentStudentEntriesCache.useCache(enteredBy || "all", () => listRecentStudentEntries(enteredBy, limit), enabled);
+  return { entries: data, loading, error, reload };
+}
+
 // Distinct years across kpi_entries, for the YearSelector (migration 0023).
 export async function listKpiYears(): Promise<number[]> {
   const { data, error } = await supabase.rpc("kpi_years");
@@ -171,11 +192,5 @@ export function targetKpiHelpers(entries: TargetEntry[]) {
 const targetEntriesCache = makeCache<TargetEntry[]>([]);
 export function useDbEntriesByTarget(targetType: string, enabled = true) {
   const { data, loading, error, reload } = targetEntriesCache.useCache(targetType, () => listEntriesByTarget(targetType), enabled);
-  return { entries: data, loading, error, reload };
-}
-
-const studentEntriesCache = makeCache<StudentEntry[]>([]);
-export function useDbStudentEntries(enabled = true) {
-  const { data, loading, error, reload } = studentEntriesCache.useCache("all", listStudentEntries, enabled);
   return { entries: data, loading, error, reload };
 }
