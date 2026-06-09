@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { CLASSES } from "../constants";
-import { errMsg, nextSystemId } from "../lib";
+import { errMsg, nextSystemId, genPassword } from "../lib";
 import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page } from "../components";
 import { can } from "../permissions";
 import { Button } from "@/components/ui/button";
@@ -27,13 +27,13 @@ export function StudentsPage({ t, lang, currentUser, showNotif }: Props) {
   const [tab, setTab] = useState("active");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const blank: SForm = { name: "", nameEn: "", class: "8", section: "", roll: "", password: "123456" };
+  const blank: SForm = { name: "", nameEn: "", class: "8", section: "", roll: "", password: "" };
   const [form, setForm] = useState<SForm>(blank);
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const c = (cap: string) => can(currentUser, cap);
 
-  const openAdd = () => { setEditId(null); setForm(blank); setShowForm(true); };
+  const openAdd = () => { setEditId(null); setForm({ ...blank, password: genPassword() }); setShowForm(true); };
   const openEdit = (s: Student) => { setEditId(s.id); setForm({ name: s.name || "", nameEn: s.nameEn || "", class: s.class || "8", section: s.section || "", roll: s.roll || "", password: "", _authId: s.authId, _systemId: s.systemId }); setShowForm(true); };
   const run = async (fn: () => Promise<void>, msg: string) => { try { await fn(); await reload(); showNotif(msg); } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); } };
   const handleSave = async () => {
