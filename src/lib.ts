@@ -30,21 +30,22 @@ export const getWeekNumber = (dateStr: string): number => {
 // Minimal shape freqDone reads off a KPI entry (callers pass richer objects).
 type FreqEntry = { targetId: string; questionId: string | null; date: string; year: number; month: number };
 
-// True if an entry for (targetId, questionId) already exists within the
-// question's frequency period containing dateStr. For teacher/parent KPI entries
-// keyed by `targetId` (PointEntryPage has the student variant inline).
-export const freqDone = (entries: FreqEntry[], targetId: string, questionId: string, frequency: string | undefined, dateStr: string): boolean => {
+// True if one entry falls in the question's frequency period containing dateStr.
+// Shared by freqDone (teacher/parent, keyed by targetId) and PointEntry's
+// student check (keyed by studentId) so the period logic can't drift.
+export const inSamePeriod = (e: { date: string; year: number; month: number }, frequency: string | undefined, dateStr: string): boolean => {
   const freq = frequency || "monthly";
   const d = new Date(dateStr), year = d.getFullYear(), month = d.getMonth(), week = getWeekNumber(dateStr);
-  return entries.some((e) => {
-    if (e.targetId !== targetId || e.questionId !== questionId) return false;
-    const eYear = e.year;
-    switch (freq) {
-      case "daily": return e.date === dateStr;
-      case "weekly": return getWeekNumber(e.date) === week && eYear === year;
-      case "quarterly": return Math.floor(new Date(e.date).getMonth() / 3) === Math.floor(month / 3) && eYear === year;
-      case "annual": return eYear === year;
-      default: return e.month === month && eYear === year;
-    }
-  });
+  switch (freq) {
+    case "daily": return e.date === dateStr;
+    case "weekly": return getWeekNumber(e.date) === week && e.year === year;
+    case "quarterly": return Math.floor(new Date(e.date).getMonth() / 3) === Math.floor(month / 3) && e.year === year;
+    case "annual": return e.year === year;
+    default: return e.month === month && e.year === year;
+  }
 };
+
+// True if an entry for (targetId, questionId) already exists within the
+// question's frequency period containing dateStr.
+export const freqDone = (entries: FreqEntry[], targetId: string, questionId: string, frequency: string | undefined, dateStr: string): boolean =>
+  entries.some((e) => e.targetId === targetId && e.questionId === questionId && inSamePeriod(e, frequency, dateStr));

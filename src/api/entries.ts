@@ -16,7 +16,7 @@ const toUi = (r: any): StudentEntry => ({
   maxPoints: r.max_points,
   score: r.score,
   month: r.month,
-  year: r.year,
+  year: r.year ?? 2026, // normalize legacy null year so strict `=== year` filters and `|| 2026` consumers agree
   role: r.role,
   subject: r.subject,
   editLog: r.edit_log || [],
@@ -31,10 +31,15 @@ export async function listStudentEntries(): Promise<StudentEntry[]> {
   return (data || []).map(toUi);
 }
 
-// rows must already be in db shape (snake_case columns).
+// rows must already be in db shape (snake_case columns). Upsert with
+// ignoreDuplicates so a double-submit hitting the (target_id, question_id,
+// entry_date) unique index (migration 0010) is a no-op for the dup row instead
+// of aborting the whole batch and losing every legitimate entry in it.
 export async function insertEntries(rows: Record<string, unknown>[]): Promise<void> {
   if (!rows.length) return;
-  const { error } = await supabase.from("kpi_entries").insert(rows);
+  const { error } = await supabase
+    .from("kpi_entries")
+    .upsert(rows, { onConflict: "target_id,question_id,entry_date", ignoreDuplicates: true });
   if (error) throw error;
 }
 
@@ -81,7 +86,7 @@ const toUiTarget = (r: any): TargetEntry => ({
   maxPoints: r.max_points,
   score: r.score,
   month: r.month,
-  year: r.year,
+  year: r.year ?? 2026, // normalize legacy null year (see toUi)
   editLog: r.edit_log || [],
 });
 

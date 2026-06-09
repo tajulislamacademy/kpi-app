@@ -36,7 +36,8 @@ export function AdminTeacherDashboard({ t, lang, currentUser, isAdmin, selectedY
   const availableYears = useMemo(() => { const ys = [...new Set(entries.map(e => e.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [entries, selectedYear]);
   const ranked = useMemo(() => [...students].map(s => ({ ...s, kpi: helpers.yearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [students, helpers, selectedYear]);
   const mRanked = useMemo(() => [...students].map(s => ({ ...s, kpi: helpers.monthKPI(s.id, cm, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [students, helpers, selectedYear, cm]);
-  const totalE = useMemo(() => entries.filter(e => e.month === cm && e.year === selectedYear).length, [entries, cm, selectedYear]);
+  const activeIds = useMemo(() => new Set(students.map(s => s.id)), [students]);
+  const totalE = useMemo(() => entries.filter(e => e.month === cm && e.year === selectedYear && activeIds.has(e.studentId)).length, [entries, cm, selectedYear, activeIds]);
   return (
     <div className={PAGE}>
       <ErrorNote lang={lang} error={e1 || e2 || e3} />
@@ -67,7 +68,7 @@ export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelect
   const helpers = useMemo(() => studentKpiHelpers(entries), [entries]);
   const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = helpers;
   const availableYears = useMemo(() => { const ys = [...new Set(entries.map(e => e.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [entries, selectedYear]);
-  const myRank = useMemo(() => [...students].map(s => ({ id: s.id, kpi: getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi).findIndex(s => s.id === sid) + 1, [students, getStudentYearKPI, selectedYear, sid]);
+  const myRank = useMemo(() => { const idx = [...students].map(s => ({ id: s.id, kpi: getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi).findIndex(s => s.id === sid); return idx < 0 ? 0 : idx + 1; }, [students, getStudentYearKPI, selectedYear, sid]);
   const monthData = useMemo(() => MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getStudentMonthKPI(sid, i, selectedYear) })), [getStudentMonthKPI, sid, selectedYear, lang]);
   return (
     <div className={PAGE}>
@@ -77,7 +78,7 @@ export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelect
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <div className={GRID4}>
-        <StatCard icon={<Trophy />} value={`#${myRank}`} label={t.myRank} />
+        <StatCard icon={<Trophy />} value={myRank > 0 ? `#${myRank}` : "—"} label={t.myRank} />
         <StatCard icon={<CalendarDays />} value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
         <StatCard icon={<BarChart3 />} value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
         <StatCard icon={<GraduationCap />} value={`${currentUser.class}${currentUser.section || ""}`} label={t.class} />
@@ -98,7 +99,8 @@ export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelecte
   if (!child) return <div className={PAGE}><ErrorNote lang={lang} error={e1 || e2} /><div className="py-8 text-center text-muted-foreground">{lang === "bn" ? "শিক্ষার্থী পাওয়া যায়নি" : "Student not found"}</div></div>;
   const sid = child.id, cm = new Date().getMonth();
   const allRanked = [...students].map(s => ({ ...s, kpi: getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi);
-  const myRank = allRanked.findIndex(s => s.id === sid) + 1;
+  const myRankIdx = allRanked.findIndex(s => s.id === sid);
+  const myRank = myRankIdx < 0 ? 0 : myRankIdx + 1;
   const monthData = MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getStudentMonthKPI(sid, i, selectedYear) }));
   const relLabel = currentUser.relation === "father" ? t.father : currentUser.relation === "mother" ? t.mother : t.guardian;
   return (
@@ -119,7 +121,7 @@ export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelecte
         </CardContent>
       </Card>
       <div className={GRID4}>
-        <StatCard icon={<Trophy />} value={`#${myRank}`} label={t.myRank} />
+        <StatCard icon={<Trophy />} value={myRank > 0 ? `#${myRank}` : "—"} label={t.myRank} />
         <StatCard icon={<CalendarDays />} value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
         <StatCard icon={<BarChart3 />} value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
         <StatCard icon={<UsersRound />} value={students.length} label={lang === "bn" ? "মোট শিক্ষার্থী" : "Total Students"} />

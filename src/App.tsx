@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "./supabase";
 import { useDbParents } from "./api/parents";
@@ -9,6 +9,7 @@ import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCo
 import { ErrorBoundary, Layout } from "./components";
 import { can } from "./permissions";
 import { AuthPage } from "./pages/Auth";
+import { loadSessionUser } from "./api/session";
 import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards";
 import { TeacherKPIPage, ParentKPIPage, MyTeacherKPIPage, MyParentKPIPage } from "./pages/KPI";
 import { ReportsPage } from "./pages/Reports";
@@ -35,6 +36,32 @@ export default function App() {
   const [selectedYear, setSelectedYear] = useState(curYear);
   const handleLogout = async () => { try { await supabase.auth.signOut(); } catch { /* no active backend session */ } setCurrentUser(null); };
   const { parents: dbParents } = useDbParents(true);
+  // Re-validate the cached (localStorage) session against the DB on mount: a
+  // revoked admin, soft-deleted account, or flipped parent status must not keep
+  // stale caps in the UI. Also clear on auth sign-out / token loss.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) return; // no backend session: keep offline/local state as-is
+      const { data: prof } = await supabase.from("profiles").select("*").eq("auth_id", sess.session.user.id).maybeSingle();
+      if (!active) return;
+      if (!prof) { setCurrentUser(null); return; }
+      const u = await loadSessionUser(prof, lang);
+      if (!active) return;
+      if (u.isDeleted || (u.role === "parent" && u.status !== "approved")) {
+        await supabase.auth.signOut();
+        setCurrentUser(null);
+        return;
+      }
+      setCurrentUser(u);
+    })();
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") setCurrentUser(null);
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   if (!currentUser) return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u: SessionUser) => { setCurrentUser(u); setActiveTab("dashboard"); }} />;
   const isAdmin = currentUser.role === "admin" || !!currentUser.isAdmin, isTeacher = currentUser.role === "teacher";
   const c = (cap: string) => can(currentUser, cap);

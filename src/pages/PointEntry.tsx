@@ -3,7 +3,7 @@ import { Pencil, RotateCcw } from "lucide-react";
 import { T } from "../i18n";
 import { MONTHS, CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { useIsMobile } from "../composables";
-import { getWeekNumber, errMsg, cn } from "../lib";
+import { getWeekNumber, inSamePeriod, errMsg, cn } from "../lib";
 import { Tabs, ErrorNote, Combobox, DatePicker, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,10 +59,10 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const guideIds = currentUser.guideStudents || [];
   const guideStudents = isAdmin ? students.filter(s => s.class === adminClass && s.section === adminSection) : students.filter(s => guideIds.includes(s.id));
   const weekDoneCheck = (sid: string) => entries.some(e => e.studentId === sid && e.teacherId === currentUser.id && e.role === "guideTeacher" && getWeekNumber(e.date) === cw && new Date(e.date).getFullYear() === cy);
-  const isQFreqDone = (sid: string, qid: string) => { const q = questions.find(x => x.id === qid); const freq = q?.frequency || "monthly"; const d = new Date(selectedDate), year = d.getFullYear(), month = d.getMonth(); return entries.some(e => { if (e.studentId !== sid || e.questionId !== qid) return false; const ed = new Date(e.date), eYear = e.year || 2026; switch (freq) { case "daily": return e.date === selectedDate; case "weekly": return getWeekNumber(e.date) === cw && eYear === year; case "quarterly": return Math.floor(ed.getMonth() / 3) === Math.floor(month / 3) && eYear === year; case "annual": return eYear === year; default: return e.month === month && eYear === year; } }); };
+  const isQFreqDone = (sid: string, qid: string) => { const q = questions.find(x => x.id === qid); return entries.some(e => e.studentId === sid && e.questionId === qid && inSamePeriod(e, q?.frequency, selectedDate)); };
   const roleQs = questions.filter(q => q.role === activeRole && q.activeMonths.includes(cm));
   const curStudents = activeRole === "classTeacher" ? classStudents : activeRole === "subjectTeacher" ? subjectStudents : guideStudents;
-  const setScore = (sid: string, qid: string, val: string) => { const max = questions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [sid]: { ...(p[sid] || {}), [qid]: Math.min(parseInt(val) || 0, max) } })); };
+  const setScore = (sid: string, qid: string, val: string) => { const max = questions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [sid]: { ...(p[sid] || {}), [qid]: Math.max(0, Math.min(parseInt(val, 10) || 0, max)) } })); };
   const getScore = (sid: string, qid: string): number | string => allScores[sid]?.[qid] ?? "";
   const getTotal = (sid: string) => roleQs.reduce((s, q) => s + (allScores[sid]?.[q.id] || 0), 0);
   const [submitting, setSubmitting] = useState(false);
@@ -84,7 +84,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const handleEditSave = async () => {
     if (!editEntry) return;
     const max = questions.find(q => q.id === editEntry.questionId)?.points || editEntry.maxPoints || 0;
-    const ns = Math.min(parseInt(String(editScore)) || 0, max);
+    const ns = Math.max(0, Math.min(parseInt(String(editScore), 10) || 0, max));
     try {
       await updateEntryScore(editEntry.id, ns, editEntry.score, "admin");
       await reloadEntries();
@@ -249,7 +249,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
                 {editEntry.editLog.map((log, i) => (<div key={i} className="text-xs">{log.editedAt}: {log.oldScore}→{log.newScore}</div>))}
               </div>
             )}
-            <div className="space-y-1.5"><Label>{lang === "bn" ? "নতুন পয়েন্ট" : "New Score"} (max:{editMax})</Label><Input type="number" min={0} max={editMax} className="w-32 text-lg font-bold" value={editScore} onChange={e => setEditScore(Math.min(parseInt(e.target.value) || 0, editMax))} /></div>
+            <div className="space-y-1.5"><Label>{lang === "bn" ? "নতুন পয়েন্ট" : "New Score"} (max:{editMax})</Label><Input type="number" min={0} max={editMax} className="w-32 text-lg font-bold" value={editScore} onChange={e => setEditScore(Math.max(0, Math.min(parseInt(e.target.value, 10) || 0, editMax)))} /></div>
             <DialogFooter><Button variant="outline" onClick={() => setEditEntry(null)}>{t.cancel}</Button><Button onClick={handleEditSave}>{t.save}</Button></DialogFooter>
           </>}
         </DialogContent>
