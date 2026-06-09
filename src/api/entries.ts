@@ -82,7 +82,9 @@ export function studentKpiHelpers(entries: StudentEntry[]) {
 export interface MonthTotal { studentId: string; year: number; month: number; points: number; }
 
 export async function listStudentMonthTotals(): Promise<MonthTotal[]> {
-  const { data, error } = await supabase.from("student_kpi_month_totals").select("*");
+  // SECURITY DEFINER RPC (migration 0021) — aggregates all students' monthly
+  // sums for rankings without exposing raw per-question rows.
+  const { data, error } = await supabase.rpc("student_month_totals");
   if (error) throw error;
   return (data || []).map((r: any) => ({ studentId: r.student_id, year: r.year ?? 2026, month: r.month, points: r.points || 0 }));
 }

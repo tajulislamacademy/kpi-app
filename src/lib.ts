@@ -11,6 +11,15 @@ export function cn(...inputs: ClassValue[]): string {
 // Safe message from an unknown catch value (strict mode types catch vars unknown).
 export const errMsg = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
+// Strong random temp password for a freshly provisioned account — replaces the
+// old fixed "123456" so every account is born with a unique, non-guessable
+// secret the admin can reveal/share (ambiguous chars 0/O/1/l/I omitted).
+export const genPassword = (len = 10): string => {
+  const c = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  const a = crypto.getRandomValues(new Uint32Array(len));
+  return Array.from(a, (x) => c[x % c.length]).join("");
+};
+
 export const genId = (prefix: string, year: number | undefined, seq: number): string =>
   `${prefix}-${year || new Date().getFullYear()}${String(seq).padStart(4, "0")}`;
 

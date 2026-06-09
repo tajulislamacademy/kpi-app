@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, MoreHorizontal, Pencil, Trash2, Check, X, Inbox, RotateCcw } from "lucide-react";
-import { errMsg, nextSystemId, cn } from "../lib";
+import { errMsg, nextSystemId, genPassword, cn } from "../lib";
 import { can } from "../permissions";
 import { Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox, EmptyState, Page } from "../components";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
   const [tab, setTab] = useState("all");
   const c = (cap: string) => can(currentUser, cap);
   const [showAdd, setShowAdd] = useState(false);
-  const blankAdd: AddForm = { studentId: "", name: "", nameEn: "", relation: "father", password: "123456" };
+  const blankAdd: AddForm = { studentId: "", name: "", nameEn: "", relation: "father", password: "" };
   const [addForm, setAddForm] = useState<AddForm>(blankAdd);
   const [addErr, setAddErr] = useState("");
   const [edit, setEdit] = useState<EditForm | null>(null);
@@ -90,7 +90,7 @@ export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{lang === "bn" ? "অভিভাবক" : "Parents"}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${counts.all} জন` : `Total ${counts.all}`}{loading ? " · …" : ""}</p>
         </div>
-        {c("parents.create") && <Button onClick={() => setShowAdd(v => !v)}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>}
+        {c("parents.create") && <Button onClick={() => { if (!showAdd) setAddForm({ ...blankAdd, password: genPassword() }); setShowAdd(v => !v); }}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>}
       </div>
       <ErrorNote lang={lang} error={error} />
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, X, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
-import { errMsg, nextSystemId } from "../lib";
+import { errMsg, nextSystemId, genPassword } from "../lib";
 import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page } from "../components";
 import { can } from "../permissions";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
   const [tab, setTab] = useState("active");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const blank: TForm = { name: "", nameEn: "", password: "123456", classTeacher: null, subjectAssignments: [], guideStudents: [] };
+  const blank: TForm = { name: "", nameEn: "", password: "", classTeacher: null, subjectAssignments: [], guideStudents: [] };
   const [form, setForm] = useState<TForm>(blank);
   const [newAssign, setNewAssign] = useState<SubjectAssignment>({ class: "8", section: "A", subject: SUBJECTS[0] });
   const [hasClass, setHasClass] = useState(false);
@@ -40,7 +40,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
   const run = async (fn: () => Promise<void>, msg: string) => { try { await fn(); await reload(); showNotif(msg); } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); } };
   const addAssign = () => { if (form.subjectAssignments.find(a => a.class === newAssign.class && a.section === newAssign.section && a.subject === newAssign.subject)) return; setForm({ ...form, subjectAssignments: [...form.subjectAssignments, { ...newAssign }] }); };
   const removeAssign = (i: number) => setForm({ ...form, subjectAssignments: form.subjectAssignments.filter((_, idx) => idx !== i) });
-  const openAdd = () => { setEditId(null); setForm(blank); setHasClass(false); setShowForm(true); };
+  const openAdd = () => { setEditId(null); setForm({ ...blank, password: genPassword() }); setHasClass(false); setShowForm(true); };
   const openEdit = (tc: Teacher) => { setEditId(tc.id); setForm({ name: tc.name || "", nameEn: tc.nameEn || "", password: "", classTeacher: tc.classTeacher || null, subjectAssignments: tc.subjectAssignments || [], guideStudents: tc.guideStudents || [], _authId: tc.authId, _systemId: tc.systemId }); setHasClass(!!tc.classTeacher); setShowForm(true); };
   const handleSave = async () => {
     if (!form.name) { showNotif(lang === "bn" ? "নাম আবশ্যক" : "Name required"); return; }
