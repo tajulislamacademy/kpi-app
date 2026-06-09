@@ -7,7 +7,7 @@ import { relationLabel } from "../labels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
-import { useStudentMonthTotals, monthTotalsHelpers } from "../api/entries";
+import { useStudentTotals, totalsMap, useStudentEntriesFor, useKpiYears, studentKpiHelpers } from "../api/entries";
 import type { Dict, Lang, SessionUser, TermConfig, Parent } from "../types";
 
 interface AdminProps { t: Dict; lang: Lang; currentUser: SessionUser; isAdmin: boolean; selectedYear: number; setSelectedYear: (y: number) => void; pendingParents: Parent[]; }
@@ -18,6 +18,12 @@ const HEAD = "flex flex-wrap items-start justify-between gap-3";
 const TITLE = "text-xl font-extrabold text-foreground sm:text-2xl";
 const SUB = "mt-1 text-sm text-muted-foreground";
 const GRID4 = "grid grid-cols-2 gap-3 sm:grid-cols-4";
+
+// Year list from the kpi_years RPC, with selectedYear guaranteed present.
+function useYearOptions(selectedYear: number) {
+  const { years } = useKpiYears();
+  return useMemo(() => { const ys = [...years]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [years, selectedYear]);
+}
 
 function ChartCard({ title, data, cm }: { title: string; data: { label: string; val: number }[]; cm: number }) {
   return (
@@ -32,13 +38,16 @@ export function AdminTeacherDashboard({ t, lang, currentUser, isAdmin, selectedY
   const cm = new Date().getMonth();
   const { students, error: e1 } = useDbStudents(true);
   const { teachers, error: e2 } = useDbTeachers(true);
-  const { totals, error: e3 } = useStudentMonthTotals(true);
-  const helpers = useMemo(() => monthTotalsHelpers(totals), [totals]);
-  const availableYears = useMemo(() => { const ys = [...new Set(totals.map(x => x.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [totals, selectedYear]);
-  const ranked = useMemo(() => [...students].map(s => ({ ...s, kpi: helpers.yearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [students, helpers, selectedYear]);
-  const mRanked = useMemo(() => [...students].map(s => ({ ...s, kpi: helpers.monthKPI(s.id, cm, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [students, helpers, selectedYear, cm]);
+  // Bounded aggregates (≤ #students rows each) — never hit the 1000-row cap.
+  const { totals: yearTotals, error: e3 } = useStudentTotals(selectedYear, null);
+  const { totals: monthTotals } = useStudentTotals(selectedYear, [cm]);
+  const availableYears = useYearOptions(selectedYear);
+  const yMap = useMemo(() => totalsMap(yearTotals), [yearTotals]);
+  const mMap = useMemo(() => totalsMap(monthTotals), [monthTotals]);
+  const ranked = useMemo(() => [...students].map(s => ({ ...s, kpi: yMap.get(s.id) || 0 })).sort((a, b) => b.kpi - a.kpi), [students, yMap]);
+  const mRanked = useMemo(() => [...students].map(s => ({ ...s, kpi: mMap.get(s.id) || 0 })).sort((a, b) => b.kpi - a.kpi), [students, mMap]);
   const activeIds = useMemo(() => new Set(students.map(s => s.id)), [students]);
-  const totalE = useMemo(() => totals.filter(x => x.month === cm && x.year === selectedYear && x.points > 0 && activeIds.has(x.studentId)).length, [totals, cm, selectedYear, activeIds]);
+  const totalE = useMemo(() => monthTotals.filter(x => x.points > 0 && activeIds.has(x.studentId)).length, [monthTotals, activeIds]);
   return (
     <div className={PAGE}>
       <ErrorNote lang={lang} error={e1 || e2 || e3} />
@@ -64,49 +73,47 @@ export function AdminTeacherDashboard({ t, lang, currentUser, isAdmin, selectedY
 
 export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
   const sid = currentUser.id, cm = new Date().getMonth();
-  const { students, error: e1 } = useDbStudents(true);
-  const { totals, error: e2 } = useStudentMonthTotals(true);
-  const helpers = useMemo(() => monthTotalsHelpers(totals), [totals]);
-  const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = helpers;
-  const availableYears = useMemo(() => { const ys = [...new Set(totals.map(x => x.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [totals, selectedYear]);
-  const myRank = useMemo(() => { const idx = [...students].map(s => ({ id: s.id, kpi: getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi).findIndex(s => s.id === sid); return idx < 0 ? 0 : idx + 1; }, [students, getStudentYearKPI, selectedYear, sid]);
-  const monthData = useMemo(() => MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getStudentMonthKPI(sid, i, selectedYear) })), [getStudentMonthKPI, sid, selectedYear, lang]);
+  const { totals: yearTotals, error: e2 } = useStudentTotals(selectedYear, null);
+  const { entries: myEntries, error: e3 } = useStudentEntriesFor(sid);
+  const availableYears = useYearOptions(selectedYear);
+  const { monthKPI, termKPI, yearKPI } = useMemo(() => studentKpiHelpers(myEntries), [myEntries]);
+  const myRank = useMemo(() => { const idx = [...yearTotals].sort((a, b) => b.points - a.points).findIndex(x => x.studentId === sid); return idx < 0 ? 0 : idx + 1; }, [yearTotals, sid]);
+  const monthData = useMemo(() => MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: monthKPI(sid, i, selectedYear) })), [monthKPI, sid, selectedYear, lang]);
   return (
     <div className={PAGE}>
-      <ErrorNote lang={lang} error={e1 || e2} />
+      <ErrorNote lang={lang} error={e2 || e3} />
       <div className={HEAD}>
         <div><h2 className={TITLE}>{t.myKPI}</h2><p className={SUB}>{lang === "bn" ? `স্বাগতম, ${currentUser.name}` : `${t.welcome}, ${currentUser.name}`}</p><p className="text-xs text-muted-foreground">{currentUser.systemId}</p></div>
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <div className={GRID4}>
         <StatCard icon={<Trophy />} value={myRank > 0 ? `#${myRank}` : "—"} label={t.myRank} />
-        <StatCard icon={<CalendarDays />} value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
-        <StatCard icon={<BarChart3 />} value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
+        <StatCard icon={<CalendarDays />} value={monthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
+        <StatCard icon={<BarChart3 />} value={yearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
         <StatCard icon={<GraduationCap />} value={`${currentUser.class}${currentUser.section || ""}`} label={t.class} />
       </div>
       <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
-      <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getStudentTermKPI} id={sid} />
+      <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={termKPI} id={sid} />
     </div>
   );
 }
 
 export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
   const { students, error: e1 } = useDbStudents(true);
-  const { totals, error: e2 } = useStudentMonthTotals(true);
-  const helpers = useMemo(() => monthTotalsHelpers(totals), [totals]);
-  const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = helpers;
-  const availableYears = useMemo(() => { const ys = [...new Set(totals.map(x => x.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [totals, selectedYear]);
+  const { totals: yearTotals, error: e2 } = useStudentTotals(selectedYear, null);
   const child = students.find(s => s.id === currentUser.studentId);
+  const { entries: childEntries, error: e3 } = useStudentEntriesFor(child?.id || "");
+  const availableYears = useYearOptions(selectedYear);
+  const { monthKPI, termKPI, yearKPI } = useMemo(() => studentKpiHelpers(childEntries), [childEntries]);
+  const sid = child?.id || "";
+  const myRank = useMemo(() => { if (!sid) return 0; const idx = [...yearTotals].sort((a, b) => b.points - a.points).findIndex(x => x.studentId === sid); return idx < 0 ? 0 : idx + 1; }, [yearTotals, sid]);
+  const cm = new Date().getMonth();
+  const monthData = useMemo(() => MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: monthKPI(sid, i, selectedYear) })), [monthKPI, sid, selectedYear, lang]);
   if (!child) return <div className={PAGE}><ErrorNote lang={lang} error={e1 || e2} /><div className="py-8 text-center text-muted-foreground">{lang === "bn" ? "শিক্ষার্থী পাওয়া যায়নি" : "Student not found"}</div></div>;
-  const sid = child.id, cm = new Date().getMonth();
-  const allRanked = [...students].map(s => ({ ...s, kpi: getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi);
-  const myRankIdx = allRanked.findIndex(s => s.id === sid);
-  const myRank = myRankIdx < 0 ? 0 : myRankIdx + 1;
-  const monthData = MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getStudentMonthKPI(sid, i, selectedYear) }));
   const relLabel = relationLabel(t, currentUser.relation);
   return (
     <div className={PAGE}>
-      <ErrorNote lang={lang} error={e1 || e2} />
+      <ErrorNote lang={lang} error={e1 || e2 || e3} />
       <div className={HEAD}>
         <div><h2 className={TITLE}>{t.childKPI}</h2><p className={SUB}>{relLabel}: {currentUser.name}</p></div>
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
@@ -123,12 +130,12 @@ export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelecte
       </Card>
       <div className={GRID4}>
         <StatCard icon={<Trophy />} value={myRank > 0 ? `#${myRank}` : "—"} label={t.myRank} />
-        <StatCard icon={<CalendarDays />} value={getStudentMonthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
-        <StatCard icon={<BarChart3 />} value={getStudentYearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
+        <StatCard icon={<CalendarDays />} value={monthKPI(sid, cm, selectedYear)} label={`${T[lang][MONTHS[cm]]} ${t.myMonthly}`} />
+        <StatCard icon={<BarChart3 />} value={yearKPI(sid, selectedYear)} label={`${selectedYear} ${t.myYearly}`} />
         <StatCard icon={<UsersRound />} value={students.length} label={lang === "bn" ? "মোট শিক্ষার্থী" : "Total Students"} />
       </div>
       <ChartCard title={`📈 ${t.progressChart} — ${selectedYear}`} data={monthData} cm={cm} />
-      <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={getStudentTermKPI} id={sid} />
+      <TermBreakdown t={t} lang={lang} termConfig={termConfig} selectedYear={selectedYear} getTermKPI={termKPI} id={sid} />
     </div>
   );
 }
