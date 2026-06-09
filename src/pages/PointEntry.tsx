@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Pencil, RotateCcw } from "lucide-react";
 import { T } from "../i18n";
 import { MONTHS, CLASSES, SECTIONS, SUBJECTS } from "../constants";
@@ -91,8 +91,12 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       setEditEntry(null); showNotif(lang === "bn" ? "সম্পাদনা সফল!" : "Edited!");
     } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); }
   };
-  const entryYears = [...new Set(entries.map(e => e.year || 2026))].sort((a, b) => b - a);
-  const filtered = entries.filter(e => isAdmin || e.teacherId === currentUser.id).filter(e => fTc === "all" || e.teacherId === fTc).filter(e => fSt === "all" || e.studentId === fSt).filter(e => fYr === "all" || (e.year || 2026) === parseInt(fYr)).filter(e => fMo === "all" || e.month === parseInt(fMo)).filter(e => fRo === "all" || e.role === fRo).slice().reverse();
+  const entryYears = useMemo(() => [...new Set(entries.map(e => e.year || 2026))].sort((a, b) => b - a), [entries]);
+  const filtered = useMemo(() => entries.filter(e => isAdmin || e.teacherId === currentUser.id).filter(e => fTc === "all" || e.teacherId === fTc).filter(e => fSt === "all" || e.studentId === fSt).filter(e => fYr === "all" || (e.year || 2026) === parseInt(fYr)).filter(e => fMo === "all" || e.month === parseInt(fMo)).filter(e => fRo === "all" || e.role === fRo).slice().reverse(), [entries, isAdmin, currentUser.id, fTc, fSt, fYr, fMo, fRo]);
+  // id → record maps so the entry-list render is O(rows) not O(rows × people).
+  const stMap = useMemo(() => new Map(students.map(s => [s.id, s])), [students]);
+  const tcMap = useMemo(() => new Map(teachers.map(x => [x.id, x])), [teachers]);
+  const qMap = useMemo(() => new Map(allQuestions.map(q => [q.id, q])), [allQuestions]);
   const tabs = [{ key: "classTeacher", label: t.classTeacher, show: isAdmin || !!currentUser.classTeacher }, { key: "subjectTeacher", label: t.subjectTeacher, show: isAdmin || subjectAssignments.length > 0 }, { key: "guideTeacher", label: t.guideTeacher, show: isAdmin || guideIds.length > 0 }].filter(x => x.show);
   const freqLabel = (f?: string) => { const map: Record<string, string> = { daily: t.daily, weekly: t.weekly, monthly: t.monthly, quarterly: t.quarterly, annual: t.annual }; return map[f || "monthly"] || t.monthly; };
   const editMax = editEntry ? (questions.find(q => q.id === editEntry.questionId)?.points || editEntry.maxPoints || 0) : 0;
@@ -217,7 +221,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
               {isAdmin && <TableHead>✏️</TableHead>}
             </TableRow></TableHeader>
             <TableBody>
-              {filtered.map((e) => { const s = students.find(x => x.id === e.studentId), q = questions.find(x => x.id === e.questionId), tc = teachers.find(x => x.id === e.teacherId), edited = (e.editLog || []).length > 0; const rL = e.role === "classTeacher" ? t.classTeacher : e.role === "subjectTeacher" ? t.subjectTeacher : t.guideTeacher;
+              {filtered.map((e) => { const s = stMap.get(e.studentId), q = e.questionId ? qMap.get(e.questionId) : undefined, tc = e.teacherId ? tcMap.get(e.teacherId) : undefined, edited = (e.editLog || []).length > 0; const rL = e.role === "classTeacher" ? t.classTeacher : e.role === "subjectTeacher" ? t.subjectTeacher : t.guideTeacher;
                 return (
                   <TableRow key={e.id}>
                     <TableCell>{e.date}</TableCell>

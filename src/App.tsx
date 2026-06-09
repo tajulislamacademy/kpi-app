@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { toast } from "sonner";
 import { supabase } from "./supabase";
 import { useDbParents } from "./api/parents";
@@ -10,18 +10,23 @@ import { ErrorBoundary, Layout } from "./components";
 import { can } from "./permissions";
 import { AuthPage } from "./pages/Auth";
 import { loadSessionUser } from "./api/session";
-import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards";
-import { TeacherKPIPage, ParentKPIPage, MyTeacherKPIPage, MyParentKPIPage } from "./pages/KPI";
-import { ReportsPage } from "./pages/Reports";
-import { KpiDetailsPage } from "./pages/KpiDetails";
-import { SettingsPage } from "./pages/Settings";
-import { PointEntryPage } from "./pages/PointEntry";
-import { QuestionsPage } from "./pages/Questions";
-import { StudentsPage } from "./pages/Students";
-import { TeachersPage } from "./pages/Teachers";
-import { ParentsPage } from "./pages/Parents";
-import { ProfilePage } from "./pages/Profile";
-import { AccountsPage } from "./pages/Accounts";
+import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards"; // eager: landing page
+// Lazy-load the rest so a student/parent doesn't download the admin CRUD pages,
+// point-entry grid, etc. up front (each becomes its own chunk, loaded on nav).
+const TeacherKPIPage = lazy(() => import("./pages/KPI").then(m => ({ default: m.TeacherKPIPage })));
+const ParentKPIPage = lazy(() => import("./pages/KPI").then(m => ({ default: m.ParentKPIPage })));
+const MyTeacherKPIPage = lazy(() => import("./pages/KPI").then(m => ({ default: m.MyTeacherKPIPage })));
+const MyParentKPIPage = lazy(() => import("./pages/KPI").then(m => ({ default: m.MyParentKPIPage })));
+const ReportsPage = lazy(() => import("./pages/Reports").then(m => ({ default: m.ReportsPage })));
+const KpiDetailsPage = lazy(() => import("./pages/KpiDetails").then(m => ({ default: m.KpiDetailsPage })));
+const SettingsPage = lazy(() => import("./pages/Settings").then(m => ({ default: m.SettingsPage })));
+const PointEntryPage = lazy(() => import("./pages/PointEntry").then(m => ({ default: m.PointEntryPage })));
+const QuestionsPage = lazy(() => import("./pages/Questions").then(m => ({ default: m.QuestionsPage })));
+const StudentsPage = lazy(() => import("./pages/Students").then(m => ({ default: m.StudentsPage })));
+const TeachersPage = lazy(() => import("./pages/Teachers").then(m => ({ default: m.TeachersPage })));
+const ParentsPage = lazy(() => import("./pages/Parents").then(m => ({ default: m.ParentsPage })));
+const ProfilePage = lazy(() => import("./pages/Profile").then(m => ({ default: m.ProfilePage })));
+const AccountsPage = lazy(() => import("./pages/Accounts").then(m => ({ default: m.AccountsPage })));
 import type { Lang, SessionUser, TermConfig } from "./types";
 
 export default function App() {
@@ -86,6 +91,7 @@ export default function App() {
   return (
     <Layout t={t} lang={lang} setLang={setLang} currentUser={currentUser} isAdmin={isAdmin} isTeacher={isTeacher} navItems={navItems} activeTab={activeTab} onNav={setActiveTab} onLogout={handleLogout}>
       <ErrorBoundary key={activeTab} lang={lang}>
+      <Suspense fallback={<div className="mx-auto w-full max-w-6xl px-4 py-6 text-sm text-muted-foreground sm:px-6">{lang === "bn" ? "লোড হচ্ছে…" : "Loading…"}</div>}>
       {activeTab === "dashboard" && (isAdmin || isTeacher
         ? <AdminTeacherDashboard t={t} lang={lang} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} pendingParents={pendingParents} />
         : currentUser.role === "student"
@@ -106,6 +112,7 @@ export default function App() {
       {activeTab === "parentKpi" && c("parent_kpi") && <ParentKPIPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
       {activeTab === "myTchrKpi" && isTeacher && <MyTeacherKPIPage t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />}
       {activeTab === "myParKpi" && currentUser.role === "parent" && <MyParentKPIPage t={t} lang={lang} currentUser={currentUser} selectedYear={selectedYear} setSelectedYear={setSelectedYear} termConfig={termConfig} />}
+      </Suspense>
       </ErrorBoundary>
     </Layout>
   );

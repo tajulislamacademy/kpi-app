@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { cn } from "../lib";
@@ -73,14 +73,16 @@ export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, se
   const roleLabel = (r?: string | null) => r === "classTeacher" ? t.classTeacher : r === "subjectTeacher" ? t.subjectTeacher : r === "guideTeacher" ? t.guideTeacher : "—";
 
   // Rows for the selected target/month/year (snapshot text → deleted questions still show).
-  const rows = (tType === "student"
+  const rows = useMemo(() => (tType === "student"
     ? studentEntries.filter(e => e.studentId === effId && e.month === selMonth && (e.year || selectedYear) === selectedYear).map(e => ({ id: e.id, date: e.date, q: lang === "bn" ? e.questionText : e.questionTextEn, role: e.role, who: teacherName(e.teacherId), score: e.score, max: e.maxPoints || 0 }))
     : (tType === "teacher" ? teacherEntries : parentEntries).filter(e => e.targetId === effId && e.month === selMonth && e.year === selectedYear).map(e => ({ id: e.id, date: e.date, q: lang === "bn" ? e.questionText : e.questionTextEn, role: null as string | null, who: "", score: e.score, max: e.maxPoints || 0 })))
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) => a.date.localeCompare(b.date)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tType, effId, selMonth, selectedYear, studentEntries, teacherEntries, parentEntries, lang, teachers]);
   const total = rows.reduce((s, r) => s + r.score, 0);
   const maxTotal = rows.reduce((s, r) => s + r.max, 0);
 
-  const allYears = [...new Set([...studentEntries.map(e => e.year || 2026), ...teacherEntries.map(e => e.year), ...parentEntries.map(e => e.year), selectedYear])].sort((a, b) => b - a);
+  const allYears = useMemo(() => [...new Set([...studentEntries.map(e => e.year || 2026), ...teacherEntries.map(e => e.year), ...parentEntries.map(e => e.year), selectedYear])].sort((a, b) => b - a), [studentEntries, teacherEntries, parentEntries, selectedYear]);
   const typeLabel = (ty: TType) => ty === "student" ? t.student : ty === "teacher" ? t.teacher : t.parent;
   const showStudentCols = tType === "student";
 
