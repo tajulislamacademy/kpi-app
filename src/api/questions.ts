@@ -1,8 +1,9 @@
 // Questions data access — Supabase (questions slice).
 // One table holds all three categories (student/teacher/parent). `role` only
 // applies to category='student'. Read = any authenticated user; write = admin.
-import { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { supabase } from "../supabase";
+import { makeCache } from "./cache";
 import type { Question, QuestionInput } from "../types";
 
 const toUi = (r: any): Question => ({
@@ -66,25 +67,9 @@ export async function deleteQuestion(id: string): Promise<void> {
   if (error) throw error;
 }
 
+const questionsCache = makeCache<Question[]>([]);
 export function useDbQuestions(enabled = true, withTrash = false) {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setQuestions(await listQuestions(withTrash));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled, withTrash]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
+  const { data, loading, error, reload } = questionsCache.useCache("all", () => listQuestions(true), enabled);
+  const questions = useMemo(() => withTrash ? data : data.filter(q => !q.deletedAt), [data, withTrash]);
   return { questions, loading, error, reload };
 }

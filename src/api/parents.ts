@@ -1,8 +1,9 @@
 // Parents data access — Supabase (parents slice).
 // A parent is a profiles row (role='parent') linked to one student, with an
 // approval status that gates login. Writes are admin-only (RLS).
-import { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { supabase } from "../supabase";
+import { makeCache } from "./cache";
 import { provisionAuthUser } from "./provision";
 import { systemIdToEmail } from "./identity";
 import type { Parent, ParentInput, ParentUpdate, ParentStatus } from "../types";
@@ -86,25 +87,9 @@ export async function deleteParent(id: string): Promise<void> {
   if (error) throw error;
 }
 
+const parentsCache = makeCache<Parent[]>([]);
 export function useDbParents(enabled = true, withTrash = false) {
-  const [parents, setParents] = useState<Parent[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setParents(await listParents(withTrash));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled, withTrash]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
+  const { data, loading, error, reload } = parentsCache.useCache("all", () => listParents(true), enabled);
+  const parents = useMemo(() => withTrash ? data : data.filter(p => !p.deletedAt), [data, withTrash]);
   return { parents, loading, error, reload };
 }

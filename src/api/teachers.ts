@@ -2,8 +2,9 @@
 // A teacher is a profiles row (role='teacher') joined 1:1 to a teachers row.
 // class_teacher / subject_assignments are jsonb; guide_students is uuid[] of
 // student profile ids. Writes require an authenticated admin session (RLS).
-import { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { supabase } from "../supabase";
+import { makeCache } from "./cache";
 import { provisionAuthUser } from "./provision";
 import { systemIdToEmail } from "./identity";
 import type { Teacher, TeacherInput, TeacherUpdate } from "../types";
@@ -92,25 +93,9 @@ export async function deleteTeacher(id: string): Promise<void> {
   if (error) throw error;
 }
 
+const teachersCache = makeCache<Teacher[]>([]);
 export function useDbTeachers(enabled = true, withTrash = false) {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setTeachers(await listTeachers(withTrash));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled, withTrash]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
+  const { data, loading, error, reload } = teachersCache.useCache("all", () => listTeachers(true), enabled);
+  const teachers = useMemo(() => withTrash ? data : data.filter(t => !t.deletedAt), [data, withTrash]);
   return { teachers, loading, error, reload };
 }

@@ -10,6 +10,7 @@ import { ErrorBoundary, Layout } from "./components";
 import { can } from "./permissions";
 import { AuthPage } from "./pages/Auth";
 import { loadSessionUser } from "./api/session";
+import { clearAllCaches } from "./api/cache";
 import { AdminTeacherDashboard, StudentDashboard, ParentDashboard } from "./pages/Dashboards"; // eager: landing page
 // Lazy-load the rest so a student/parent doesn't download the admin CRUD pages,
 // point-entry grid, etc. up front (each becomes its own chunk, loaded on nav).
@@ -39,7 +40,7 @@ export default function App() {
   const showNotif = (msg: string) => { if (/ত্রুটি|error|ব্যর্থ|❌|ভুল/i.test(msg)) toast.error(msg); else toast.success(msg); };
   const curYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(curYear);
-  const handleLogout = async () => { try { await supabase.auth.signOut(); } catch { /* no active backend session */ } setCurrentUser(null); };
+  const handleLogout = async () => { try { await supabase.auth.signOut(); } catch { /* no active backend session */ } clearAllCaches(); setCurrentUser(null); };
   const { parents: dbParents } = useDbParents(true);
   // Re-validate the cached (localStorage) session against the DB on mount: a
   // revoked admin, soft-deleted account, or flipped parent status must not keep
@@ -62,12 +63,12 @@ export default function App() {
       setCurrentUser(u);
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") setCurrentUser(null);
+      if (event === "SIGNED_OUT") { clearAllCaches(); setCurrentUser(null); }
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  if (!currentUser) return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u: SessionUser) => { setCurrentUser(u); setActiveTab("dashboard"); }} />;
+  if (!currentUser) return <AuthPage t={t} lang={lang} setLang={setLang} onLogin={(u: SessionUser) => { clearAllCaches(); setCurrentUser(u); setActiveTab("dashboard"); }} />;
   const isAdmin = currentUser.role === "admin" || !!currentUser.isAdmin, isTeacher = currentUser.role === "teacher";
   const c = (cap: string) => can(currentUser, cap);
   const pendingParents = dbParents.filter(p => p.status === "pending");

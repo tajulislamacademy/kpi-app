@@ -1,8 +1,8 @@
 // KPI entries data access — Supabase (entries slice).
 // kpi_entries holds student/teacher/parent scores; this module covers the
 // student point-entry flow. UI shape mirrors the old localStorage entry object.
-import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
+import { makeCache } from "./cache";
 import type { StudentEntry, TargetEntry } from "../types";
 
 const toUi = (r: any): StudentEntry => ({
@@ -102,27 +102,10 @@ export function monthTotalsHelpers(totals: MonthTotal[]) {
   return { monthKPI, termKPI, yearKPI };
 }
 
+const totalsCache = makeCache<MonthTotal[]>([]);
 export function useStudentMonthTotals(enabled = true) {
-  const [totals, setTotals] = useState<MonthTotal[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setTotals(await listStudentMonthTotals());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
-  return { totals, loading, error, reload };
+  const { data, loading, error, reload } = totalsCache.useCache("all", listStudentMonthTotals, enabled);
+  return { totals: data, loading, error, reload };
 }
 
 // --- Generic target entries (teacher / parent KPI) --------------------------
@@ -159,48 +142,14 @@ export function targetKpiHelpers(entries: TargetEntry[]) {
   return { monthKPI, termKPI, yearKPI };
 }
 
+const targetEntriesCache = makeCache<TargetEntry[]>([]);
 export function useDbEntriesByTarget(targetType: string, enabled = true) {
-  const [entries, setEntries] = useState<TargetEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setEntries(await listEntriesByTarget(targetType));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled, targetType]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
-  return { entries, loading, error, reload };
+  const { data, loading, error, reload } = targetEntriesCache.useCache(targetType, () => listEntriesByTarget(targetType), enabled);
+  return { entries: data, loading, error, reload };
 }
 
+const studentEntriesCache = makeCache<StudentEntry[]>([]);
 export function useDbStudentEntries(enabled = true) {
-  const [entries, setEntries] = useState<StudentEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setEntries(await listStudentEntries());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
-  return { entries, loading, error, reload };
+  const { data, loading, error, reload } = studentEntriesCache.useCache("all", listStudentEntries, enabled);
+  return { entries: data, loading, error, reload };
 }
