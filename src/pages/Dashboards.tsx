@@ -6,7 +6,7 @@ import { StatCard, RankCard, BarChart, YearSelector, TermBreakdown, ErrorNote } 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
-import { useDbStudentEntries, studentKpiHelpers } from "../api/entries";
+import { useStudentMonthTotals, monthTotalsHelpers } from "../api/entries";
 import type { Dict, Lang, SessionUser, TermConfig, Parent } from "../types";
 
 interface AdminProps { t: Dict; lang: Lang; currentUser: SessionUser; isAdmin: boolean; selectedYear: number; setSelectedYear: (y: number) => void; pendingParents: Parent[]; }
@@ -31,13 +31,13 @@ export function AdminTeacherDashboard({ t, lang, currentUser, isAdmin, selectedY
   const cm = new Date().getMonth();
   const { students, error: e1 } = useDbStudents(true);
   const { teachers, error: e2 } = useDbTeachers(true);
-  const { entries, error: e3 } = useDbStudentEntries(true);
-  const helpers = useMemo(() => studentKpiHelpers(entries), [entries]);
-  const availableYears = useMemo(() => { const ys = [...new Set(entries.map(e => e.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [entries, selectedYear]);
+  const { totals, error: e3 } = useStudentMonthTotals(true);
+  const helpers = useMemo(() => monthTotalsHelpers(totals), [totals]);
+  const availableYears = useMemo(() => { const ys = [...new Set(totals.map(x => x.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [totals, selectedYear]);
   const ranked = useMemo(() => [...students].map(s => ({ ...s, kpi: helpers.yearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [students, helpers, selectedYear]);
   const mRanked = useMemo(() => [...students].map(s => ({ ...s, kpi: helpers.monthKPI(s.id, cm, selectedYear) })).sort((a, b) => b.kpi - a.kpi), [students, helpers, selectedYear, cm]);
   const activeIds = useMemo(() => new Set(students.map(s => s.id)), [students]);
-  const totalE = useMemo(() => entries.filter(e => e.month === cm && e.year === selectedYear && activeIds.has(e.studentId)).length, [entries, cm, selectedYear, activeIds]);
+  const totalE = useMemo(() => totals.filter(x => x.month === cm && x.year === selectedYear && x.points > 0 && activeIds.has(x.studentId)).length, [totals, cm, selectedYear, activeIds]);
   return (
     <div className={PAGE}>
       <ErrorNote lang={lang} error={e1 || e2 || e3} />
@@ -64,10 +64,10 @@ export function AdminTeacherDashboard({ t, lang, currentUser, isAdmin, selectedY
 export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
   const sid = currentUser.id, cm = new Date().getMonth();
   const { students, error: e1 } = useDbStudents(true);
-  const { entries, error: e2 } = useDbStudentEntries(true);
-  const helpers = useMemo(() => studentKpiHelpers(entries), [entries]);
+  const { totals, error: e2 } = useStudentMonthTotals(true);
+  const helpers = useMemo(() => monthTotalsHelpers(totals), [totals]);
   const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = helpers;
-  const availableYears = useMemo(() => { const ys = [...new Set(entries.map(e => e.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [entries, selectedYear]);
+  const availableYears = useMemo(() => { const ys = [...new Set(totals.map(x => x.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [totals, selectedYear]);
   const myRank = useMemo(() => { const idx = [...students].map(s => ({ id: s.id, kpi: getStudentYearKPI(s.id, selectedYear) })).sort((a, b) => b.kpi - a.kpi).findIndex(s => s.id === sid); return idx < 0 ? 0 : idx + 1; }, [students, getStudentYearKPI, selectedYear, sid]);
   const monthData = useMemo(() => MONTHS.map((m, i) => ({ label: T[lang][m].slice(0, 3), val: getStudentMonthKPI(sid, i, selectedYear) })), [getStudentMonthKPI, sid, selectedYear, lang]);
   return (
@@ -91,10 +91,10 @@ export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelect
 
 export function ParentDashboard({ t, lang, currentUser, selectedYear, setSelectedYear, termConfig }: SelfProps) {
   const { students, error: e1 } = useDbStudents(true);
-  const { entries, error: e2 } = useDbStudentEntries(true);
-  const helpers = useMemo(() => studentKpiHelpers(entries), [entries]);
+  const { totals, error: e2 } = useStudentMonthTotals(true);
+  const helpers = useMemo(() => monthTotalsHelpers(totals), [totals]);
   const { monthKPI: getStudentMonthKPI, termKPI: getStudentTermKPI, yearKPI: getStudentYearKPI } = helpers;
-  const availableYears = useMemo(() => { const ys = [...new Set(entries.map(e => e.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [entries, selectedYear]);
+  const availableYears = useMemo(() => { const ys = [...new Set(totals.map(x => x.year))]; if (!ys.includes(selectedYear)) ys.push(selectedYear); return ys.sort((a, b) => b - a); }, [totals, selectedYear]);
   const child = students.find(s => s.id === currentUser.studentId);
   if (!child) return <div className={PAGE}><ErrorNote lang={lang} error={e1 || e2} /><div className="py-8 text-center text-muted-foreground">{lang === "bn" ? "শিক্ষার্থী পাওয়া যায়নি" : "Student not found"}</div></div>;
   const sid = child.id, cm = new Date().getMonth();

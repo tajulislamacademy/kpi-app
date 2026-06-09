@@ -75,6 +75,54 @@ export function studentKpiHelpers(entries: StudentEntry[]) {
   return { monthKPI, termKPI, yearKPI };
 }
 
+// --- Aggregate-only student totals (privacy: rankings/dashboards) -----------
+// Reads the student_kpi_month_totals view (per-student monthly SUMS, no
+// per-question detail). Used wherever a full-cohort ranking is needed by users
+// who are not allowed to read other students' raw entries (migration 0020).
+export interface MonthTotal { studentId: string; year: number; month: number; points: number; }
+
+export async function listStudentMonthTotals(): Promise<MonthTotal[]> {
+  const { data, error } = await supabase.from("student_kpi_month_totals").select("*");
+  if (error) throw error;
+  return (data || []).map((r: any) => ({ studentId: r.student_id, year: r.year ?? 2026, month: r.month, points: r.points || 0 }));
+}
+
+// Same monthKPI/termKPI/yearKPI shape as studentKpiHelpers, over the totals view.
+export function monthTotalsHelpers(totals: MonthTotal[]) {
+  const monthKPI = (sid: string, month: number, year: number): number =>
+    totals.filter((x) => x.studentId === sid && x.month === month && x.year === year).reduce((s, x) => s + x.points, 0);
+  const termKPI = (sid: string, months: number[], year: number): number => (months || []).reduce((s, m) => s + monthKPI(sid, m, year), 0);
+  const yearKPI = (sid: string, year: number): number => {
+    let total = 0;
+    for (let m = 0; m < 12; m++) total += monthKPI(sid, m, year);
+    return total;
+  };
+  return { monthKPI, termKPI, yearKPI };
+}
+
+export function useStudentMonthTotals(enabled = true) {
+  const [totals, setTotals] = useState<MonthTotal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const reload = useCallback(async () => {
+    if (!enabled) return;
+    setLoading(true);
+    setError(null);
+    try {
+      setTotals(await listStudentMonthTotals());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [enabled]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    reload();
+  }, [reload]);
+  return { totals, loading, error, reload };
+}
+
 // --- Generic target entries (teacher / parent KPI) --------------------------
 const toUiTarget = (r: any): TargetEntry => ({
   id: r.id,
