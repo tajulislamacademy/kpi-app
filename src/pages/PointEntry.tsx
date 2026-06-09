@@ -5,6 +5,7 @@ import { MONTHS, CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { useIsMobile } from "../composables";
 import { getWeekNumber, inSamePeriod, errMsg, cn } from "../lib";
 import { Tabs, ErrorNote, Combobox, DatePicker, Page } from "../components";
+import { teacherRoleBadge, teacherRoleLabel } from "../labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +23,6 @@ import type { Dict, Lang, SessionUser, SubjectAssignment, StudentEntry } from ".
 type Scores = Record<string, Record<string, number>>;
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; isAdmin: boolean; }
 
-const roleBadge = (r?: string | null) =>
-  r === "classTeacher" ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-    : r === "subjectTeacher" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
-      : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300";
 const EMPTY = "py-8 text-center text-muted-foreground";
 
 export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Props) {
@@ -221,13 +218,13 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
               {isAdmin && <TableHead>✏️</TableHead>}
             </TableRow></TableHeader>
             <TableBody>
-              {filtered.map((e) => { const s = stMap.get(e.studentId), q = e.questionId ? qMap.get(e.questionId) : undefined, tc = e.teacherId ? tcMap.get(e.teacherId) : undefined, edited = (e.editLog || []).length > 0; const rL = e.role === "classTeacher" ? t.classTeacher : e.role === "subjectTeacher" ? t.subjectTeacher : t.guideTeacher;
+              {filtered.map((e) => { const s = stMap.get(e.studentId), q = e.questionId ? qMap.get(e.questionId) : undefined, tc = e.teacherId ? tcMap.get(e.teacherId) : undefined, edited = (e.editLog || []).length > 0; const rL = teacherRoleLabel(t, e.role);
                 return (
                   <TableRow key={e.id}>
                     <TableCell>{e.date}</TableCell>
                     <TableCell><div className="text-sm">{lang === "bn" ? tc?.name : tc?.nameEn}</div>{edited && <Badge variant="secondary" className="text-[10px]">✏️{lang === "bn" ? "সম্পাদিত" : "Edited"}</Badge>}</TableCell>
                     <TableCell>{lang === "bn" ? s?.name : s?.nameEn}</TableCell>
-                    <TableCell><Badge className={cn("border-transparent text-xs font-semibold", roleBadge(e.role))}>{rL}</Badge></TableCell>
+                    <TableCell><Badge className={cn("border-transparent text-xs font-semibold", teacherRoleBadge(e.role))}>{rL}</Badge></TableCell>
                     <TableCell><div className="max-w-30 truncate text-sm">{lang === "bn" ? (q?.textBn || e.questionText) : (q?.textEn || e.questionTextEn)}</div></TableCell>
                     <TableCell>{edited ? <span><span className="mr-1 text-xs text-muted-foreground line-through">{e.editLog[0].oldScore}</span><strong className="text-foreground">{e.score}</strong></span> : <strong className="text-foreground">{e.score}</strong>}</TableCell>
                     {isAdmin && <TableCell><Button size="icon" variant="outline" aria-label={t.edit} className="h-8 w-8" onClick={() => { setEditEntry(e); setEditScore(e.score); }}><Pencil className="h-3.5 w-3.5" /></Button></TableCell>}

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Inbox } from "lucide-react";
+import { teacherRoleBadge, teacherRoleLabel } from "../labels";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
@@ -18,11 +19,6 @@ import type { Dict, Lang, SessionUser } from "../types";
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; isAdmin: boolean; selectedYear: number; setSelectedYear: (y: number) => void; }
 type TType = "student" | "teacher" | "parent";
-
-const roleBadge = (r?: string | null) =>
-  r === "classTeacher" ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-    : r === "subjectTeacher" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
-      : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300";
 
 export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, setSelectedYear }: Props) {
   const { students, error: e1 } = useDbStudents(true);
@@ -70,7 +66,6 @@ export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, se
   const [selMonth, setSelMonth] = useState(new Date().getMonth());
 
   const teacherName = (id?: string | null) => { const tc = teachers.find(x => x.id === id); return tc ? (lang === "bn" ? tc.name : tc.nameEn) : (lang === "bn" ? "অ্যাডমিন" : "Admin"); };
-  const roleLabel = (r?: string | null) => r === "classTeacher" ? t.classTeacher : r === "subjectTeacher" ? t.subjectTeacher : r === "guideTeacher" ? t.guideTeacher : "—";
 
   // Rows for the selected target/month/year (snapshot text → deleted questions still show).
   const rows = useMemo(() => (tType === "student"
@@ -120,7 +115,7 @@ export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, se
 
       <Card className="overflow-hidden">
         <CardHeader className="flex-row items-center justify-between gap-2">
-          <CardTitle className="text-base">{T[lang][MONTHS[selMonth]]} {selectedYear} — {lang === "bn" ? "বিস্তারিত" : "Details"}</CardTitle>
+          <CardTitle className="text-base">{T[lang][MONTHS[selMonth]]} {selectedYear} — {t.details}</CardTitle>
           {rows.length > 0 && <Badge variant="secondary" className="text-sm">{lang === "bn" ? "মোট" : "Total"}: <span className="tabular-nums">{total}/{maxTotal}</span></Badge>}
         </CardHeader>
         <CardContent className="px-0">
@@ -142,7 +137,7 @@ export function KpiDetailsPage({ t, lang, currentUser, isAdmin, selectedYear, se
                   <TableRow key={r.id}>
                     <TableCell className="tabular-nums">{r.date}</TableCell>
                     <TableCell><div className="max-w-xs whitespace-normal text-sm">{r.q}</div></TableCell>
-                    {showStudentCols && <TableCell><Badge className={cn("border-transparent text-xs font-semibold", roleBadge(r.role))}>{roleLabel(r.role)}</Badge></TableCell>}
+                    {showStudentCols && <TableCell><Badge className={cn("border-transparent text-xs font-semibold", teacherRoleBadge(r.role))}>{teacherRoleLabel(t, r.role)}</Badge></TableCell>}
                     {showStudentCols && <TableCell className="text-sm">{r.who}</TableCell>}
                     <TableCell className="text-right font-bold tabular-nums">{r.score}<span className="font-normal text-muted-foreground">/{r.max}</span></TableCell>
                   </TableRow>

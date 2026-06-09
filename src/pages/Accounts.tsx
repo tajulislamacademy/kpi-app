@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MoreHorizontal, Shield, ShieldOff, SlidersHorizontal, KeyRound, LogIn, LogOut, Trash2, Clock, UsersRound, Inbox, Search } from "lucide-react";
 import { errMsg, cn } from "../lib";
 import { can, RESOURCES, ACTIONS, AREAS } from "../permissions";
+import { accountRoleBadge, accountRoleLabel } from "../labels";
 import { StatCard, Tabs, ErrorNote, ConfirmDialog, PasswordInput, EmptyState, Page } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,12 +30,6 @@ const ASSIGNABLE_AREAS = AREAS.filter(a => a !== "admins.manage");
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
 
-const roleBadgeClass = (role: string) =>
-  role === "admin" ? "bg-primary/15 text-primary"
-    : role === "teacher" ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-      : role === "student" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
-        : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300";
-
 export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
   const { accounts, loading, error, reload } = useDbAccounts(true);
   const [tab, setTab] = useState("all");
@@ -48,7 +43,6 @@ export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
   const [saving, setSaving] = useState(false);
   const manageAdmins = can(currentUser, "admins.manage");
 
-  const roleLabel = (r: string) => r === "admin" ? t.admin : r === "teacher" ? t.teacher : r === "student" ? t.student : t.parent;
   const openPerm = (a: Account) => { setPermTarget(a); setPermSel(a.permissions || []); };
   const togglePerm = (cap: string) => setPermSel(p => p.includes(cap) ? p.filter(x => x !== cap) : [...p, cap]);
   const savePerm = async () => { if (!permTarget) return; setSaving(true); await run(() => setAdminPermissions(permTarget.id, permSel), lang === "bn" ? "পারমিশন সংরক্ষণ!" : "Permissions saved!"); setSaving(false); setPermTarget(null); };
@@ -141,7 +135,7 @@ export function AccountsPage({ t, lang, currentUser, showNotif }: Props) {
                     <TableRow key={a.id}>
                       <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{a.systemId}</code></TableCell>
                       <TableCell className="font-semibold">{lang === "bn" ? a.name : a.nameEn}{a.isRoot && <span className="ml-1.5 text-xs font-normal text-muted-foreground">({t.rootAdmin})</span>}</TableCell>
-                      <TableCell><Badge className={cn("border-transparent font-semibold", roleBadgeClass(a.role))}>{roleLabel(a.role)}</Badge></TableCell>
+                      <TableCell><Badge className={cn("border-transparent font-semibold", accountRoleBadge(a.role))}>{accountRoleLabel(t, a.role)}</Badge></TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1">
                           {a.isAdmin && <Badge variant="secondary" className="gap-1"><Shield className="h-3 w-3" />{t.admin}</Badge>}

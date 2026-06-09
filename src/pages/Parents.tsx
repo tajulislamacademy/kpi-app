@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, MoreHorizontal, Pencil, Trash2, Check, X, Inbox, RotateCcw } from "lucide-react";
 import { errMsg, nextSystemId, genPassword, cn } from "../lib";
+import { parentStatusBadge, parentStatusLabel, relationLabel } from "../labels";
 import { can } from "../permissions";
 import { Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox, EmptyState, Page } from "../components";
 import { Button } from "@/components/ui/button";
@@ -20,11 +21,6 @@ interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg
 interface AddForm { studentId: string; name: string; nameEn: string; relation: string; password: string; }
 interface EditForm { id: string; studentId: string; name: string; nameEn: string; relation: string; status: ParentStatus; password: string; authId?: string | null; systemId?: string; }
 
-const statusClass = (s: string) =>
-  s === "approved" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
-    : s === "rejected" ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-      : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300";
-
 export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
   const { parents, loading, error, reload } = useDbParents(true, true);
   const { students: dbStudents } = useDbStudents(true);
@@ -40,8 +36,6 @@ export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
 
   const relationOptions = (<><SelectItem value="father">{t.father}</SelectItem><SelectItem value="mother">{t.mother}</SelectItem><SelectItem value="guardian">{t.guardian}</SelectItem></>);
   const studentOptions = dbStudents.map(s => ({ value: s.id, label: `${lang === "bn" ? s.name : s.nameEn} · ${s.systemId}` }));
-  const relLabel = (r: string | null) => r === "father" ? t.father : r === "mother" ? t.mother : r === "guardian" ? t.guardian : "—";
-  const statusLabel = (s: string) => s === "approved" ? t.approved : s === "rejected" ? t.rejected : t.pending;
   const studentName = (uuid: string | null | undefined) => { const s = dbStudents.find(x => x.id === uuid); return s ? `${lang === "bn" ? s.name : s.nameEn} (${s.systemId})` : "—"; };
 
   const run = async (fn: () => Promise<void>, msg: string) => {
@@ -145,8 +139,8 @@ export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
                     <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{p.systemId}</code></TableCell>
                     <TableCell className="font-semibold">{lang === "bn" ? p.name : p.nameEn}{!p.authId && <span className="ml-1.5 text-xs font-normal text-muted-foreground">({lang === "bn" ? "login নেই" : "no login"})</span>}</TableCell>
                     <TableCell>{studentName(p.studentId)}</TableCell>
-                    <TableCell>{relLabel(p.relation)}</TableCell>
-                    <TableCell><Badge className={cn("border-transparent text-xs font-semibold", statusClass(p.status))}>{statusLabel(p.status)}</Badge></TableCell>
+                    <TableCell>{relationLabel(t, p.relation)}</TableCell>
+                    <TableCell><Badge className={cn("border-transparent text-xs font-semibold", parentStatusBadge(p.status))}>{parentStatusLabel(t, p.status)}</Badge></TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -80,7 +80,7 @@ export default function App() {
     ...(c("questions.view") ? [{ key: "questions", icon: ListChecks, label: t.questions }] : []),
     ...(c("accounts.manage") ? [{ key: "accounts", icon: UserCog, label: t.accounts }] : []),
     { key: "reports", icon: BarChart3, label: t.reports },
-    { key: "kpiDetails", icon: ScrollText, label: lang === "bn" ? "বিস্তারিত" : "Details" },
+    { key: "kpiDetails", icon: ScrollText, label: t.details },
     ...(c("teacher_kpi") ? [{ key: "teacherKpi", icon: Award, label: t.teacherKPI }] : []),
     ...(c("parent_kpi") ? [{ key: "parentKpi", icon: UsersRound, label: t.parentKPI }] : []),
     ...(c("settings.edit") ? [{ key: "settings", icon: Settings, label: t.settings }] : []),
