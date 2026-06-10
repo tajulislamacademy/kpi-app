@@ -13,6 +13,10 @@ dist-ssr
 *.local
 .env
 
+# Local-only data: real student/teacher PII, one-off import xlsx + SQL scripts.
+# Never push to git.
+data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
