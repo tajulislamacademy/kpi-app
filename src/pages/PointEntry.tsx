@@ -24,6 +24,14 @@ type Scores = Record<string, Record<string, number>>;
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; isAdmin: boolean; }
 
 const EMPTY = "py-8 text-center text-muted-foreground";
+const FREQS = ["daily", "weekly", "monthly", "quarterly", "annual"];
+const QUARTERS = [
+  { bn: "১ম ত্রৈমাসিক (জানু–মার্চ)", en: "Q1 (Jan–Mar)" },
+  { bn: "২য় ত্রৈমাসিক (এপ্রিল–জুন)", en: "Q2 (Apr–Jun)" },
+  { bn: "৩য় ত্রৈমাসিক (জুলাই–সেপ্ট)", en: "Q3 (Jul–Sep)" },
+  { bn: "৪র্থ ত্রৈমাসিক (অক্টো–ডিসে)", en: "Q4 (Oct–Dec)" },
+];
+const pad = (n: number) => String(n).padStart(2, "0");
 
 export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Props) {
   const isMobile = useIsMobile();
@@ -34,6 +42,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const loadErr = e1 || e2 || e3;
   const [activeRole, setActiveRole] = useState("classTeacher");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [freqFilter, setFreqFilter] = useState("all");
   const [selectedAssign, setSelectedAssign] = useState<SubjectAssignment | null>(null);
   // Admin scope picker (admins have no teaching assignment, so they choose any class/section/subject).
   const [adminClass, setAdminClass] = useState("8");
@@ -44,6 +53,9 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const [editScore, setEditScore] = useState<number | string>("");
   const [fTc, setFTc] = useState("all"), [fSt, setFSt] = useState("all"), [fYr, setFYr] = useState("all"), [fMo, setFMo] = useState("all"), [fRo, setFRo] = useState("all");
   const cm = new Date(selectedDate).getMonth(), cw = getWeekNumber(selectedDate), cy = new Date(selectedDate).getFullYear();
+  // Year options for the month/quarter/year period pickers (current ± a couple).
+  const nowY = new Date().getFullYear();
+  const yearOpts = useMemo(() => Array.from(new Set([nowY + 1, nowY, nowY - 1, nowY - 2, cy])).sort((a, b) => b - a), [nowY, cy]);
   const ct = currentUser.classTeacher;
   // For admins the class/section comes from the scope picker; teachers use their assignment.
   const classStudents = ct ? students.filter(s => s.class === ct.class && s.section === ct.section)
@@ -54,7 +66,9 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const subjectStudents = effAssign ? students.filter(s => s.class === effAssign.class && s.section === effAssign.section) : [];
   const guideIds = currentUser.guideStudents || [];
   const guideStudents = isAdmin ? students.filter(s => s.class === adminClass && s.section === adminSection) : students.filter(s => guideIds.includes(s.id));
-  const roleQs = questions.filter(q => q.role === activeRole && q.activeMonths.includes(cm));
+  // Filter the grid by frequency so a daily class-teacher grid isn't mixed with
+  // the annual exam-marks question. Only the selected frequency's questions show.
+  const roleQs = questions.filter(q => q.role === activeRole && q.activeMonths.includes(cm) && (freqFilter === "all" || (q.frequency || "monthly") === freqFilter));
   const curStudents = activeRole === "classTeacher" ? classStudents : activeRole === "subjectTeacher" ? subjectStudents : guideStudents;
   const curStudentIds = curStudents.map(s => s.id); // hook keys by sorted ids, so a fresh array here is fine
   // Grid freq-checks load only the displayed class's entries for the year; the
@@ -120,8 +134,56 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.pointEntry}</h2>
       <ErrorNote lang={lang} error={loadErr} />
 
-      <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
-      <Tabs items={tabs} active={activeRole} onChange={(k) => { setActiveRole(k); setAllScores({}); setSelectedAssign(null); }} />
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1.5">
+          <Label>{lang === "bn" ? "ফ্রিকোয়েন্সি" : "Frequency"}</Label>
+          <Select value={freqFilter} onValueChange={setFreqFilter}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === "bn" ? "সব" : "All"}</SelectItem>
+              {FREQS.map(f => <SelectItem key={f} value={f}>{freqLabel(f)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Period control follows the frequency: month/quarter/year dropdowns, or a date picker for daily/weekly/all. */}
+        {freqFilter === "monthly" ? (<>
+          <div className="space-y-1.5"><Label>{t.month}</Label>
+            <Select value={String(cm)} onValueChange={v => setSelectedDate(`${cy}-${pad(parseInt(v) + 1)}-01`)}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>{MONTHS.map((m, i) => <SelectItem key={m} value={String(i)}>{T[lang][m]}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5"><Label>{lang === "bn" ? "বছর" : "Year"}</Label>
+            <Select value={String(cy)} onValueChange={y => setSelectedDate(`${y}-${pad(cm + 1)}-01`)}>
+              <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+              <SelectContent>{yearOpts.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </>) : freqFilter === "quarterly" ? (<>
+          <div className="space-y-1.5"><Label>{lang === "bn" ? "ত্রৈমাসিক" : "Quarter"}</Label>
+            <Select value={String(Math.floor(cm / 3))} onValueChange={q => setSelectedDate(`${cy}-${pad(parseInt(q) * 3 + 1)}-01`)}>
+              <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+              <SelectContent>{QUARTERS.map((q, i) => <SelectItem key={i} value={String(i)}>{lang === "bn" ? q.bn : q.en}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5"><Label>{lang === "bn" ? "বছর" : "Year"}</Label>
+            <Select value={String(cy)} onValueChange={y => setSelectedDate(`${y}-${pad(Math.floor(cm / 3) * 3 + 1)}-01`)}>
+              <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+              <SelectContent>{yearOpts.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </>) : freqFilter === "annual" ? (
+          <div className="space-y-1.5"><Label>{lang === "bn" ? "বছর" : "Year"}</Label>
+            <Select value={String(cy)} onValueChange={y => setSelectedDate(`${y}-01-01`)}>
+              <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+              <SelectContent>{yearOpts.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
+        )}
+      </div>
+      <Tabs items={tabs} active={activeRole} onChange={(k) => { setActiveRole(k); setAllScores({}); setSelectedAssign(null); setFreqFilter("all"); }} />
 
       {isAdmin && (
         <Card>
