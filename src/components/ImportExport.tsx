@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Download, Upload, FileText } from "lucide-react";
 import { genId } from "../lib";
-import { toCSV, parseCSV, downloadText } from "../csv";
+import { downloadSheet, parseSheet } from "../sheet";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import type { Dict, Lang } from "../types";
@@ -31,11 +31,8 @@ export function ImportExport({ t, lang, config, onDone, showNotif }: Props) {
   const [progress, setProgress] = useState("");
   const [result, setResult] = useState<Result | null>(null);
 
-  const doExport = () => {
-    const rows = config.existing.map(config.toExportRow);
-    downloadText(`${config.filename}.csv`, toCSV(config.exportHeader, rows));
-  };
-  const doTemplate = () => downloadText(`${config.filename}_template.csv`, toCSV(config.importHeader, [config.templateExample]));
+  const doExport = () => downloadSheet(`${config.filename}.xlsx`, config.exportHeader, config.existing.map(config.toExportRow));
+  const doTemplate = () => downloadSheet(`${config.filename}_template.xlsx`, config.importHeader, [config.templateExample]);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,7 +41,7 @@ export function ImportExport({ t, lang, config, onDone, showNotif }: Props) {
     setBusy(true);
     setProgress("");
     try {
-      const rows = parseCSV(await file.text());
+      const rows = await parseSheet(file);
       if (!rows.length) { showNotif(lang === "bn" ? "ফাইল খালি বা ভুল" : "Empty or invalid file"); return; }
       if (!config.importHeader.some((h) => h in rows[0])) {
         showNotif((lang === "bn" ? "কলাম মিলছে না। প্রত্যাশিত: " : "Columns don't match. Expected: ") + config.importHeader.join(", "));
@@ -84,7 +81,7 @@ export function ImportExport({ t, lang, config, onDone, showNotif }: Props) {
       <Button variant="outline" size="sm" className="gap-1.5" onClick={doExport}><Download className="h-4 w-4" />{lang === "bn" ? "এক্সপোর্ট" : "Export"}</Button>
       <Button variant="outline" size="sm" className="gap-1.5" onClick={doTemplate}><FileText className="h-4 w-4" />{lang === "bn" ? "টেমপ্লেট" : "Template"}</Button>
       <Button variant="outline" size="sm" className="gap-1.5" disabled={busy} onClick={() => fileRef.current?.click()}><Upload className="h-4 w-4" />{busy ? (progress || (lang === "bn" ? "চলছে…" : "Working…")) : (lang === "bn" ? "ইমপোর্ট" : "Import")}</Button>
-      <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
+      <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={onFile} />
 
       <Dialog open={!!result} onOpenChange={(o) => { if (!o) setResult(null); }}>
         <DialogContent>

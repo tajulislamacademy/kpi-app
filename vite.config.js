@@ -18,6 +18,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return
+          if (id.includes('xlsx')) return 'xlsx'
           if (id.includes('@supabase')) return 'supabase'
           if (id.includes('react-day-picker') || id.includes('date-fns')) return 'datepicker'
           if (id.includes('radix-ui') || id.includes('@radix-ui') || id.includes('cmdk')) return 'radix'
