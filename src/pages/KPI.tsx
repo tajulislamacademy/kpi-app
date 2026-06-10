@@ -4,11 +4,12 @@ import { T } from "../i18n";
 import { MONTHS } from "../constants";
 import { useIsMobile } from "../composables";
 import { freqDone, errMsg } from "../lib";
-import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid, ErrorNote, DatePicker } from "../components";
+import { StatCard, BarChart, YearSelector, TermBreakdown, EditScoreModal, EntryHistoryTable, ScoreEntryGrid, ErrorNote, PeriodControls, Combobox } from "../components";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
+import { useDbStudents } from "../api/students";
 import { useDbQuestions } from "../api/questions";
 import { useDbEntriesByTarget, useEntriesForTarget, insertEntries, updateEntryScore, targetKpiHelpers } from "../api/entries";
 import type { Dict, Lang, SessionUser, TermConfig, TargetEntry } from "../types";
@@ -38,11 +39,12 @@ export function TeacherKPIPage({ t, lang, currentUser, showNotif, selectedYear, 
   const teacherQuestions = allQ.filter(q => q.category === "teacher");
   const { entries: teacherEntries, reload, error: e3 } = useDbEntriesByTarget("teacher", true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [freqFilter, setFreqFilter] = useState("all");
   const [allScores, setAllScores] = useState<Scores>({});
   const [submitting, setSubmitting] = useState(false);
   const cm = new Date(selectedDate).getMonth(), cy = new Date(selectedDate).getFullYear();
   const yearsSet = [...new Set(teacherEntries.map(e => e.year))]; if (!yearsSet.includes(selectedYear)) yearsSet.push(selectedYear); const availableYears = yearsSet.sort((a, b) => b - a);
-  const activeQs = teacherQuestions.filter(q => q.activeMonths.includes(cm));
+  const activeQs = teacherQuestions.filter(q => q.activeMonths.includes(cm) && (freqFilter === "all" || (q.frequency || "monthly") === freqFilter));
   const setScore = (tid: string, qid: string, val: string) => { const max = teacherQuestions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [tid]: { ...(p[tid] || {}), [qid]: Math.max(0, Math.min(parseInt(val, 10) || 0, max)) } })); };
   const getScore = (tid: string, qid: string): number | string => allScores[tid]?.[qid] ?? "";
   const getTotal = (tid: string) => activeQs.reduce((s, q) => s + (allScores[tid]?.[q.id] || 0), 0);
@@ -66,7 +68,7 @@ export function TeacherKPIPage({ t, lang, currentUser, showNotif, selectedYear, 
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <ErrorNote lang={lang} error={e1 || e2 || e3} />
-      <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
+      <PeriodControls t={t} lang={lang} freqFilter={freqFilter} setFreqFilter={setFreqFilter} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
       <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={teachers} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.teachers} emptyMsg={t.noQForMonth} />
       <EntryHistoryTable t={t} lang={lang} entries={teacherEntries} people={teachers} whoLabel={t.teachers} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
     </div>
@@ -76,16 +78,24 @@ export function TeacherKPIPage({ t, lang, currentUser, showNotif, selectedYear, 
 export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, setSelectedYear }: EntryProps) {
   const isMobile = useIsMobile();
   const { parents, error: e1 } = useDbParents(true);
+  const { students } = useDbStudents(true);
   const { questions: allQ, error: e2 } = useDbQuestions(true);
   const parentQuestions = allQ.filter(q => q.category === "parent");
   const { entries: parentEntries, reload, error: e3 } = useDbEntriesByTarget("parent", true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [freqFilter, setFreqFilter] = useState("all");
+  const [selStudent, setSelStudent] = useState("all");
   const [allScores, setAllScores] = useState<Scores>({});
   const [submitting, setSubmitting] = useState(false);
   const approvedParents = parents.filter(p => p.status === "approved");
+  // Show whose parent (child name + class) and let the admin focus on one student.
+  const childLabel = (sid?: string | null) => { const s = students.find(x => x.id === sid); return s ? `${lang === "bn" ? s.name : s.nameEn} · ${t.class} ${s.class}${s.section || ""}` : (lang === "bn" ? "সন্তান লিঙ্ক নেই" : "no child link"); };
+  const filteredParents = selStudent === "all" ? approvedParents : approvedParents.filter(p => p.studentId === selStudent);
+  const gridParents = filteredParents.map(p => ({ ...p, systemId: childLabel(p.studentId) }));
+  const studentOpts = [{ value: "all", label: lang === "bn" ? "সব শিক্ষার্থী" : "All students" }, ...students.filter(s => approvedParents.some(p => p.studentId === s.id)).map(s => ({ value: s.id, label: `${lang === "bn" ? s.name : s.nameEn} · ${s.systemId}` }))];
   const cm = new Date(selectedDate).getMonth(), cy = new Date(selectedDate).getFullYear();
   const yearsSet = [...new Set(parentEntries.map(e => e.year))]; if (!yearsSet.includes(selectedYear)) yearsSet.push(selectedYear); const availableYears = yearsSet.sort((a, b) => b - a);
-  const activeQs = parentQuestions.filter(q => q.activeMonths.includes(cm));
+  const activeQs = parentQuestions.filter(q => q.activeMonths.includes(cm) && (freqFilter === "all" || (q.frequency || "monthly") === freqFilter));
   const setScore = (pid: string, qid: string, val: string) => { const max = parentQuestions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [pid]: { ...(p[pid] || {}), [qid]: Math.max(0, Math.min(parseInt(val, 10) || 0, max)) } })); };
   const getScore = (pid: string, qid: string): number | string => allScores[pid]?.[qid] ?? "";
   const getTotal = (pid: string) => activeQs.reduce((s, q) => s + (allScores[pid]?.[q.id] || 0), 0);
@@ -94,7 +104,7 @@ export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, s
   const [editScore, setEditScore] = useState<number | string>("");
   const handleEditSave = async () => { if (!editEntry) return; try { await updateEntryScore(editEntry.id, parseInt(String(editScore)) || 0, editEntry.score, "admin"); await reload(); setEditEntry(null); showNotif(lang === "bn" ? "সম্পাদনা সফল!" : "Edited!"); } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); } };
   const handleSubmit = async () => {
-    const rows: Record<string, unknown>[] = []; approvedParents.forEach(p => { activeQs.forEach(q => { if (isFreqDone(p.id, q.id)) return; rows.push({ target_type: "parent", target_id: p.id, entered_by: currentUser.id, question_id: q.id, question_text: q.textBn, question_text_en: q.textEn, max_points: q.points, score: allScores[p.id]?.[q.id] || 0, month: cm, year: cy, entry_date: selectedDate, edit_log: [] }); }); });
+    const rows: Record<string, unknown>[] = []; filteredParents.forEach(p => { activeQs.forEach(q => { if (isFreqDone(p.id, q.id)) return; rows.push({ target_type: "parent", target_id: p.id, entered_by: currentUser.id, question_id: q.id, question_text: q.textBn, question_text_en: q.textEn, max_points: q.points, score: allScores[p.id]?.[q.id] || 0, month: cm, year: cy, entry_date: selectedDate, edit_log: [] }); }); });
     if (!rows.length) { showNotif(lang === "bn" ? "জমা দেওয়ার মতো কিছু নেই" : "Nothing to submit"); return; }
     setSubmitting(true);
     try { await insertEntries(rows); await reload(); setAllScores({}); showNotif(lang === "bn" ? "পয়েন্ট জমা হয়েছে!" : "Points submitted!"); }
@@ -109,8 +119,14 @@ export function ParentKPIPage({ t, lang, currentUser, showNotif, selectedYear, s
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <ErrorNote lang={lang} error={e1 || e2 || e3} />
-      <div className="space-y-1.5"><Label>{t.selectDate}</Label><DatePicker value={selectedDate} onChange={setSelectedDate} /></div>
-      <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={approvedParents} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.parent} emptyMsg={t.noQForMonth} />
+      <div className="flex flex-wrap items-end gap-3">
+        <PeriodControls t={t} lang={lang} freqFilter={freqFilter} setFreqFilter={setFreqFilter} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+        <div className="min-w-60 space-y-1.5">
+          <Label>{lang === "bn" ? "শিক্ষার্থী (অভিভাবক ফিল্টার)" : "Student (filter parents)"}</Label>
+          <Combobox options={studentOpts} value={selStudent} onChange={setSelStudent} placeholder={lang === "bn" ? "সব শিক্ষার্থী" : "All students"} searchPlaceholder={lang === "bn" ? "নাম/ID খুঁজুন…" : "Search name/ID…"} />
+        </div>
+      </div>
+      <ScoreEntryGrid t={t} lang={lang} isMobile={isMobile} targets={gridParents} questions={activeQs} getScore={getScore} setScore={setScore} getTotal={getTotal} isFreqDone={isFreqDone} onSubmit={handleSubmit} submitting={submitting} whoLabel={t.parent} emptyMsg={t.noQForMonth} />
       <EntryHistoryTable t={t} lang={lang} entries={parentEntries} people={parents} whoLabel={t.parent} onEdit={(e) => { setEditEntry(e); setEditScore(e.score); }} />
     </div>
   );
