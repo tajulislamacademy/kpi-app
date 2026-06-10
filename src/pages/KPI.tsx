@@ -149,7 +149,7 @@ export function MyParentKPIPage({ t, lang, currentUser, selectedYear, setSelecte
   return (
     <div className={PAGE}>
       <div className={HEAD}>
-        <div><h2 className={TITLE}>{t.myKPI}</h2><p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? currentUser.name : (currentUser.nameEn || currentUser.name)}</p></div>
+        <div><h2 className={TITLE}>{t.myPEI}</h2><p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? currentUser.name : (currentUser.nameEn || currentUser.name)}</p></div>
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={parYears.length > 0 ? parYears : [selectedYear]} />
       </div>
       <div className={GRID4}>

@@ -86,7 +86,7 @@ export default function App() {
     ...(c("parent_kpi") ? [{ key: "parentKpi", icon: UsersRound, label: t.parentKPI }] : []),
     ...(c("settings.edit") ? [{ key: "settings", icon: Settings, label: t.settings }] : []),
     ...(isTeacher ? [{ key: "myTchrKpi", icon: TrendingUp, label: t.myTchrKPI }] : []),
-    ...(currentUser.role === "parent" ? [{ key: "myParKpi", icon: TrendingUp, label: t.myKPI }] : []),
+    ...(currentUser.role === "parent" ? [{ key: "myParKpi", icon: TrendingUp, label: t.myPEI }] : []),
     { key: "profile", icon: KeyRound, label: t.myProfile },
   ];
   return (
