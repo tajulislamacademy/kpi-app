@@ -3,7 +3,7 @@ import { Plus, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { CLASSES } from "../constants";
 import { errMsg, nextSystemId, genPassword } from "../lib";
 import { relationLabel } from "../labels";
-import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page } from "../components";
+import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page, ImportExport, type ImportExportConfig } from "../components";
 import { can } from "../permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,20 @@ export function StudentsPage({ t, lang, currentUser, showNotif }: Props) {
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const c = (cap: string) => can(currentUser, cap);
+
+  // Bulk CSV import/export. Login created only when a password cell is filled.
+  const ieConfig: ImportExportConfig = {
+    filename: "students", prefix: "STD",
+    exportHeader: ["systemId", "name", "nameEn", "class", "section", "roll"],
+    toExportRow: (r) => [r.systemId, r.name, r.nameEn, r.class, r.section, r.roll],
+    importHeader: ["name", "nameEn", "class", "section", "roll", "password"],
+    templateExample: [lang === "bn" ? "মোহাম্মদ আলী" : "Mohammad Ali", "Mohammad Ali", "8", "A", "1", ""],
+    existing: students,
+    rowKey: (r) => `${r.name}|${r.class}|${r.section || ""}|${r.roll ?? ""}`,
+    importRowKey: (row) => `${row.name}|${row.class}|${row.section || ""}|${row.roll || ""}`,
+    validate: (row) => !row.name ? (lang === "bn" ? "নাম নেই" : "name missing") : !row.class ? (lang === "bn" ? "শ্রেণী নেই" : "class missing") : (row.password && row.password.length < 6 ? (lang === "bn" ? "পাসওয়ার্ড < ৬" : "password < 6") : null),
+    create: async (row, systemId) => { await createStudent({ systemId, name: row.name, nameEn: row.nameEn || "", cls: row.class, section: row.section || "", roll: row.roll ? parseInt(row.roll, 10) : null, password: row.password || "" }); },
+  };
 
   const openAdd = () => { setEditId(null); setForm({ ...blank, password: genPassword() }); setShowForm(true); };
   const openEdit = (s: Student) => { setEditId(s.id); setForm({ name: s.name || "", nameEn: s.nameEn || "", class: s.class || "8", section: s.section || "", roll: s.roll || "", password: "", _authId: s.authId, _systemId: s.systemId }); setShowForm(true); };
@@ -70,7 +84,12 @@ export function StudentsPage({ t, lang, currentUser, showNotif }: Props) {
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.students}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${active.length} জন` : `Total ${active.length}`}{loading ? " · …" : ""}</p>
         </div>
-        {c("students.create") && <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addStudent}</Button>}
+        {c("students.create") && (
+          <div className="flex flex-wrap items-center gap-2">
+            <ImportExport t={t} lang={lang} config={ieConfig} onDone={reload} showNotif={showNotif} />
+            <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addStudent}</Button>
+          </div>
+        )}
       </div>
       <ErrorNote lang={lang} error={error} />
 
