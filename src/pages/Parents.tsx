@@ -3,7 +3,7 @@ import { Plus, MoreHorizontal, Pencil, Trash2, Check, X, Inbox, RotateCcw } from
 import { errMsg, nextSystemId, genPassword, cn } from "../lib";
 import { parentStatusBadge, parentStatusLabel, relationLabel } from "../labels";
 import { can } from "../permissions";
-import { Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox, EmptyState, Page } from "../components";
+import { Tabs, ErrorNote, ConfirmDialog, PasswordInput, Combobox, EmptyState, Page, ImportExport, type ImportExportConfig } from "../components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +37,26 @@ export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
   const relationOptions = (<><SelectItem value="father">{t.father}</SelectItem><SelectItem value="mother">{t.mother}</SelectItem><SelectItem value="guardian">{t.guardian}</SelectItem></>);
   const studentOptions = dbStudents.map(s => ({ value: s.id, label: `${lang === "bn" ? s.name : s.nameEn} · ${s.systemId}` }));
   const studentName = (uuid: string | null | undefined) => { const s = dbStudents.find(x => x.id === uuid); return s ? `${lang === "bn" ? s.name : s.nameEn} (${s.systemId})` : "—"; };
+
+  // Bulk CSV import/export. Parent → student linked by the child's systemId.
+  const sysToId = new Map(dbStudents.map(s => [s.systemId, s.id]));
+  const idToSys = new Map(dbStudents.map(s => [s.id, s.systemId]));
+  const ieConfig: ImportExportConfig = {
+    filename: "parents", prefix: "PAR",
+    exportHeader: ["systemId", "name", "nameEn", "relation", "studentSystemId", "status"],
+    toExportRow: (r) => [r.systemId, r.name, r.nameEn, r.relation, idToSys.get(r.studentId) || "", r.status],
+    importHeader: ["name", "nameEn", "relation", "studentSystemId", "password", "status"],
+    templateExample: [lang === "bn" ? "করিম মিয়া" : "Karim Mia", "Karim Mia", "father", dbStudents[0]?.systemId || "STD-20260001", "", "approved"],
+    existing: parents,
+    rowKey: (r) => `${r.name}|${idToSys.get(r.studentId) || ""}`,
+    importRowKey: (row) => `${row.name}|${row.studentSystemId}`,
+    validate: (row) => !row.name ? (lang === "bn" ? "নাম নেই" : "name missing")
+      : !row.studentSystemId ? (lang === "bn" ? "studentSystemId নেই" : "studentSystemId missing")
+        : !sysToId.has(row.studentSystemId) ? (lang === "bn" ? "শিক্ষার্থী পাওয়া যায়নি" : "student not found")
+          : (row.relation && !["father", "mother", "guardian"].includes(row.relation)) ? (lang === "bn" ? "সম্পর্ক ভুল (father/mother/guardian)" : "bad relation")
+            : (row.password && row.password.length < 6) ? (lang === "bn" ? "পাসওয়ার্ড < ৬" : "password < 6") : null,
+    create: async (row, systemId) => { await createParent({ systemId, name: row.name, nameEn: row.nameEn || "", password: row.password || "", studentId: sysToId.get(row.studentSystemId) || null, relation: row.relation || "guardian", status: (row.status as ParentStatus) || "approved" }); },
+  };
 
   const run = async (fn: () => Promise<void>, msg: string) => {
     try { await fn(); await reload(); showNotif(msg); }
@@ -84,7 +104,12 @@ export function ParentsPage({ t, lang, currentUser, showNotif }: Props) {
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{lang === "bn" ? "অভিভাবক" : "Parents"}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${counts.all} জন` : `Total ${counts.all}`}{loading ? " · …" : ""}</p>
         </div>
-        {c("parents.create") && <Button onClick={() => { if (!showAdd) setAddForm({ ...blankAdd, password: genPassword() }); setShowAdd(v => !v); }}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>}
+        {c("parents.create") && (
+          <div className="flex flex-wrap items-center gap-2">
+            <ImportExport t={t} lang={lang} config={ieConfig} onDone={reload} showNotif={showNotif} />
+            <Button onClick={() => { if (!showAdd) setAddForm({ ...blankAdd, password: genPassword() }); setShowAdd(v => !v); }}><Plus className="h-4 w-4" />{lang === "bn" ? "অভিভাবক যোগ" : "Add Parent"}</Button>
+          </div>
+        )}
       </div>
       <ErrorNote lang={lang} error={error} />
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, X, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
 import { errMsg, nextSystemId, genPassword } from "../lib";
-import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page } from "../components";
+import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page, ImportExport, type ImportExportConfig } from "../components";
 import { can } from "../permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,20 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const c = (cap: string) => can(currentUser, cap);
+  // Bulk CSV import/export. subjectAssignments/guideStudents are set later in the
+  // UI (too nested for a flat CSV); login only when a password cell is filled.
+  const ieConfig: ImportExportConfig = {
+    filename: "teachers", prefix: "TCH",
+    exportHeader: ["systemId", "name", "nameEn", "classTeacherClass", "classTeacherSection"],
+    toExportRow: (r) => [r.systemId, r.name, r.nameEn, r.classTeacher?.class || "", r.classTeacher?.section || ""],
+    importHeader: ["name", "nameEn", "password", "classTeacherClass", "classTeacherSection"],
+    templateExample: [lang === "bn" ? "রফিক স্যার" : "Rafiq Sir", "Rafiq Sir", "", "8", "A"],
+    existing: teachers,
+    rowKey: (r) => r.name,
+    importRowKey: (row) => row.name,
+    validate: (row) => !row.name ? (lang === "bn" ? "নাম নেই" : "name missing") : (row.password && row.password.length < 6 ? (lang === "bn" ? "পাসওয়ার্ড < ৬" : "password < 6") : null),
+    create: async (row, systemId) => { const cls = (row.classTeacherClass || "").trim(); const sec = (row.classTeacherSection || "").trim(); await createTeacher({ systemId, name: row.name, nameEn: row.nameEn || "", password: row.password || "", classTeacher: cls ? { class: cls, section: sec } : null, subjectAssignments: [], guideStudents: [] }); },
+  };
   const run = async (fn: () => Promise<void>, msg: string) => { try { await fn(); await reload(); showNotif(msg); } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); } };
   const addAssign = () => { if (form.subjectAssignments.find(a => a.class === newAssign.class && a.section === newAssign.section && a.subject === newAssign.subject)) return; setForm({ ...form, subjectAssignments: [...form.subjectAssignments, { ...newAssign }] }); };
   const removeAssign = (i: number) => setForm({ ...form, subjectAssignments: form.subjectAssignments.filter((_, idx) => idx !== i) });
@@ -73,7 +87,12 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
           <h2 className="text-xl font-extrabold text-foreground sm:text-2xl">{t.teachers}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{lang === "bn" ? `মোট ${active.length} জন` : `Total ${active.length}`}{loading ? " · …" : ""}</p>
         </div>
-        {c("teachers.create") && <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addTeacher}</Button>}
+        {c("teachers.create") && (
+          <div className="flex flex-wrap items-center gap-2">
+            <ImportExport t={t} lang={lang} config={ieConfig} onDone={reload} showNotif={showNotif} />
+            <Button onClick={openAdd}><Plus className="h-4 w-4" />{t.addTeacher}</Button>
+          </div>
+        )}
       </div>
       <ErrorNote lang={lang} error={error} />
 
