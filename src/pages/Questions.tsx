@@ -74,7 +74,7 @@ export function QuestionsPage({ t, lang, currentUser, showNotif }: Props) {
         {list.map((q, i) => (
           <TableRow key={q.id}>
             <TableCell>{i + 1}</TableCell>
-            <TableCell><div className="max-w-50 text-sm font-medium">{lang === "bn" ? q.textBn : q.textEn}</div></TableCell>
+            <TableCell><div className="max-w-xs whitespace-normal wrap-break-word text-sm font-medium">{lang === "bn" ? q.textBn : q.textEn}</div></TableCell>
             <TableCell className="font-bold">{q.points}</TableCell>
             <TableCell><Badge variant="secondary">{freqLabel(q.frequency || "monthly")}</Badge></TableCell>
             <TableCell>
