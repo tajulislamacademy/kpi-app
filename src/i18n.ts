@@ -27,7 +27,7 @@ export const T = {
     selectClassSubject:"প্রথমে শ্রেণী ও বিষয় নির্বাচন করুন",
     pendingApprovals:"অনুমোদন অপেক্ষমাণ", approve:"অনুমোদন", reject:"বাতিল",
     approved:"অনুমোদিত", rejected:"বাতিল", pending:"অপেক্ষমাণ",
-    myKPI:"আমার KPI", childKPI:"সন্তানের KPI", myProfile:"আমার প্রোফাইল",
+    myKPI:"আমার KPI", myPEI:"আমার PEI", childKPI:"সন্তানের KPI", myProfile:"আমার প্রোফাইল",
     changePassword:"পাসওয়ার্ড পরিবর্তন", currentPassword:"বর্তমান পাসওয়ার্ড",
     newPassword:"নতুন পাসওয়ার্ড", confirmPassword:"পাসওয়ার্ড নিশ্চিত করুন",
     studentId:"শিক্ষার্থীর ID", parentName:"অভিভাবকের নাম",
@@ -42,7 +42,7 @@ export const T = {
     wrongPassword:"বর্তমান পাসওয়ার্ড ভুল",
     myRank:"আমার র‍্যাংক", myMonthly:"মাসিক পয়েন্ট", myYearly:"বার্ষিক পয়েন্ট",
     progressChart:"অগ্রগতি চার্ট",
-    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",teacherKPI:"শিক্ষক KPI",parentKPI:"অভিভাবক KPI",tchrKpiEntry:"শিক্ষক KPI এন্ট্রি",parKpiEntry:"অভিভাবক KPI এন্ট্রি",stdQuestions:"শিক্ষার্থী প্রশ্ন",tchrQuestions:"শিক্ষক প্রশ্ন",parQuestions:"অভিভাবক প্রশ্ন",entryHistory:"এন্ট্রি ইতিহাস",noQForMonth:"এই মাসে কোনো প্রশ্ন নেই",myTchrKPI:"আমার KPI",frequency:"পুনরাবৃত্তি",daily:"দৈনিক",weekly:"সাপ্তাহিক",monthly:"মাসিক",quarterly:"ত্রৈমাসিক",annual:"বার্ষিক",alreadyDone:"এই সময়ে দেওয়া হয়েছে",
+    addAdmin:"অ্যাডমিন যোগ করুন",makeAdmin:"অ্যাডমিন করুন",removeAdmin:"অ্যাডমিন সরান",adminAccounts:"অ্যাডমিন অ্যাকাউন্ট",rootAdmin:"মূল অ্যাডমিন",deleteAdmin:"মুছুন",userToAdmin:"ব্যবহারকারী → অ্যাডমিন",edit:"সম্পাদনা",teacherKPI:"শিক্ষক KPI",parentKPI:"অভিভাবক PEI",tchrKpiEntry:"শিক্ষক KPI এন্ট্রি",parKpiEntry:"অভিভাবক PEI এন্ট্রি",stdQuestions:"শিক্ষার্থী প্রশ্ন",tchrQuestions:"শিক্ষক প্রশ্ন",parQuestions:"অভিভাবক প্রশ্ন",entryHistory:"এন্ট্রি ইতিহাস",noQForMonth:"এই মাসে কোনো প্রশ্ন নেই",myTchrKPI:"আমার KPI",frequency:"পুনরাবৃত্তি",daily:"দৈনিক",weekly:"সাপ্তাহিক",monthly:"মাসিক",quarterly:"ত্রৈমাসিক",annual:"বার্ষিক",alreadyDone:"এই সময়ে দেওয়া হয়েছে",
   },
   en: {
     appTitle:"Student KPI System", dashboard:"Dashboard", teachers:"Teachers",
@@ -71,7 +71,7 @@ export const T = {
     selectClassSubject:"Select class and subject first",
     pendingApprovals:"Pending Approvals", approve:"Approve", reject:"Reject",
     approved:"Approved", rejected:"Rejected", pending:"Pending",
-    myKPI:"My KPI", childKPI:"Child's KPI", myProfile:"My Profile",
+    myKPI:"My KPI", myPEI:"My PEI", childKPI:"Child's KPI", myProfile:"My Profile",
     changePassword:"Change Password", currentPassword:"Current Password",
     newPassword:"New Password", confirmPassword:"Confirm Password",
     studentId:"Student ID", parentName:"Parent Name",
@@ -86,6 +86,6 @@ export const T = {
     wrongPassword:"Current password is incorrect",
     myRank:"My Rank", myMonthly:"Monthly Points", myYearly:"Yearly Points",
     progressChart:"Progress Chart",
-    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",teacherKPI:"Teacher KPI",parentKPI:"Parent KPI",tchrKpiEntry:"Teacher KPI Entry",parKpiEntry:"Parent KPI Entry",stdQuestions:"Student Questions",tchrQuestions:"Teacher Questions",parQuestions:"Parent Questions",entryHistory:"Entry History",noQForMonth:"No questions for this month",myTchrKPI:"My KPI",frequency:"Frequency",daily:"Daily",weekly:"Weekly",monthly:"Monthly",quarterly:"Quarterly",annual:"Annual",alreadyDone:"Already done this period",
+    addAdmin:"Add Admin",makeAdmin:"Make Admin",removeAdmin:"Remove Admin",adminAccounts:"Admin Accounts",rootAdmin:"Root Admin",deleteAdmin:"Delete",userToAdmin:"User → Admin",edit:"Edit",teacherKPI:"Teacher KPI",parentKPI:"Parent PEI",tchrKpiEntry:"Teacher KPI Entry",parKpiEntry:"Parent PEI Entry",stdQuestions:"Student Questions",tchrQuestions:"Teacher Questions",parQuestions:"Parent Questions",entryHistory:"Entry History",noQForMonth:"No questions for this month",myTchrKPI:"My KPI",frequency:"Frequency",daily:"Daily",weekly:"Weekly",monthly:"Monthly",quarterly:"Quarterly",annual:"Annual",alreadyDone:"Already done this period",
   }
 };
