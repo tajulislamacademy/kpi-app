@@ -16,7 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useDbAccounts, setAdmin, setAdminPermissions, grantLogin, revokeLogin, resetPassword, deleteAccount, type Account } from "../api/accounts";
 import type { Dict, Lang, SessionUser } from "../types";
 
-const RES_LABEL: Record<string, [string, string]> = { students: ["শিক্ষার্থী", "Students"], teachers: ["শিক্ষক", "Teachers"], parents: ["অভিভাবক", "Parents"], questions: ["প্রশ্ন", "Questions"] };
+const RES_LABEL: Record<string, [string, string]> = { students: ["শিক্ষার্থী", "Students"], teachers: ["শিক্ষক", "Teachers"], parents: ["অভিভাবক", "Parents"], questions: ["প্রশ্ন", "Questions"], subjects: ["বিষয়/শাখা", "Subjects/Sections"] };
 const ACT_LABEL: Record<string, [string, string]> = { view: ["দেখা", "View"], create: ["তৈরি", "Create"], edit: ["সম্পাদনা", "Edit"], soft_delete: ["ট্র্যাশ", "Trash"], force_delete: ["স্থায়ী মুছা", "Delete"], restore: ["ফেরত", "Restore"] };
 const AREA_LABEL: Record<string, [string, string]> = { point_entry: ["পয়েন্ট এন্ট্রি", "Point entry"], teacher_kpi: ["শিক্ষক KPI", "Teacher KPI"], parent_kpi: ["অভিভাবক KPI", "Parent KPI"], "reports.view": ["রিপোর্ট", "Reports"], "settings.edit": ["সেটিংস", "Settings"], "accounts.manage": ["অ্যাকাউন্ট ম্যানেজ", "Manage accounts"], "admins.manage": ["অ্যাডমিন ব্যবস্থাপনা", "Manage admins"] };
 const PRESETS: Record<string, string[]> = {

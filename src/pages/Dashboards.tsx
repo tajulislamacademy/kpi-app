@@ -83,7 +83,7 @@ export function StudentDashboard({ t, lang, currentUser, selectedYear, setSelect
     <div className={PAGE}>
       <ErrorNote lang={lang} error={e2 || e3} />
       <div className={HEAD}>
-        <div><h2 className={TITLE}>{t.myKPI}</h2><p className={SUB}>{lang === "bn" ? `স্বাগতম, ${currentUser.name}` : `${t.welcome}, ${currentUser.name}`}</p><p className="text-xs text-muted-foreground">{currentUser.systemId}</p></div>
+        <div><h2 className={TITLE}>{t.myKPI}</h2><p className={SUB}>{lang === "bn" ? `স্বাগতম, ${currentUser.name}` : `${t.welcome}, ${currentUser.name}`}</p><p className="text-xs text-muted-foreground">{currentUser.systemId} · {t.class} {currentUser.class}{currentUser.section ? ` · ${t.section} ${currentUser.section}` : ""}{currentUser.roll ? ` · ${t.roll} ${currentUser.roll}` : ""}</p></div>
         <YearSelector lang={lang} selectedYear={selectedYear} setSelectedYear={setSelectedYear} availableYears={availableYears} />
       </div>
       <div className={GRID4}>

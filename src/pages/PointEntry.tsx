@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Pencil, RotateCcw } from "lucide-react";
 import { T } from "../i18n";
-import { MONTHS, CLASSES, SECTIONS, SUBJECTS } from "../constants";
+import { MONTHS, CLASSES } from "../constants";
 import { useIsMobile } from "../composables";
 import { getWeekNumber, inSamePeriod, errMsg, cn } from "../lib";
 import { Tabs, ErrorNote, Combobox, PeriodControls, Page } from "../components";
@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useDbStudents } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
+import { useDbSubjects } from "../api/subjects";
+import { useDbSections, sectionNamesFor } from "../api/sections";
 import { useDbQuestions } from "../api/questions";
 import { useStudentEntriesForStudents, useRecentStudentEntries, useKpiYears, insertEntries, updateEntryScore } from "../api/entries";
 import type { Dict, Lang, SessionUser, SubjectAssignment, StudentEntry } from "../types";
@@ -31,6 +33,8 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const { questions: allQuestions, error: e2 } = useDbQuestions(true);
   const questions = allQuestions.filter(q => q.category === "student");
   const { teachers, error: e3 } = useDbTeachers(true);
+  const { subjects } = useDbSubjects(true);
+  const { sections: dbSections } = useDbSections(true);
   const loadErr = e1 || e2 || e3;
   const [activeRole, setActiveRole] = useState("classTeacher");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
@@ -39,7 +43,7 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   // Admin scope picker (admins have no teaching assignment, so they choose any class/section/subject).
   const [adminClass, setAdminClass] = useState("8");
   const [adminSection, setAdminSection] = useState("A");
-  const [adminSubject, setAdminSubject] = useState<string>(SUBJECTS[0]);
+  const [adminSubject, setAdminSubject] = useState<string>("");
   const [allScores, setAllScores] = useState<Scores>({});
   const [editEntry, setEditEntry] = useState<StudentEntry | null>(null);
   const [editScore, setEditScore] = useState<number | string>("");
@@ -130,8 +134,8 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
         <Card>
           <CardContent className="flex flex-wrap items-end gap-3 pt-6">
             <div className="space-y-1.5"><Label>{t.class}</Label><Select value={adminClass} onValueChange={v => { setAdminClass(v); setAllScores({}); }}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
-            <div className="space-y-1.5"><Label>{t.section}</Label><Select value={adminSection} onValueChange={v => { setAdminSection(v); setAllScores({}); }}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
-            {activeRole === "subjectTeacher" && <div className="space-y-1.5"><Label>{lang === "bn" ? "বিষয়" : "Subject"}</Label><Select value={adminSubject} onValueChange={v => { setAdminSubject(v); setAllScores({}); }}><SelectTrigger className="min-w-40"><SelectValue /></SelectTrigger><SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>}
+            <div className="space-y-1.5"><Label>{t.section}</Label><Select value={adminSection} onValueChange={v => { setAdminSection(v); setAllScores({}); }}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{sectionNamesFor(dbSections, adminClass).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+            {activeRole === "subjectTeacher" && <div className="space-y-1.5"><Label>{lang === "bn" ? "বিষয়" : "Subject"}</Label><Select value={adminSubject} onValueChange={v => { setAdminSubject(v); setAllScores({}); }}><SelectTrigger className="min-w-40"><SelectValue placeholder={lang === "bn" ? "বিষয় বাছুন" : "Select"} /></SelectTrigger><SelectContent>{subjects.filter(s => s.class === adminClass && s.section === adminSection).map(s => <SelectItem key={s.id} value={s.nameBn}>{lang === "bn" ? s.nameBn : (s.nameEn || s.nameBn)}</SelectItem>)}</SelectContent></Select></div>}
           </CardContent>
         </Card>
       )}

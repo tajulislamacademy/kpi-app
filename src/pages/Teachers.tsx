@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, X, MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
-import { CLASSES, SECTIONS, SUBJECTS } from "../constants";
+import { CLASSES } from "../constants";
 import { errMsg, nextSystemId, genPassword } from "../lib";
 import { ConfirmDialog, ErrorNote, PasswordInput, Tabs, Page, ImportExport, type ImportExportConfig } from "../components";
 import { can } from "../permissions";
@@ -16,6 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useDbTeachers, createTeacher, updateTeacher, deleteTeacher, softDeleteTeacher, restoreTeacher } from "../api/teachers";
 import { useDbStudents } from "../api/students";
+import { useDbSubjects } from "../api/subjects";
+import { useDbSections, sectionNamesFor } from "../api/sections";
 import type { Dict, Lang, SessionUser, Teacher, ClassTeacher, SubjectAssignment } from "../types";
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
@@ -24,12 +26,14 @@ interface TForm { name: string; nameEn: string; password: string; classTeacher: 
 export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
   const { teachers, loading, error, reload } = useDbTeachers(true, true);
   const { students: dbStudents } = useDbStudents(true);
+  const { subjects: dbSubjects } = useDbSubjects(true);
+  const { sections: dbSections } = useDbSections(true);
   const [tab, setTab] = useState("active");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const blank: TForm = { name: "", nameEn: "", password: "", classTeacher: null, subjectAssignments: [], guideStudents: [] };
   const [form, setForm] = useState<TForm>(blank);
-  const [newAssign, setNewAssign] = useState<SubjectAssignment>({ class: "8", section: "A", subject: SUBJECTS[0] });
+  const [newAssign, setNewAssign] = useState<SubjectAssignment>({ class: "8", section: "A", subject: "" });
   const [hasClass, setHasClass] = useState(false);
   const [gcClass, setGcClass] = useState("8");
   const [gcSection, setGcSection] = useState("A");
@@ -52,7 +56,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
     create: async (row, systemId) => { const cls = (row.classTeacherClass || "").trim(); const sec = (row.classTeacherSection || "").trim(); await createTeacher({ systemId, name: row.name, nameEn: row.nameEn || "", password: row.password || "", classTeacher: cls ? { class: cls, section: sec } : null, subjectAssignments: [], guideStudents: [] }); },
   };
   const run = async (fn: () => Promise<void>, msg: string) => { try { await fn(); await reload(); showNotif(msg); } catch (e) { showNotif((lang === "bn" ? "ত্রুটি: " : "Error: ") + errMsg(e)); } };
-  const addAssign = () => { if (form.subjectAssignments.find(a => a.class === newAssign.class && a.section === newAssign.section && a.subject === newAssign.subject)) return; setForm({ ...form, subjectAssignments: [...form.subjectAssignments, { ...newAssign }] }); };
+  const addAssign = () => { if (!newAssign.subject) return; if (form.subjectAssignments.find(a => a.class === newAssign.class && a.section === newAssign.section && a.subject === newAssign.subject)) return; setForm({ ...form, subjectAssignments: [...form.subjectAssignments, { ...newAssign }] }); };
   const removeAssign = (i: number) => setForm({ ...form, subjectAssignments: form.subjectAssignments.filter((_, idx) => idx !== i) });
   const openAdd = () => { setEditId(null); setForm({ ...blank, password: genPassword() }); setHasClass(false); setShowForm(true); };
   const openEdit = (tc: Teacher) => { setEditId(tc.id); setForm({ name: tc.name || "", nameEn: tc.nameEn || "", password: "", classTeacher: tc.classTeacher || null, subjectAssignments: tc.subjectAssignments || [], guideStudents: tc.guideStudents || [], _authId: tc.authId, _systemId: tc.systemId }); setHasClass(!!tc.classTeacher); setShowForm(true); };
@@ -113,7 +117,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
               {hasClass && (
                 <div className="mt-3 flex gap-2">
                   <Select value={form.classTeacher?.class || "8"} onValueChange={v => setForm({ ...form, classTeacher: { class: v, section: form.classTeacher?.section || "A" } })}><SelectTrigger className="w-28"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
-                  <Select value={form.classTeacher?.section || "A"} onValueChange={v => setForm({ ...form, classTeacher: { class: form.classTeacher?.class || "8", section: v } })}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
+                  <Select value={form.classTeacher?.section || "A"} onValueChange={v => setForm({ ...form, classTeacher: { class: form.classTeacher?.class || "8", section: v } })}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{sectionNamesFor(dbSections, form.classTeacher?.class || "8").map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
                 </div>
               )}
             </div>
@@ -122,8 +126,8 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
               <div className="mb-3 text-sm font-bold text-foreground">{t.subjectAssignments}</div>
               <div className="mb-3 flex flex-wrap items-end gap-2">
                 <Select value={newAssign.class} onValueChange={v => setNewAssign({ ...newAssign, class: v })}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
-                <Select value={newAssign.section} onValueChange={v => setNewAssign({ ...newAssign, section: v })}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
-                <Select value={newAssign.subject} onValueChange={v => setNewAssign({ ...newAssign, subject: v })}><SelectTrigger className="min-w-36 flex-1"><SelectValue /></SelectTrigger><SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
+                <Select value={newAssign.section} onValueChange={v => setNewAssign({ ...newAssign, section: v })}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{sectionNamesFor(dbSections, newAssign.class).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
+                <Select value={newAssign.subject} onValueChange={v => setNewAssign({ ...newAssign, subject: v })}><SelectTrigger className="min-w-36 flex-1"><SelectValue placeholder={lang === "bn" ? "বিষয় বাছুন" : "Select subject"} /></SelectTrigger><SelectContent>{dbSubjects.filter(s => s.class === newAssign.class && s.section === newAssign.section).map(s => <SelectItem key={s.id} value={s.nameBn}>{lang === "bn" ? s.nameBn : (s.nameEn || s.nameBn)}</SelectItem>)}</SelectContent></Select>
                 <Button size="icon" aria-label={lang === "bn" ? "যোগ করুন" : "Add"} onClick={addAssign}><Plus className="h-4 w-4" /></Button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -140,7 +144,7 @@ export function TeachersPage({ t, lang, currentUser, showNotif }: Props) {
               <div className="text-sm font-bold text-foreground">{t.guideStudents}</div>
               <div className="flex flex-wrap items-end gap-2">
                 <div className="space-y-1.5"><Label className="text-xs">{t.class}</Label><Select value={gcClass} onValueChange={setGcClass}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
-                <div className="space-y-1.5"><Label className="text-xs">{t.section}</Label><Select value={gcSection} onValueChange={setGcSection}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+                <div className="space-y-1.5"><Label className="text-xs">{t.section}</Label><Select value={gcSection} onValueChange={setGcSection}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{sectionNamesFor(dbSections, gcClass).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
               </div>
               {(() => {
                 const list = dbStudents.filter(s => s.class === gcClass && s.section === gcSection);

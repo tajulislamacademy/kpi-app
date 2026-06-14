@@ -5,7 +5,7 @@ import { useDbParents } from "./api/parents";
 import { useDbTermConfig, updateTermConfig } from "./api/config";
 import { useLocalStorage } from "./composables";
 import { T } from "./i18n";
-import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, UserCog, Contact, BarChart3, ScrollText, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
+import { LayoutDashboard, ClipboardPen, Users, GraduationCap, ListChecks, BookOpen, UserCog, Contact, BarChart3, ScrollText, Award, UsersRound, Settings, TrendingUp, KeyRound } from "lucide-react";
 import { ErrorBoundary, Layout } from "./components";
 import { can } from "./permissions";
 import { AuthPage } from "./pages/Auth";
@@ -23,6 +23,7 @@ const KpiDetailsPage = lazy(() => import("./pages/KpiDetails").then(m => ({ defa
 const SettingsPage = lazy(() => import("./pages/Settings").then(m => ({ default: m.SettingsPage })));
 const PointEntryPage = lazy(() => import("./pages/PointEntry").then(m => ({ default: m.PointEntryPage })));
 const QuestionsPage = lazy(() => import("./pages/Questions").then(m => ({ default: m.QuestionsPage })));
+const SubjectsPage = lazy(() => import("./pages/Subjects").then(m => ({ default: m.SubjectsPage })));
 const StudentsPage = lazy(() => import("./pages/Students").then(m => ({ default: m.StudentsPage })));
 const TeachersPage = lazy(() => import("./pages/Teachers").then(m => ({ default: m.TeachersPage })));
 const ParentsPage = lazy(() => import("./pages/Parents").then(m => ({ default: m.ParentsPage })));
@@ -79,6 +80,7 @@ export default function App() {
     ...(c("students.view") ? [{ key: "students", icon: GraduationCap, label: t.students }] : []),
     ...(c("parents.view") ? [{ key: "parents", icon: Contact, label: `${lang === "bn" ? "অভিভাবক" : "Parents"}${pendingParents.length > 0 ? ` (${pendingParents.length})` : ""}` }] : []),
     ...(c("questions.view") ? [{ key: "questions", icon: ListChecks, label: t.questions }] : []),
+    ...(c("subjects.view") ? [{ key: "subjects", icon: BookOpen, label: lang === "bn" ? "শ্রেণি বিন্যাস" : "Class Setup" }] : []),
     ...(c("accounts.manage") ? [{ key: "accounts", icon: UserCog, label: t.accounts }] : []),
     { key: "reports", icon: BarChart3, label: t.reports },
     { key: "kpiDetails", icon: ScrollText, label: t.details },
@@ -104,6 +106,7 @@ export default function App() {
       {activeTab === "students" && c("students.view") && <StudentsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "parents" && c("parents.view") && <ParentsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "questions" && c("questions.view") && <QuestionsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
+      {activeTab === "subjects" && c("subjects.view") && <SubjectsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "accounts" && c("accounts.manage") && <AccountsPage t={t} lang={lang} currentUser={currentUser} showNotif={showNotif} />}
       {activeTab === "reports" && <ReportsPage t={t} lang={lang} termConfig={termConfig} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}
       {activeTab === "kpiDetails" && <KpiDetailsPage t={t} lang={lang} currentUser={currentUser} isAdmin={isAdmin} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />}

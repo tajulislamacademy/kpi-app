@@ -29,6 +29,10 @@ export interface Student extends Person {
 
 export interface ClassTeacher { class: string; section: string; }
 export interface SubjectAssignment { class: string; section: string; subject: string; }
+export interface Subject { id: string; nameBn: string; nameEn: string; class: string; section: string; }
+export interface SubjectInput { nameBn: string; nameEn: string; class: string; section: string; }
+export interface Section { id: string; class: string; name: string; label: string; }
+export interface SectionInput { class: string; name: string; label?: string; }
 
 export interface Teacher extends Person {
   classTeacher?: ClassTeacher | null;

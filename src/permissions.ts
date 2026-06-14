@@ -4,7 +4,7 @@
 // a promoted admin holds exactly profiles.permissions.
 import type { SessionUser } from "./types";
 
-export const RESOURCES = ["students", "teachers", "parents", "questions"] as const;
+export const RESOURCES = ["students", "teachers", "parents", "questions", "subjects"] as const;
 export const ACTIONS = ["view", "create", "edit", "soft_delete", "force_delete", "restore"] as const;
 export const AREAS = ["point_entry", "teacher_kpi", "parent_kpi", "reports.view", "settings.edit", "accounts.manage", "admins.manage"] as const;
 

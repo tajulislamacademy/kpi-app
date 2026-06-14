@@ -16,6 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useDbStudents, createStudent, updateStudent, deleteStudent, softDeleteStudent, restoreStudent } from "../api/students";
 import { useDbTeachers } from "../api/teachers";
 import { useDbParents } from "../api/parents";
+import { useDbSections, sectionNamesFor } from "../api/sections";
 import type { Dict, Lang, SessionUser, Student } from "../types";
 
 interface Props { t: Dict; lang: Lang; currentUser: SessionUser; showNotif: (msg: string) => void; }
@@ -24,6 +25,7 @@ interface SForm { name: string; nameEn: string; class: string; section: string; 
 export function StudentsPage({ t, lang, currentUser, showNotif }: Props) {
   const { students, loading, error, reload } = useDbStudents(true, true);
   const { teachers } = useDbTeachers(true);
+  const { sections: dbSections } = useDbSections(true);
   const { parents } = useDbParents(true);
   const [tab, setTab] = useState("active");
   const [showForm, setShowForm] = useState(false);
@@ -101,7 +103,7 @@ export function StudentsPage({ t, lang, currentUser, showNotif }: Props) {
               <div className="space-y-1.5"><Label>{t.name} (বাংলা)</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
               <div className="space-y-1.5"><Label>{t.name} (English)</Label><Input value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} /></div>
               <div className="space-y-1.5"><Label>{t.class}</Label><Select value={form.class} onValueChange={v => setForm({ ...form, class: v })}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{CLASSES.map(cl => <SelectItem key={cl} value={cl}>{cl}</SelectItem>)}</SelectContent></Select></div>
-              <div className="space-y-1.5"><Label>{t.section}</Label><Input value={form.section} onChange={e => setForm({ ...form, section: e.target.value })} placeholder="A, B..." /></div>
+              <div className="space-y-1.5"><Label>{t.section}</Label><Select value={form.section} onValueChange={v => setForm({ ...form, section: v })}><SelectTrigger className="w-24"><SelectValue placeholder={lang === "bn" ? "শাখা" : "Sec"} /></SelectTrigger><SelectContent>{sectionNamesFor(dbSections, form.class).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
               <div className="space-y-1.5"><Label>{t.roll}</Label><Input type="number" value={form.roll} onChange={e => setForm({ ...form, roll: e.target.value })} /></div>
               <div className="space-y-1.5"><Label>{editId ? (lang === "bn" ? "পাসওয়ার্ড" : "Password") : (t.defaultPass + " (login)")}</Label><PasswordInput value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder={pwPlaceholder} /></div>
             </div>
