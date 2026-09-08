@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { genId, getWeekNumber, freqDone, errMsg } from "./lib";
+import { genId, getWeekNumber, freqDone, studentFreqDone, errMsg } from "./lib";
 
 describe("genId", () => {
   it("formats prefix-year + 4-digit zero-padded sequence", () => {
@@ -32,6 +32,36 @@ describe("freqDone", () => {
   it("false for a different target or question", () => {
     expect(freqDone(entries, "t2", "q1", "monthly", "2026-06-20")).toBe(false);
     expect(freqDone(entries, "t1", "q2", "monthly", "2026-06-20")).toBe(false);
+  });
+});
+
+describe("studentFreqDone", () => {
+  // Same class+section taught by one teacher for two subjects => same students,
+  // same subjectTeacher question set. Only `subject` separates the entries.
+  const bangla = { studentId: "s1", questionId: "q1", date: "2026-06-10", year: 2026, month: 5, role: "subjectTeacher", subject: "বাংলা" };
+  const entries = [bangla];
+
+  it("blocks the same subject in the same period", () => {
+    expect(studentFreqDone(entries, "s1", "q1", "subjectTeacher", "বাংলা", "monthly", "2026-06-20")).toBe(true);
+  });
+  it("does NOT block a different subject for the same student/question/period", () => {
+    expect(studentFreqDone(entries, "s1", "q1", "subjectTeacher", "ইংরেজি", "monthly", "2026-06-20")).toBe(false);
+  });
+  it("does NOT block a different role", () => {
+    expect(studentFreqDone(entries, "s1", "q1", "classTeacher", "", "monthly", "2026-06-20")).toBe(false);
+  });
+  it("ignores subject for non-subjectTeacher roles", () => {
+    const ct = [{ ...bangla, role: "classTeacher", subject: "" }];
+    expect(studentFreqDone(ct, "s1", "q1", "classTeacher", "anything", "monthly", "2026-06-20")).toBe(true);
+  });
+  it("still respects the frequency period", () => {
+    expect(studentFreqDone(entries, "s1", "q1", "subjectTeacher", "বাংলা", "monthly", "2026-07-20")).toBe(false);
+    expect(studentFreqDone(entries, "s1", "q1", "subjectTeacher", "বাংলা", "daily", "2026-06-11")).toBe(false);
+  });
+  it("treats null/undefined subject as empty string", () => {
+    const legacy = [{ ...bangla, subject: null }];
+    expect(studentFreqDone(legacy, "s1", "q1", "subjectTeacher", "", "monthly", "2026-06-20")).toBe(true);
+    expect(studentFreqDone(legacy, "s1", "q1", "subjectTeacher", "বাংলা", "monthly", "2026-06-20")).toBe(false);
   });
 });
 

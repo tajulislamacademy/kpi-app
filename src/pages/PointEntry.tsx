@@ -3,7 +3,7 @@ import { Pencil, RotateCcw } from "lucide-react";
 import { T } from "../i18n";
 import { MONTHS, CLASSES } from "../constants";
 import { useIsMobile } from "../composables";
-import { getWeekNumber, inSamePeriod, errMsg, cn } from "../lib";
+import { getWeekNumber, studentFreqDone, errMsg, cn } from "../lib";
 import { Tabs, ErrorNote, Combobox, PeriodControls, Page } from "../components";
 import { teacherRoleBadge, teacherRoleLabel } from "../labels";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,11 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
   const { entries: histEntries, reload: reloadHist } = useRecentStudentEntries(isAdmin ? null : currentUser.id, 500);
   const reloadEntries = async () => { await reloadGrid(); await reloadHist(); };
   const weekDoneCheck = (sid: string) => gridEntries.some(e => e.studentId === sid && e.teacherId === currentUser.id && e.role === "guideTeacher" && getWeekNumber(e.date) === cw && new Date(e.date).getFullYear() === cy);
-  const isQFreqDone = (sid: string, qid: string) => { const q = questions.find(x => x.id === qid); return gridEntries.some(e => e.studentId === sid && e.questionId === qid && inSamePeriod(e, q?.frequency, selectedDate)); };
+  // Keyed by role + subject too: one teacher can hold several subject assignments
+  // in the same class+section, and those lessons share students AND the
+  // subjectTeacher question set. Without the subject the first lesson entered
+  // would mark every other lesson done (shows ✓, hides the input).
+  const isQFreqDone = (sid: string, qid: string) => studentFreqDone(gridEntries, sid, qid, activeRole, effAssign?.subject || "", questions.find(x => x.id === qid)?.frequency, selectedDate);
   const setScore = (sid: string, qid: string, val: string) => { const max = questions.find(q => q.id === qid)?.points || 0; setAllScores(p => ({ ...p, [sid]: { ...(p[sid] || {}), [qid]: Math.max(0, Math.min(parseInt(val, 10) || 0, max)) } })); };
   const getScore = (sid: string, qid: string): number | string => allScores[sid]?.[qid] ?? "";
   const getTotal = (sid: string) => roleQs.reduce((s, q) => s + (allScores[sid]?.[q.id] || 0), 0);
@@ -81,7 +85,10 @@ export function PointEntryPage({ t, lang, currentUser, showNotif, isAdmin }: Pro
       if (activeRole === "guideTeacher" && weekDoneCheck(s.id)) return;
       roleQs.forEach(q => {
         if (isQFreqDone(s.id, q.id)) return; // skip questions already entered for this period
-        rows.push({ target_type: "student", target_id: s.id, entered_by: currentUser.id, question_id: q.id, question_text: q.textBn, question_text_en: q.textEn, max_points: q.points, score: allScores[s.id]?.[q.id] || 0, role: activeRole, subject: effAssign?.subject || "", month: cm, year: cy, entry_date: selectedDate, edit_log: [] });
+        // subject is written for subjectTeacher rows ONLY — it is part of the
+        // dedup key (migration 0026), and an admin's scope picker keeps a stale
+        // subject selected after switching to the class/guide tab.
+        rows.push({ target_type: "student", target_id: s.id, entered_by: currentUser.id, question_id: q.id, question_text: q.textBn, question_text_en: q.textEn, max_points: q.points, score: allScores[s.id]?.[q.id] || 0, role: activeRole, subject: activeRole === "subjectTeacher" ? (effAssign?.subject || "") : "", month: cm, year: cy, entry_date: selectedDate, edit_log: [] });
       });
     });
     if (!rows.length) { showNotif(lang === "bn" ? "জমা দেওয়ার মতো কিছু নেই" : "Nothing to submit"); return; }

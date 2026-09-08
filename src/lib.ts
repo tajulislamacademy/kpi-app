@@ -58,3 +58,27 @@ export const inSamePeriod = (e: { date: string; year: number; month: number }, f
 // question's frequency period containing dateStr.
 export const freqDone = (entries: FreqEntry[], targetId: string, questionId: string, frequency: string | undefined, dateStr: string): boolean =>
   entries.some((e) => e.targetId === targetId && e.questionId === questionId && inSamePeriod(e, frequency, dateStr));
+
+// Minimal shape studentFreqDone reads off a student KPI entry.
+type StudentFreqEntry = { studentId: string; questionId: string | null; date: string; year: number; month: number; role?: string | null; subject?: string | null };
+
+// Student-side "already entered" check. Unlike freqDone it also keys off role
+// and subject: a teacher with two subject assignments in the SAME class+section
+// grades the SAME students against the SAME subjectTeacher question set, so the
+// first subject's entries must not mark the others done. subject only separates
+// subjectTeacher rows — classTeacher/guideTeacher entries carry no subject.
+export const studentFreqDone = (
+  entries: StudentFreqEntry[],
+  studentId: string,
+  questionId: string,
+  role: string,
+  subject: string,
+  frequency: string | undefined,
+  dateStr: string,
+): boolean =>
+  entries.some((e) =>
+    e.studentId === studentId
+    && e.questionId === questionId
+    && (e.role || "") === role
+    && (role !== "subjectTeacher" || (e.subject || "") === subject)
+    && inSamePeriod(e, frequency, dateStr));

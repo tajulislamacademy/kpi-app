@@ -24,13 +24,17 @@ const toUi = (r: any): StudentEntry => ({
 
 // rows must already be in db shape (snake_case columns). Upsert with
 // ignoreDuplicates so a double-submit hitting the (target_id, question_id,
-// entry_date) unique index (migration 0010) is a no-op for the dup row instead
-// of aborting the whole batch and losing every legitimate entry in it.
+// entry_date, role, subject) unique index (migration 0026) is a no-op for the
+// dup row instead of aborting the whole batch and losing every legitimate entry
+// in it. role/subject are part of the key so two subject lessons in the same
+// class+section on the same day stay distinct rows (they would otherwise be
+// silently dropped here). Requires 0026 applied — the arbiter columns must
+// match a real unique index or PostgREST rejects the whole request.
 export async function insertEntries(rows: Record<string, unknown>[]): Promise<void> {
   if (!rows.length) return;
   const { error } = await supabase
     .from("kpi_entries")
-    .upsert(rows, { onConflict: "target_id,question_id,entry_date", ignoreDuplicates: true });
+    .upsert(rows, { onConflict: "target_id,question_id,entry_date,role,subject", ignoreDuplicates: true });
   if (error) throw error;
 }
 
